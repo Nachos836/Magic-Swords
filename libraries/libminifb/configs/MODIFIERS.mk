@@ -18,7 +18,12 @@
 # Otherwise try "reset" or use whatever u want
 #
 
-CLEAR = clear && echo -en "\e[3J"
 
-COMPILE_OBJ_RULE += -DUSE_WAYLAND_API=ON
-COMPILE_APP_RULE += -DUSE_WAYLAND_API=ON
+ifeq ($(OS_DETECT),$(OS_OSX))
+	CLEAR := clear && printf "\e[3J"
+	COMPILE_OBJ_RULE += -DUSE_METAL_API=ON
+else ifeq ($(OS_DETECT),$(OS_LINUX))
+	CLEAR := clear && echo -en "\e[3J"
+	COMPILE_OBJ_RULE += -DUSE_WAYLAND_API=ON
+	COMPILE_APP_RULE += -DUSE_WAYLAND_API=ON
+endif

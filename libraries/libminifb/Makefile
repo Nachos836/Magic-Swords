@@ -31,6 +31,10 @@ $(OBJECTS_DIR)/%.o: $(SOURCES_DIR)/%.c | $$(@D)/.
 	@$(info [COMPILING]$(tab)$(subst $(SOURCES_DIR),,$<))
 	@$(PROJ_CC) $(COMPILE_OBJ_RULE) -c $< -o $@
 
+$(OBJECTS_DIR)/$(OS_OSX)/%.o: $(SOURCES_DIR)/$(OS_OSX)/%.m | $$(@D)/.
+	@$(info [COMPILING]$(tab)$(subst $(SOURCES_DIR),,$<))
+	@$(PROJ_CC) $(COMPILE_OBJ_RULE) -c $< -o $@
+
 ifdef CLEAR
 $(CLEAR):
 	@$(CLEAR)
@@ -46,9 +50,10 @@ STATUS:
 $(NAME):
 	@$(info [CREATING]	$@	[$(BUILD)-$(FLAG)])
 	@$(MAKE) -j $(OBJECTS) --no-print-directory
+	@$(MAKE) -j $(OBJC_OBJECTS) --no-print-directory
 	@$(MAKE) -q STATUS --no-print-directory
 ifeq ($(LIB_DETECT).a,$(NAME))
-	@ar rc $@ $(OBJECTS)
+	@ar rc $@ $(OBJECTS) $(OBJC_OBJECTS)
 	@ranlib $@
 else
 	@$(PROJ_CC) $(OBJECTS) $(COMPILE_APP_RULE) -o $@

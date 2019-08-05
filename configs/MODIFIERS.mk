@@ -19,11 +19,11 @@
 #
 ifeq ($(OS_DETECT),$(OS_LINUX))
 	CLEAR = clear && echo -en "\e[3J"
-	COMPILE_APP_RULE += -lwayland-client -lwayland-cursor
+	COMPILE_APP_RULE	+=	-lwayland-client -lwayland-cursor
 else ifeq ($(OS_DETECT),$(OS_OSX))
 	CLEAR = clear && printf "\e[3J"
-	COMPILE_APP_RULE += -framework metal -framework cocoa -framework metal-utils
+	COMPILE_APP_RULE	+=	-framework MetalKit -framework Metal -framework cocoa 
 else ifeq ($(OS_DETECT),$(OS_WINDOWS))
 	CLEAR = clean"
-	COMPILE_APP_RULE += -lgdi32
+	COMPILE_APP_RULE	+=	-lgdi32
 endif
