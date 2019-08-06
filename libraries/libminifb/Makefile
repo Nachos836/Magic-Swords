@@ -50,7 +50,9 @@ STATUS:
 $(NAME):
 	@$(info [CREATING]	$@	[$(BUILD)-$(FLAG)])
 	@$(MAKE) -j $(OBJECTS) --no-print-directory
+ifeq ($(OS_DETECT),$(OS_OSX))
 	@$(MAKE) -j $(OBJC_OBJECTS) --no-print-directory
+endif
 	@$(MAKE) -q STATUS --no-print-directory
 ifeq ($(LIB_DETECT).a,$(NAME))
 	@ar rc $@ $(OBJECTS) $(OBJC_OBJECTS)
