@@ -1,2 +1,0 @@
-# DoomNukem
-Raycasting based Game!
