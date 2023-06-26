@@ -1,12 +1,11 @@
-using MagicSwords.Features;
 using NaughtyAttributes;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using VContainer;
 using VContainer.Unity;
 
 namespace MagicSwords.DI.ApplicationEntry
 {
+    using Features.Miscellaneous;
     // using Dependencies;
     // using Prerequisites;
 
@@ -25,7 +24,7 @@ namespace MagicSwords.DI.ApplicationEntry
             builder.RegisterEntryPoint<EntryPoint>().WithParameter(_mainMenuScene);
             
             // builder.RegisterComponent(_mainMenuScene);
-            builder.Register<ISceneSwitcher, SceneSwitcher>(Lifetime.Scoped);
+            builder.Register<ISceneLoader, SceneLoader>(Lifetime.Scoped);
 
             // builder
             //     .AddApplicationEntry<ApplicationEntryPoint>(Default.GameplayScene)
