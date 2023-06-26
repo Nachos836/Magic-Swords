@@ -51,7 +51,6 @@ namespace MagicSwords.Features.Input.PlayerDriven
         IUniTaskAsyncDisposable IMovementInputSubscriptionAsync.SubscribeAsync<TState>(Func<InputAction.CallbackContext, CancellationToken, UniTaskVoid> callback, CancellationToken cancellation)
         {
             return new TState().SubscribeAsync(_playerMovement, callback, cancellation);
-            throw new NotImplementedException();
         }
 
         private static async UniTaskVoid InputFetchLoopAsync(CancellationToken cancellation = default)
