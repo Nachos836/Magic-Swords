@@ -5,33 +5,23 @@ using VContainer.Unity;
 
 namespace MagicSwords.DI.ApplicationEntry
 {
-    using Features.Miscellaneous;
-    // using Dependencies;
-    // using Prerequisites;
+    using Dependencies;
+    using Prerequisites;
 
     internal sealed class ApplicationEntryScope : LifetimeScope
     {
-        // [field: SerializeField]
-        // [field: ValidateInput(nameof(DefaultsValidation.ConfigIsProvided))]
-        // private Defaults Default { get; set; }
-
-        [Scene, SerializeField] private int _mainMenuScene; 
+        [field: SerializeField]
+        [field: ValidateInput(nameof(DefaultsValidation.ConfigIsProvided))]
+        private Defaults Default { get; set; }
 
         protected override void Configure(IContainerBuilder builder)
         {
             base.Configure(builder);
-            
-            builder.RegisterEntryPoint<EntryPoint>().WithParameter(_mainMenuScene);
-            
-            // builder.RegisterComponent(_mainMenuScene);
-            builder.Register<ISceneLoader, SceneLoader>(Lifetime.Scoped);
 
-            // builder
-            //     .AddApplicationEntry<ApplicationEntryPoint>(Default.GameplayScene)
-            //     .AddMessagePipeFeature(out var messagePipeOptions)
-            //     .AddPlayerInputFeature(messagePipeOptions)
-            //     .AddEnemiesSpawnFeature(Default.EnemiesConfig)
-            //     .AddTimeProviderFeature(Default.TimeConfig);
+            builder
+                .AddApplicationEntry<EntryPoint>(Default.MainMenuScene)
+                .AddMessagePipeFeature(out var messagePipeOptions)
+                .AddSceneLoaderFeature();
         }
     }
 }
