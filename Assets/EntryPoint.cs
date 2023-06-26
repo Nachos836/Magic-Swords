@@ -21,7 +21,7 @@ namespace MagicSwords
         async UniTask IAsyncStartable.StartAsync(CancellationToken cancellation)
         {
             UnityEngine.Debug.Log("Ура, мы начали проект!!!");
-            
+
             await _sceneLoader.LoadAlongsideAsync(_mainMenu, cancellation);
         }
 
