@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
+  m_IndirectSpecularColor: {r: 0.12731707, g: 0.13414727, b: 0.12107861, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -771,11 +771,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7107654323105639296, guid: 24dd3c148dcff6149afdf0de7082b223,
-        type: 3}
-      propertyPath: parentReference.TypeName
-      value: MagicSwords.DI.ApplicationEntry.ApplicationEntryScope
       objectReference: {fileID: 0}
     - target: {fileID: 8313933710751375480, guid: 24dd3c148dcff6149afdf0de7082b223,
         type: 3}
