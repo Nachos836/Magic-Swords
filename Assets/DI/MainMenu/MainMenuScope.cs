@@ -1,3 +1,5 @@
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using VContainer;
 using VContainer.Unity;
 
@@ -9,7 +11,17 @@ namespace MagicSwords.DI.MainMenu
         {
             base.Configure(builder);
 
+            builder.RegisterEntryPoint<MainMenuEntry>();
+        }
+    }
+
+    internal sealed class MainMenuEntry : IAsyncStartable
+    {
+        UniTask IAsyncStartable.StartAsync(CancellationToken cancellation)
+        {
             UnityEngine.Debug.Log("Вот наше главное меню!");
+
+            return UniTask.CompletedTask;
         }
     }
 }
