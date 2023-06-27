@@ -3,7 +3,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace MagicSwords.Features.Miscellaneous
+namespace MagicSwords.Features.Editor
 {
     internal static class PlayFromTheFirstScene
     {
