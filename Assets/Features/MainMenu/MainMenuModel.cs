@@ -1,5 +1,4 @@
 using UnityEditor;
-using UnityEngine;
 using UnityEngine.SceneManagement;
 using ZBase.Foundation.Mvvm.ComponentModel;
 
@@ -9,14 +8,11 @@ namespace MagicSwords.Features.MainMenu
     {
         public void ApplicationExitHandler(in PropertyChangeEventArgs args)
         {
-            if (Application.isEditor)
-            {
-                EditorApplication.ExitPlaymode();
-            }
-            else
-            {
-                Application.Quit();
-            }
+#       if UNITY_EDITOR
+            EditorApplication.ExitPlaymode();
+#       else
+            Application.Quit();
+#       endif
         }
 
         public void ApplicationRestartHandler(in PropertyChangeEventArgs args)

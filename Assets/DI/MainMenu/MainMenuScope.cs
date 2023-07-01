@@ -26,7 +26,7 @@ namespace MagicSwords.DI.MainMenu
     {
         UniTask IAsyncStartable.StartAsync(CancellationToken cancellation)
         {
-            UnityEngine.Debug.Log("Вот наше главное меню!");
+            Debug.Log("Вот наше главное меню!");
 
             return UniTask.CompletedTask;
         }
