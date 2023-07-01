@@ -419,7 +419,7 @@ MonoBehaviour:
   _context: {fileID: 3805406980871110238}
   _targets: []
   _bindingCommandForOnClick:
-    <TargetCommandName>k__BackingField: 
+    <TargetCommandName>k__BackingField: OnSetRestartCommand
 --- !u!1 &4894442560826334923
 GameObject:
   m_ObjectHideFlags: 0
@@ -1130,7 +1130,7 @@ RectTransform:
   m_Children:
   - {fileID: 6585943069383578646}
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
