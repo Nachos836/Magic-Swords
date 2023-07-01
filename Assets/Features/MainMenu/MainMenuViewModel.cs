@@ -1,4 +1,5 @@
 using UnityEngine;
+using VContainer;
 using ZBase.Foundation.Mvvm.ComponentModel;
 using ZBase.Foundation.Mvvm.Input;
 
@@ -7,17 +8,27 @@ namespace MagicSwords.Features.MainMenu
     internal partial class MainMenuViewModel : MonoBehaviour, IObservableObject
     {
         [ObservableProperty] private bool _playing;
+        [ObservableProperty] private bool _exitNeeded;
+        [ObservableProperty] private bool _restartNeeded;
 
-        [RelayCommand]
-        private void OnSetPlayState()
+        private MainMenuModel _model;
+
+        [Inject] internal void Construct(MainMenuModel model) => _model = model;
+
+        private void OnEnable()
         {
-            Playing = !Playing;
+            _onChangedExitNeeded += _model.ApplicationExitHandler;
+            _onChangedRestartNeeded += _model.ApplicationRestartHandler;
         }
-        
-        [RelayCommand]
-        private void OnSetExit()
+
+        private void OnDisable()
         {
-            Application.Quit();
+            _onChangedExitNeeded -= _model.ApplicationExitHandler;
+            _onChangedRestartNeeded -= _model.ApplicationRestartHandler;
         }
+
+        [RelayCommand] private void OnSetPlayState() => Playing = !Playing;
+        [RelayCommand] private void OnSetExit() => ExitNeeded = !ExitNeeded;
+        [RelayCommand] private void OnSetRestart() => RestartNeeded = !RestartNeeded;
     }
 }
