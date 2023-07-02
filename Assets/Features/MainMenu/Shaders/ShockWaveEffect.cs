@@ -32,8 +32,7 @@ namespace MagicSwords.Features.MainMenu.Shaders
                         .SuppressCancellationThrow();
 
                     await Routine((-0.1f, 1f))
-                        .WithCancellation(cancellation)
-                        .SuppressCancellationThrow();
+                        .ToUniTask(this);
 
                     await UniTask.Yield(PlayerLoopTiming.FixedUpdate, cancellation)
                         .SuppressCancellationThrow();
