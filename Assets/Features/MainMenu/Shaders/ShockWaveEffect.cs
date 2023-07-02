@@ -1,4 +1,4 @@
-using System;
+using System.Collections;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -7,42 +7,54 @@ namespace MagicSwords.Features.MainMenu.Shaders
 {
     internal sealed class ShockWaveEffect : MonoBehaviour
     {
+        private static readonly WaitForFixedUpdate FixedUpdate = new ();
         private static readonly int DistanceFromCenter = Shader.PropertyToID("_DistanceFromCenter");
+        private static readonly int RingSpawnPosition = Shader.PropertyToID("_RingSpawnPosition");
 
+        [SerializeField] private int _delay = 5;
         [SerializeField] private float _duration = 0.75f;
         [SerializeField] private Material _material;
+        [SerializeField] private RectTransform _startPosition;
 
-        private async void Start()
+        private void Start()
         {
-            await RoutineAsync(-0.1f, 1f, destroyCancellationToken);
-        }
+            var position = (_startPosition.anchorMax + _startPosition.anchorMin) / 2;
 
-        // private async void FixedUpdate()
-        // {
-        //     await RoutineAsync(-0.1f, 1f, destroyCancellationToken);
-        // }
+            _material.SetVector(RingSpawnPosition, position);
 
-        private async UniTask RoutineAsync(float startPosition, float endPosition, CancellationToken cancellation = default)
-        {
-            while (destroyCancellationToken.IsCancellationRequested is false)
+            EffectLoop(destroyCancellationToken).Forget();
+
+            async UniTaskVoid EffectLoop(CancellationToken cancellation = default)
             {
-                _material.SetFloat(DistanceFromCenter, startPosition);
-
-                var elapsedTime = 0f;
-
-                while (elapsedTime < _duration || cancellation.IsCancellationRequested is false)
+                while (destroyCancellationToken.IsCancellationRequested is false)
                 {
-                    elapsedTime += Time.fixedDeltaTime;
+                    await UniTask.Delay(_delay * 1000, DelayType.Realtime, PlayerLoopTiming.FixedUpdate, cancellation)
+                        .SuppressCancellationThrow();
 
-                    var amount = Mathf.Lerp(startPosition, endPosition, (elapsedTime / _duration));
-                    _material.SetFloat(DistanceFromCenter, amount);
+                    await Routine((-0.1f, 1f))
+                        .WithCancellation(cancellation)
+                        .SuppressCancellationThrow();
 
                     await UniTask.Yield(PlayerLoopTiming.FixedUpdate, cancellation)
                         .SuppressCancellationThrow();
                 }
-                
-                await UniTask.Yield(PlayerLoopTiming.FixedUpdate, cancellation)
-                    .SuppressCancellationThrow();
+            }
+        }
+
+        private IEnumerator Routine((float start, float end) position)
+        {
+            _material.SetFloat(DistanceFromCenter, position.start);
+
+            var elapsedTime = 0f;
+
+            while (elapsedTime < _duration)
+            {
+                elapsedTime += Time.fixedDeltaTime;
+
+                var amount = Mathf.Lerp(position.start, position.end, elapsedTime / _duration);
+                _material.SetFloat(DistanceFromCenter, amount);
+
+                yield return FixedUpdate;
             }
         }
     }
