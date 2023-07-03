@@ -625,6 +625,21 @@ PrefabInstance:
       propertyPath: m_Name
       value: pref_ctrl.view.mainMenu_01
       objectReference: {fileID: 0}
+    - target: {fileID: 7534873787718132355, guid: bce3acc599c03dd46a26a1700b651632,
+        type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7534873787718132355, guid: bce3acc599c03dd46a26a1700b651632,
+        type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7534873787718132355, guid: bce3acc599c03dd46a26a1700b651632,
+        type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8486942482637812775, guid: bce3acc599c03dd46a26a1700b651632,
         type: 3}
       propertyPath: m_AnchorMax.y
