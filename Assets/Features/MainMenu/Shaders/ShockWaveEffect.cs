@@ -3,11 +3,14 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
+using static Cysharp.Threading.Tasks.DelayType;
+using static Cysharp.Threading.Tasks.PlayerLoopTiming;
+
 namespace MagicSwords.Features.MainMenu.Shaders
 {
     internal sealed class ShockWaveEffect : MonoBehaviour
     {
-        private static readonly WaitForFixedUpdate FixedUpdate = new ();
+        private static readonly WaitForFixedUpdate WaitForFixedUpdate = new ();
         private static readonly int DistanceFromCenter = Shader.PropertyToID("_DistanceFromCenter");
         private static readonly int RingSpawnPosition = Shader.PropertyToID("_RingSpawnPosition");
 
@@ -28,13 +31,13 @@ namespace MagicSwords.Features.MainMenu.Shaders
             {
                 while (destroyCancellationToken.IsCancellationRequested is false)
                 {
-                    await UniTask.Delay(_delay * 1000, DelayType.Realtime, PlayerLoopTiming.FixedUpdate, cancellation)
+                    await UniTask.Delay(_delay * 1000, Realtime, FixedUpdate, cancellation)
                         .SuppressCancellationThrow();
 
                     await Routine((-0.1f, 1f))
-                        .ToUniTask(this);
+                        .ToUniTask(FixedUpdate, cancellationToken: cancellation);
 
-                    await UniTask.Yield(PlayerLoopTiming.FixedUpdate, cancellation)
+                    await UniTask.Yield(FixedUpdate, cancellation)
                         .SuppressCancellationThrow();
                 }
             }
@@ -53,7 +56,7 @@ namespace MagicSwords.Features.MainMenu.Shaders
                 var amount = Mathf.Lerp(position.start, position.end, elapsedTime / _duration);
                 _material.SetFloat(DistanceFromCenter, amount);
 
-                yield return FixedUpdate;
+                yield return WaitForFixedUpdate;
             }
         }
     }
