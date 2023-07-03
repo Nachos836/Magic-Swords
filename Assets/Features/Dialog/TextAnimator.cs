@@ -1,7 +1,9 @@
 using System;
-using System.Collections;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using static System.Threading.CancellationTokenSource;
 
 namespace MagicSwords.Features.Dialog
 {
@@ -11,24 +13,43 @@ namespace MagicSwords.Features.Dialog
         [SerializeField] private float _delay = 0.1f;
         [SerializeField] private string[] _monologue;
 
-        private IEnumerator Start()
+        private int _current;
+        private CancellationTokenSource _buttonPressed;
+
+        private async void Start()
         {
-            yield return TypingStart(0);
-            yield return TypingStart(1);
+            _buttonPressed = CreateLinkedTokenSource(destroyCancellationToken);
+
+            await TypingStartAsync(_current, _buttonPressed.Token);
         }
 
-        private IEnumerator ShowText(string currentText)
+        public async void NextText()
         {
-            for (var i = 0; i < currentText.Length; i++)
+            _buttonPressed.Cancel();
+            _current++;
+            for (; _current < _monologue.Length; _current++)
             {
-                _text.text = currentText[..i];
-                yield return new WaitForSeconds(_delay);
+                _buttonPressed = CreateLinkedTokenSource(destroyCancellationToken);
+
+                await TypingStartAsync(_current, _buttonPressed.Token);
             }
         }
 
-        private IEnumerator TypingStart(int index)
+        private async UniTask ShowTextAsync(string currentText,CancellationToken cancellation = default)
         {
-            return ShowText(_monologue[index]);
+            for (var i = 0; i < currentText.Length; i++)
+            {
+                if (cancellation.IsCancellationRequested) return;
+                
+                _text.text = currentText[..i];
+                await UniTask.Delay(TimeSpan.FromSeconds(_delay), cancellationToken: cancellation);
+                await UniTask.Yield();
+            }
+        }
+
+        private UniTask TypingStartAsync(int index,CancellationToken cancellation = default)
+        {
+            return ShowTextAsync(_monologue[index], cancellation);
         }
     }
 }
