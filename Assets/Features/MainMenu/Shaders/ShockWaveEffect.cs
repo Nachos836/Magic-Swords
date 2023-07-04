@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -10,7 +9,6 @@ namespace MagicSwords.Features.MainMenu.Shaders
 {
     internal sealed class ShockWaveEffect : MonoBehaviour
     {
-        private static readonly WaitForFixedUpdate WaitForFixedUpdate = new ();
         private static readonly int DistanceFromCenter = Shader.PropertyToID("_DistanceFromCenter");
         private static readonly int RingSpawnPosition = Shader.PropertyToID("_RingSpawnPosition");
 
@@ -19,23 +17,22 @@ namespace MagicSwords.Features.MainMenu.Shaders
         [SerializeField] private Material _material;
         [SerializeField] private RectTransform _startPosition;
 
-        private void Start()
+        private async UniTaskVoid Start()
         {
             var position = (_startPosition.anchorMax + _startPosition.anchorMin) / 2;
 
             _material.SetVector(RingSpawnPosition, position);
 
-            EffectLoop(destroyCancellationToken).Forget();
+            await EffectLoop(destroyCancellationToken);
 
-            async UniTaskVoid EffectLoop(CancellationToken cancellation = default)
+            async UniTask EffectLoop(CancellationToken cancellation = default)
             {
                 while (destroyCancellationToken.IsCancellationRequested is false)
                 {
                     await UniTask.Delay(_delay * 1000, Realtime, FixedUpdate, cancellation)
                         .SuppressCancellationThrow();
 
-                    await Routine((-0.1f, 1f))
-                        .ToUniTask(FixedUpdate, cancellationToken: cancellation);
+                    await RoutineAsync((-0.1f, 1f), cancellation);
 
                     await UniTask.Yield(FixedUpdate, cancellation)
                         .SuppressCancellationThrow();
@@ -43,20 +40,23 @@ namespace MagicSwords.Features.MainMenu.Shaders
             }
         }
 
-        private IEnumerator Routine((float start, float end) position)
+        private async UniTask RoutineAsync((float start, float end) position, CancellationToken cancellation = default)
         {
+            if (cancellation.IsCancellationRequested) return;
+
             _material.SetFloat(DistanceFromCenter, position.start);
 
             var elapsedTime = 0f;
 
-            while (elapsedTime < _duration)
+            while (elapsedTime < _duration && cancellation.IsCancellationRequested is false)
             {
                 elapsedTime += Time.fixedDeltaTime;
 
                 var amount = Mathf.Lerp(position.start, position.end, elapsedTime / _duration);
                 _material.SetFloat(DistanceFromCenter, amount);
 
-                yield return WaitForFixedUpdate;
+                await UniTask.Yield(FixedUpdate, cancellation)
+                    .SuppressCancellationThrow();
             }
         }
     }
