@@ -12,7 +12,7 @@ namespace MagicSwords.Features.Editor
 {
     internal sealed class LinkerGenerator : IPreprocessBuildWithReport
     {
-        private const string SourcesFolder = "/";// + nameof(DI) + "/";
+        private const string SourcesFolder = "/"+ nameof(Features) + "/";
 
         public int callbackOrder { get; }
 
@@ -66,11 +66,7 @@ namespace MagicSwords.Features.Editor
     {
         public static IEnumerable<TItem> Concat<TItem>(this IEnumerable<TItem> enumerable, TItem item)
         {
-            // enumerable.Append()
-            
             return enumerable.Concat(new[] { item });
-
-            // return enumerable.Append(item);
         }
     }
 }
