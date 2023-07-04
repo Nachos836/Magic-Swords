@@ -2,9 +2,9 @@
 using System.Linq;
 using UnityEngine.SceneManagement;
 
-namespace MagicSwords.Features.Generic.Utilities
+namespace MagicSwords.Features.Editor
 {
-    public static class EditorSceneManagerUtility
+    internal static class EditorSceneManagerUtility
     {
         public static IQueryable<Scene> GetAllScenes
         {

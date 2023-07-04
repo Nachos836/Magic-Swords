@@ -6,9 +6,7 @@ using UnityEngine.SceneManagement;
 
 namespace MagicSwords.Features.Editor
 {
-    using Generic.Utilities;
-
-    public static class PlayFromTheFirstScene
+    internal static class PlayFromTheFirstScene
     {
         private static string EditModeScenesKey { get; } = $"{nameof(PlayFromTheFirstScene)}.{nameof(EditModeScenes)}";
 
