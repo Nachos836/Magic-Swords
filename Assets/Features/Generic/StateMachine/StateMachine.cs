@@ -37,14 +37,14 @@ namespace MagicSwords.Features.Generic.StateMachine
 
             activeDefinition = _transitions[transitionDefinition];
 
-            if (_activeState.State is IState.IExitable exit)
+            if (_activeState.State is IState.IWithExitAction exit)
             {
                 await exit.OnExitAsync(cancellation);
             }
 
             _activeState = (activeDefinition, activeDefinition?.CreateState());
 
-            if (_activeState.State is IState.IEnterable enter)
+            if (_activeState.State is IState.IWithEnterAction enter)
             {
                 await enter.OnEnterAsync(cancellation);
             }
@@ -61,7 +61,7 @@ namespace MagicSwords.Features.Generic.StateMachine
         {
             var type1 = typeof(TState1);
             var type2 = typeof(TState2);
-            
+
             Assert.IsTrue(_states.ContainsKey(type1), $"State of type { type1 } is not defined");
             Assert.IsTrue(_states.ContainsKey(type2), $"State of type { type2 } is not defined");
 
@@ -76,7 +76,7 @@ namespace MagicSwords.Features.Generic.StateMachine
 
             _transitions[(null, trigger)] = _states[type];
         }
-        
+
         private interface IStateDefinition
         {
             Type Type { get; }

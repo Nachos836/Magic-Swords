@@ -5,12 +5,12 @@ namespace MagicSwords.Features.Generic.StateMachine
 {
     internal interface IState
     {
-        internal interface IEnterable
+        internal interface IWithEnterAction
         {
             UniTask OnEnterAsync(CancellationToken cancellation = default);
         }
 
-        internal interface IExitable
+        internal interface IWithExitAction
         {
             UniTask OnExitAsync(CancellationToken cancellation = default);
         }

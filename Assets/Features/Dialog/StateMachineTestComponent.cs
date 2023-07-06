@@ -24,9 +24,9 @@ namespace MagicSwords.Features.Dialog
         }
     }
 
-    internal class State1 : IState, IState.IEnterable
+    internal sealed class State1 : IState, IState.IWithEnterAction
     {
-        UniTask IState.IEnterable.OnEnterAsync(CancellationToken cancellation)
+        UniTask IState.IWithEnterAction.OnEnterAsync(CancellationToken cancellation)
         {
             Debug.Log($"Привет, мы вошли в {nameof(State1)}");
 
@@ -34,9 +34,9 @@ namespace MagicSwords.Features.Dialog
         }
     }
 
-    internal class State2 : IState, IState.IExitable
+    internal sealed class State2 : IState, IState.IWithExitAction
     {
-        UniTask IState.IExitable.OnExitAsync(CancellationToken cancellation)
+        UniTask IState.IWithExitAction.OnExitAsync(CancellationToken cancellation)
         {
             Debug.Log($"Пока, мы покидаем {nameof(State2)}");
 
