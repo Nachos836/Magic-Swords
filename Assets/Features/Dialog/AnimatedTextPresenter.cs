@@ -1,6 +1,8 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using MagicSwords.Features.Generic.StateMachine;
+using MagicSwords.Features.MainMenu.DisplayText;
 using TMPro;
 using UnityEngine;
 
@@ -14,42 +16,45 @@ namespace MagicSwords.Features.Dialog
         [SerializeField] private float _delay = 0.1f;
         [SerializeField] private string[] _monologue;
 
+        private readonly StateMachine2 _stateMachine = new ();
         private bool _segueEnded;
         private int _current;
         private CancellationTokenSource _buttonPressed;
+        private abstract class Arrow<TFrom,TTo> where TFrom : IState where TTo : IState{}
+        private void Awake()
+        {
+            var autoPrint = new AutoPrint(_monologue[0],_text,_delay);
+            var downMouse = new DownMouse();
+            var endText = new EndText();
+            var nextSegment = new NextSegment();
+            var wait = new Wait();
 
-        private async void Start()
+            _stateMachine.AddTransition<Arrow<AutoPrint,DownMouse>>(autoPrint,downMouse);
+            _stateMachine.AddTransition<Arrow<AutoPrint,EndText>>(autoPrint,endText);
+            _stateMachine.AddTransition<Arrow<DownMouse,Wait>>(downMouse,wait);
+            _stateMachine.AddTransition<Arrow<DownMouse,NextSegment>>(downMouse,nextSegment);
+            _stateMachine.AddTransition<Arrow<Wait,EndText>>(wait,endText);
+            _stateMachine.AddTransition<Arrow<NextSegment,EndText>>(nextSegment,endText);
+        }
+
+        private void Start()
         {
             _buttonPressed = CreateLinkedTokenSource(destroyCancellationToken);
-
-            await TypingStartAsync(_current, _buttonPressed.Token);
         }
 
         public async void NextText()
         {
-            if (_segueEnded) return;
+            await _stateMachine.TransitAsync<Arrow<AutoPrint, DownMouse>>();
 
-            if (_current >= _monologue.Length)
-            {
-                await PerformOnTheLastSegmentAsync(destroyCancellationToken);
+            await _stateMachine.TransitAsync<Arrow<DownMouse, NextSegment>>();
+            
+            await _stateMachine.TransitAsync<Arrow<DownMouse,Wait>>();
+        }
 
-                _segueEnded = true;
-
-                return;
-            }
-
-            _buttonPressed.Cancel();
-
-            _current++;
-            for (; _current < _monologue.Length; _current++)
-            {
-                _buttonPressed.Dispose();
-                _buttonPressed = CreateLinkedTokenSource(destroyCancellationToken);
-
-                await TypingStartAsync(_current, _buttonPressed.Token);
-            }
-
-            _buttonPressed.Dispose();
+        public async void StopPrint()
+        {
+            await _stateMachine.TransitAsync<Arrow<Wait, EndText>>();
+            await _stateMachine.TransitAsync<Arrow<NextSegment, EndText>>();
         }
 
         private UniTask TypingStartAsync(int index, CancellationToken cancellation = default)
