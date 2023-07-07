@@ -42,7 +42,7 @@ namespace MagicSwords.Features.Generic.StateMachine
                 await exit.OnExitAsync(cancellation);
             }
 
-            _activeState = (activeDefinition, activeDefinition?.CreateState());
+            _activeState = (activeDefinition, activeDefinition.CreateState());
 
             if (_activeState.State is IState.IWithEnterAction enter)
             {
