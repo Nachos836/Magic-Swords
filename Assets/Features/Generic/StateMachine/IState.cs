@@ -16,8 +16,5 @@ namespace MagicSwords.Features.Generic.StateMachine
         }
     }
 
-    internal sealed class InitialState : IState
-    {
-        
-    }
+    internal sealed class InitialState : IState { }
 }
