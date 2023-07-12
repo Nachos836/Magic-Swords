@@ -16,7 +16,7 @@ namespace MagicSwords.DI.Dialog.Dependencies
             this IContainerBuilder builder,
             AnimatedTextPresenter presenter,
             TextMeshProUGUI field,
-            float delay,
+            TimeSpan delay,
             string[] monologue
         ) {
             builder.Register(resolver =>
@@ -25,7 +25,7 @@ namespace MagicSwords.DI.Dialog.Dependencies
                 {
                     scopeResolver.Register<Setup>(Lifetime.Transient)
                         .WithParameter(field)
-                        .WithParameter(delay)
+                        .WithParameter((float) delay.TotalMilliseconds)
                         .WithParameter(monologue)
                         .AsSelf();
 
