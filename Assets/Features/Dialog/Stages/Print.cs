@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using MagicSwords.Features.Generic.Functional;
 using TMPro;
 
 using static System.Threading.CancellationTokenSource;
@@ -11,23 +10,26 @@ using static Cysharp.Threading.Tasks.PlayerLoopTiming;
 namespace MagicSwords.Features.Dialog.Stages
 {
     using Generic.Sequencer;
+    using Payload;
 
-    using Option = OneOf
+    using Option = Generic.Functional.OneOf
     <
         Generic.Sequencer.IStage,
         Generic.Sequencer.Stage.Canceled,
         Generic.Sequencer.Stage.Errored
     >;
 
-    internal sealed class AutoPrint : IStage, IStage.IProcess
+    public sealed class Print : IStage, IStage.IProcess
     {
-        private readonly string _text;
+        private readonly Func<Message, IStage> _resolveNext;
+        private readonly Message _message;
         private readonly TextMeshProUGUI _field;
         private readonly TimeSpan _delay;
 
-        public AutoPrint(string text, TextMeshProUGUI field, TimeSpan delay)
+        public Print(Func<Message, IStage> resolveFetch, Message message, TextMeshProUGUI field, TimeSpan delay)
         {
-            _text = text;
+            _resolveNext = resolveFetch;
+            _message = message;
             _field = field;
             _delay = delay;
         }
@@ -37,25 +39,27 @@ namespace MagicSwords.Features.Dialog.Stages
             var displaying = CreateLinkedTokenSource(cancellation);
             cancellation = displaying.Token;
 
-            await foreach (var _ in EveryUpdate(FixedUpdate).TakeUntilCanceled(cancellation).WithCancellation(cancellation))
+            await foreach (var _ in EveryUpdate(EarlyUpdate).TakeUntilCanceled(cancellation).WithCancellation(cancellation))
             {
-                for (var i = 0; i < _text.Length; i++)
+                var message = _message.Part;
+
+                for (var i = 0; i < message.Length; i++)
                 {
                     if (cancellation.IsCancellationRequested) return Option.From(Stage.Cancel);
 
-                    _field.text = _text[..i];
+                    _field.text = message[..i];
 
-                    if (await UniTask.Delay(_delay, ignoreTimeScale: false, FixedUpdate, cancellation)
+                    if (await UniTask.Delay(_delay, ignoreTimeScale: true, EarlyUpdate, cancellation)
                         .SuppressCancellationThrow()) return Option.From(Stage.Cancel);
 
-                    if (await UniTask.Yield(FixedUpdate, cancellation)
+                    if (await UniTask.Yield(EarlyUpdate, cancellation)
                         .SuppressCancellationThrow()) return Option.From(Stage.Cancel);
                 }
 
                 displaying.Cancel();
             }
 
-            return Option.From(Stage.End);
+            return Option.From(_resolveNext.Invoke(_message));
         }
     }
 }
