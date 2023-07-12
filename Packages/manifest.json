@@ -44,7 +44,8 @@
     "com.unity.modules.wind": "1.0.0",
     "com.unity.modules.xr": "1.0.0",
     "com.dbrizov.naughtyattributes": "2.1.4",
-    "com.zbase.foundation.mvvm": "1.0.6"
+    "com.zbase.foundation.mvvm": "1.0.6",
+    "com.quabug.any-serialize": "0.5.0"
   },
   "scopedRegistries": [
     {
@@ -57,6 +58,7 @@
         "com.dbrizov.naughtyattributes",
         "com.openupm",
         "com.quabug.any-processor",
+        "com.quabug.any-serialize",
         "com.quabug.one-shot-injection",
         "com.zbase.foundation.mvvm",
         "jp.hadashikick.vcontainer",
