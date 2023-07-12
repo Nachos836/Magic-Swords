@@ -1,7 +1,7 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
-namespace MagicSwords.Features.Editor
+namespace MagicSwords.Editor
 {
     internal static class PlayFromTheFirstSceneMenu
     {
