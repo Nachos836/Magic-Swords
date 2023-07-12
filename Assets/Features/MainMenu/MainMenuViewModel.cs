@@ -5,7 +5,7 @@ using ZBase.Foundation.Mvvm.Input;
 
 namespace MagicSwords.Features.MainMenu
 {
-    internal partial class MainMenuViewModel : MonoBehaviour, IObservableObject
+    public partial class MainMenuViewModel : MonoBehaviour, IObservableObject
     {
         [ObservableProperty] private bool _playing;
         [ObservableProperty] private bool _exitNeeded;

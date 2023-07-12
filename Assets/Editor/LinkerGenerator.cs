@@ -8,11 +8,11 @@ using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 
-namespace MagicSwords.Features.Editor
+namespace MagicSwords.Editor
 {
     internal sealed class LinkerGenerator : IPreprocessBuildWithReport
     {
-        private const string SourcesFolder = "/"+ nameof(Features) + "/";
+        private const string SourcesFolder = "/Features/";
 
         public int callbackOrder { get; }
 

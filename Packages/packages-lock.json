@@ -28,6 +28,33 @@
       "dependencies": {},
       "url": "https://package.openupm.com"
     },
+    "com.quabug.any-processor": {
+      "version": "0.1.5",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.nuget.mono-cecil": "1.11.4"
+      },
+      "url": "https://package.openupm.com"
+    },
+    "com.quabug.any-serialize": {
+      "version": "0.5.0",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.quabug.any-processor": "0.1.5",
+        "com.unity.nuget.mono-cecil": "1.11.4",
+        "com.quabug.one-shot-injection": "2.6.2"
+      },
+      "url": "https://package.openupm.com"
+    },
+    "com.quabug.one-shot-injection": {
+      "version": "2.6.2",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://package.openupm.com"
+    },
     "com.unity.burst": {
       "version": "1.8.7",
       "depth": 1,

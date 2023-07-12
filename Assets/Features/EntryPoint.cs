@@ -7,7 +7,7 @@ namespace MagicSwords
 {
     using Features.Miscellaneous;
 
-    internal sealed class EntryPoint : IAsyncStartable, IDisposable
+    public sealed class EntryPoint : IAsyncStartable, IDisposable
     {
         private readonly ISceneLoader _sceneLoader;
         private readonly int _mainMenu;

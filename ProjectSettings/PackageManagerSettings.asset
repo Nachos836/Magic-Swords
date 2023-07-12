@@ -35,6 +35,9 @@ MonoBehaviour:
     - com.cysharp.unitask
     - com.dbrizov.naughtyattributes
     - com.openupm
+    - com.quabug.any-processor
+    - com.quabug.any-serialize
+    - com.quabug.one-shot-injection
     - com.zbase.foundation.mvvm
     - jp.hadashikick.vcontainer
     - org.nuget.system.runtime.compilerservices.unsafe
