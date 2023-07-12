@@ -21,7 +21,7 @@ namespace MagicSwords.Features.Generic.Sequencer
         public sealed class Ended : IStage { }
     }
 
-    internal interface IStage
+    public interface IStage
     {
         internal interface IProcess
         {

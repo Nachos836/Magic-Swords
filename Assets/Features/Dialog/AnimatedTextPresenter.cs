@@ -6,7 +6,7 @@ namespace MagicSwords.Features.Dialog
 {
     using Generic.Sequencer;
 
-    internal sealed class AnimatedTextPresenter : MonoBehaviour
+    public sealed class AnimatedTextPresenter : MonoBehaviour
     {
         private Sequencer _sequencer;
 

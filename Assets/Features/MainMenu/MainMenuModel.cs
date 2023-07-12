@@ -4,7 +4,7 @@ using ZBase.Foundation.Mvvm.ComponentModel;
 
 namespace MagicSwords.Features.MainMenu
 {
-    internal sealed class MainMenuModel
+    public sealed class MainMenuModel
     {
         public void ApplicationExitHandler(in PropertyChangeEventArgs args)
         {

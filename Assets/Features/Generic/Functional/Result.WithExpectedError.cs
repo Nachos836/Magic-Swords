@@ -9,7 +9,7 @@ namespace MagicSwords.Features.Generic.Functional
     using Outcome;
 
     [BurstCompile]
-    internal readonly struct Result<TValue, TExpectedError> where TExpectedError : IExpected
+    public readonly struct Result<TValue, TExpectedError> where TExpectedError : IExpected
     {
         private readonly (TValue Value, bool Provided) _result;
         private readonly (Exception Error, bool Provided) _unexpected;

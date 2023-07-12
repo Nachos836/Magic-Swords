@@ -7,7 +7,7 @@ namespace MagicSwords.Features.Generic.Sequencer
     using Functional;
     using Functional.Outcome;
 
-    internal sealed class Sequencer
+    public sealed class Sequencer
     {
         private readonly IStage _firstState;
 

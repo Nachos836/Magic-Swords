@@ -2,7 +2,7 @@
 
 namespace MagicSwords.Features.Generic.Functional.Outcome
 {
-    internal static class Expected
+    public static class Expected
     {
         private static readonly Lazy<Success> LazySuccess = new (() => new Success());
 
@@ -16,23 +16,23 @@ namespace MagicSwords.Features.Generic.Functional.Outcome
         public static Failure Failed { get; } = LazyFailed.Value;
         public static Cancellation Canceled { get; } = LazyCancel.Value;
 
-        internal sealed class Abortion : IExpected
+        public sealed class Abortion : IExpected
         {
             string IExpected.Message => "Execution Aborted.";
         }
 
-        internal sealed class Failure : IExpected
+        public sealed class Failure : IExpected
         {
             string IExpected.Message => "Execution Failed.";
         }
 
-        internal sealed class Cancellation : IExpected
+        public sealed class Cancellation : IExpected
         {
             string IExpected.Message => "Execution Cancelled.";
         }
     }
 
-    internal interface IExpected
+    public interface IExpected
     {
         string Message { get; }
     }

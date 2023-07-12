@@ -7,7 +7,7 @@ using Unity.Burst;
 namespace MagicSwords.Features.Generic.Functional
 {
     [BurstCompile]
-    internal readonly struct Result<TValue>
+    public readonly struct Result<TValue>
     {
         private readonly bool _successful;
 

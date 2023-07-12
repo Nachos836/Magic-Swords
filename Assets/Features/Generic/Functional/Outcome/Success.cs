@@ -5,5 +5,5 @@ namespace MagicSwords.Features.Generic.Functional.Outcome
 {
     [BurstCompile]
     [StructLayout(LayoutKind.Sequential, Size = 1)]
-    internal readonly struct Success { }
+    public readonly struct Success { }
 }

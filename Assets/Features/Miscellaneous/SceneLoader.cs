@@ -4,13 +4,13 @@ using UnityEngine.SceneManagement;
 
 namespace MagicSwords.Features.Miscellaneous
 {
-    internal interface ISceneLoader
+    public interface ISceneLoader
     {
         UniTask LoadAlongsideAsync(int buildIndex, CancellationToken cancellation = default);
         UniTask TransferToAsync(int buildIndex, CancellationToken cancellation = default);
     }
 
-    internal sealed class SceneLoader : ISceneLoader
+    public sealed class SceneLoader : ISceneLoader
     {
         async UniTask ISceneLoader.LoadAlongsideAsync(int buildIndex, CancellationToken cancellation)
         {
