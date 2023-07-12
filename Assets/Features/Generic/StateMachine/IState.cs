@@ -14,6 +14,12 @@ namespace MagicSwords.Features.Generic.StateMachine
         {
             UniTask OnExitAsync(CancellationToken cancellation = default);
         }
+
+        internal interface IWithUpdateLoop
+        {
+            UniTask OnUpdate(CancellationToken cancellation = default);
+            PlayerLoopTiming LoopTiming { get; }
+        }
     }
 
     internal sealed class InitialState : IState { }

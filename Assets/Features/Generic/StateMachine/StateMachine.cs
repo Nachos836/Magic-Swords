@@ -1,103 +1,72 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using UnityEngine.Assertions;
+using Cysharp.Threading.Tasks.Linq;
 
 namespace MagicSwords.Features.Generic.StateMachine
 {
-    internal delegate TState StateFactory<out TState>() where TState : IState;
-    
-    internal class StateMachine<TTrigger>
+    [SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
+    internal sealed class StateMachine
     {
-        private readonly Dictionary<Type, IStateDefinition> _states = new()
-        {
-            {typeof(InitialState), new StateDefinition<InitialState>(() => new InitialState())}
-        };
-        private readonly Dictionary<(Type, TTrigger), IStateDefinition> _transitions = new ();
+        private readonly ConcurrentDictionary<int, (IState From, IState To)> _transitions = new ();
 
-        private (IStateDefinition Definition, IState State) _activeState;
+        private IState _current;
 
         public StateMachine()
         {
-            _activeState = (_states.First().Value, new InitialState());
+            var candidate = _transitions.FirstOrDefault();
+
+            _current = candidate.Equals(default)
+                ? candidate.Value.From
+                : new InitialState();
         }
 
-        public async UniTask TransitAsync(TTrigger trigger, CancellationToken cancellation = default)
+        public async UniTask TransitAsync<TTrigger>(CancellationToken cancellation = default)
         {
-            var activeDefinition = _activeState.Definition;
-            var transitionDefinition = (activeDefinition.Type, trigger);
-
-            Assert.IsTrue
-            (
-                _transitions.ContainsKey(transitionDefinition),
-                $"Transition from state {_activeState.State?.ToString() ?? "ROOT"} not found by trigger { trigger }"
-            );
-
-            activeDefinition = _transitions[transitionDefinition];
-
-            if (_activeState.State is IState.IWithExitAction exit)
+            if (_transitions.TryGetValue(UniqueId<TTrigger>.Value, out var transit))
             {
-                await exit.OnExitAsync(cancellation);
+                if (_current == transit.From)
+                {
+                    if (_current is IState.IWithExitAction exit) await exit.OnExitAsync(cancellation);
+
+                    _current = transit.To;
+
+                    if (_current is IState.IWithEnterAction enter) await enter.OnEnterAsync(cancellation);
+
+                    if (_current is IState.IWithUpdateLoop update) await foreach
+                    (
+                        var _ in UniTaskAsyncEnumerable
+                            .EveryUpdate(update.LoopTiming)
+                            .WithCancellation(cancellation)
+                    ) {
+                        await update.OnUpdate(cancellation);
+                    }
+                }
             }
-
-            _activeState = (activeDefinition, activeDefinition.CreateState());
-
-            if (_activeState.State is IState.IWithEnterAction enter)
-            {
-                await enter.OnEnterAsync(cancellation);
-            }
         }
 
-        public void AddState<TState>(StateFactory<TState> factory) where TState : IState
+        public StateMachine AddTransition<TTrigger>(IState from, IState to)
         {
-            _states[typeof(TState)] = new StateDefinition<TState>(factory);
+            if (_transitions.ContainsKey(UniqueId<TTrigger>.Value)) throw new ArgumentException($"Transition {typeof(TTrigger).Name} are already added!");
+
+            if (_transitions.TryAdd(UniqueId<TTrigger>.Value, (from, to))) return this;
+
+            throw new ArgumentException($"Impossible to add Transition {typeof(TTrigger).Name}");
         }
 
-        public void AddTransition<TState1, TState2>(TTrigger trigger)
-            where TState1 : IState
-            where TState2 : IState
+        private static class UniqueNumberHolder
         {
-            var type1 = typeof(TState1);
-            var type2 = typeof(TState2);
-
-            Assert.IsTrue(_states.ContainsKey(type1), $"State of type { type1 } is not defined");
-            Assert.IsTrue(_states.ContainsKey(type2), $"State of type { type2 } is not defined");
-
-            _transitions[(type1, trigger)] = _states[type2];
+            public static int Value;
         }
 
-        public void AddTransitionToInitial<TState>(TTrigger trigger) where TState : IState
+        [SuppressMessage("ReSharper", "StaticMemberInGenericType")]
+        [SuppressMessage("ReSharper", "UnusedTypeParameter")]
+        private static class UniqueId<T>
         {
-            var type = typeof(TState);
-
-            Assert.IsTrue(_states.ContainsKey(type), $"State of type { type } is not defined");
-
-            _transitions[(null, trigger)] = _states[type];
-        }
-
-        private interface IStateDefinition
-        {
-            Type Type { get; }
-            IState CreateState();
-        }
-
-        private sealed class StateDefinition<TState> : IStateDefinition where TState : IState
-        {
-            private readonly StateFactory<TState> _factory;
-
-            public Type Type => typeof(TState);
-
-            public StateDefinition(StateFactory<TState> factory)
-            {
-                _factory = factory;
-            }
-
-            public IState CreateState()
-            {
-                return _factory.Invoke();
-            }
+            public static int Value { get; } = UniqueNumberHolder.Value++;
         }
     }
 }
