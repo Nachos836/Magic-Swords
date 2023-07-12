@@ -1,90 +1,41 @@
-using System;
-using System.Threading;
 using Cysharp.Threading.Tasks;
-using MagicSwords.Features.Generic.StateMachine;
-using MagicSwords.Features.MainMenu.DisplayText;
-using TMPro;
 using UnityEngine;
-
-using static System.Threading.CancellationTokenSource;
+using VContainer;
 
 namespace MagicSwords.Features.Dialog
 {
+    using Generic.Sequencer;
+
     internal sealed class AnimatedTextPresenter : MonoBehaviour
     {
-        [SerializeField] private TextMeshProUGUI _text;
-        [SerializeField] private float _delay = 0.1f;
-        [SerializeField] private string[] _monologue;
+        private Sequencer _sequencer;
 
-        private readonly StateMachine2 _stateMachine = new ();
-        private bool _segueEnded;
-        private int _current;
-        private CancellationTokenSource _buttonPressed;
-        private abstract class Arrow<TFrom,TTo> where TFrom : IState where TTo : IState{}
-        private void Awake()
+        [Inject] internal void Construct(Sequencer sequencer) => _sequencer = sequencer;
+
+        private async UniTaskVoid Start()
         {
-            var autoPrint = new AutoPrint(_monologue[0],_text,_delay);
-            var downMouse = new DownMouse();
-            var endText = new EndText();
-            var nextSegment = new NextSegment();
-            var wait = new Wait();
+            var outcome = await _sequencer.StartAsync(destroyCancellationToken);
+            outcome.Match
+            (
+                success: _ =>
+                {
+                    Debug.Log("Успешно завершено!");
 
-            _stateMachine.AddTransition<Arrow<AutoPrint,DownMouse>>(autoPrint,downMouse);
-            _stateMachine.AddTransition<Arrow<AutoPrint,EndText>>(autoPrint,endText);
-            _stateMachine.AddTransition<Arrow<DownMouse,Wait>>(downMouse,wait);
-            _stateMachine.AddTransition<Arrow<DownMouse,NextSegment>>(downMouse,nextSegment);
-            _stateMachine.AddTransition<Arrow<Wait,EndText>>(wait,endText);
-            _stateMachine.AddTransition<Arrow<NextSegment,EndText>>(nextSegment,endText);
-        }
+                    return 1;
+                },
+                expected: _ =>
+                {
+                    Debug.Log("Выполнение было отменено!");
 
-        private void Start()
-        {
-            _buttonPressed = CreateLinkedTokenSource(destroyCancellationToken);
-        }
+                    return 2;
+                },
+                unexpected: _ =>
+                {
+                    Debug.Log("Произошла ошибка...");
 
-        public async void NextText()
-        {
-            await _stateMachine.TransitAsync<Arrow<AutoPrint, DownMouse>>();
-
-            await _stateMachine.TransitAsync<Arrow<DownMouse, NextSegment>>();
-            
-            await _stateMachine.TransitAsync<Arrow<DownMouse,Wait>>();
-        }
-
-        public async void StopPrint()
-        {
-            await _stateMachine.TransitAsync<Arrow<Wait, EndText>>();
-            await _stateMachine.TransitAsync<Arrow<NextSegment, EndText>>();
-        }
-
-        private UniTask TypingStartAsync(int index, CancellationToken cancellation = default)
-        {
-            return ShowTextAsync(_monologue[index], cancellation);
-        }
-
-        private UniTask PerformOnTheLastSegmentAsync(CancellationToken cancellation = default)
-        {
-            if (cancellation.IsCancellationRequested) return UniTask.CompletedTask;
-
-            _text.text = string.Empty;
-
-            return UniTask.CompletedTask;
-        }
-
-        private async UniTask ShowTextAsync(string currentText, CancellationToken cancellation = default)
-        {
-            for (var i = 0; i < currentText.Length; i++)
-            {
-                if (cancellation.IsCancellationRequested) return;
-
-                _text.text = currentText[..i];
-
-                await UniTask.Delay(TimeSpan.FromSeconds(_delay), cancellationToken: cancellation)
-                    .SuppressCancellationThrow();
-
-                await UniTask.Yield(PlayerLoopTiming.FixedUpdate, cancellation)
-                    .SuppressCancellationThrow();
-            }
+                    return 3;
+                }
+            );
         }
     }
 }
