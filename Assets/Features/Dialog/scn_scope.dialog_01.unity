@@ -866,8 +866,18 @@ PrefabInstance:
       objectReference: {fileID: 196146241}
     - target: {fileID: 1762443155537056728, guid: 6d1c3878e5a1d954dbdf23ac93f56af2,
         type: 3}
+      propertyPath: <Delay>k__BackingField._ticks
+      value: 50000
+      objectReference: {fileID: 0}
+    - target: {fileID: 1762443155537056728, guid: 6d1c3878e5a1d954dbdf23ac93f56af2,
+        type: 3}
       propertyPath: autoInjectGameObjects.Array.size
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1762443155537056728, guid: 6d1c3878e5a1d954dbdf23ac93f56af2,
+        type: 3}
+      propertyPath: <Delay>k__BackingField._displayUnit
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1762443155537056728, guid: 6d1c3878e5a1d954dbdf23ac93f56af2,
         type: 3}
@@ -877,7 +887,7 @@ PrefabInstance:
     - target: {fileID: 1762443155537056728, guid: 6d1c3878e5a1d954dbdf23ac93f56af2,
         type: 3}
       propertyPath: <Monologue>k__BackingField.Array.size
-      value: 1
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 1762443155537056728, guid: 6d1c3878e5a1d954dbdf23ac93f56af2,
         type: 3}
@@ -889,6 +899,22 @@ PrefabInstance:
         non magna ut, hendrerit pellentesque erat. Maecenas risus urna, sodales sit
         amet ex id, convallis ornare nunc. Curabitur nec sapien in elit molestie
         mollis.
+      objectReference: {fileID: 0}
+    - target: {fileID: 1762443155537056728, guid: 6d1c3878e5a1d954dbdf23ac93f56af2,
+        type: 3}
+      propertyPath: <Monologue>k__BackingField.Array.data[1]
+      value: Nunc purus mi, placerat at pharetra non, pharetra quis ipsum. Vestibulum
+        diam odio, consequat id sollicitudin eget, facilisis porttitor orci. Sed
+        eget sem eget nulla fringilla tincidunt. Aenean viverra tellus luctus lobortis
+        varius. Donec finibus luctus lectus non dapibus. Aenean quis arcu tempor,
+        congue nibh sit amet, sollicitudin sapien. Phasellus nec massa nec justo
+        malesuada mattis. Nulla dapibus ut enim a imperdiet.
+      objectReference: {fileID: 0}
+    - target: {fileID: 1762443155537056728, guid: 6d1c3878e5a1d954dbdf23ac93f56af2,
+        type: 3}
+      propertyPath: <Monologue>k__BackingField.Array.data[2]
+      value: Interdum et malesuada fames ac ante ipsum primis in faucibus. Curabitur
+        sed nulla bibendum, commodo dolor quis, condimentum nibh.
       objectReference: {fileID: 0}
     - target: {fileID: 4032011308348852144, guid: 6d1c3878e5a1d954dbdf23ac93f56af2,
         type: 3}
