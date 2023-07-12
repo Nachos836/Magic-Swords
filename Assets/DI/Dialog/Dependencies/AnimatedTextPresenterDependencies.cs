@@ -8,40 +8,50 @@ namespace MagicSwords.DI.Dialog.Dependencies
     using Features.Dialog;
     using Features.Dialog.Stages;
     using Features.Generic.Sequencer;
+    using Features.Dialog.Payload;
 
     internal static class AnimatedTextPresenterDependencies
     {
         public static IContainerBuilder AddAnimatedTextPresenter
         (
             this IContainerBuilder builder,
-            AnimatedTextPresenter presenter,
             TextMeshProUGUI field,
             TimeSpan delay,
             string[] monologue
         ) {
             builder.Register(resolver =>
             {
-                var scope = resolver.CreateScope(scopeResolver =>
+                var scope = resolver.CreateScope(container =>
                 {
-                    scopeResolver.Register<Setup>(Lifetime.Transient)
-                        .WithParameter(field)
-                        .WithParameter((float) delay.TotalMilliseconds)
+                    container.Register<Initial>(Lifetime.Transient)
                         .WithParameter(monologue)
                         .AsSelf();
 
-                    scopeResolver.RegisterFactory<string, TextMeshProUGUI, TimeSpan, AutoPrint>(_ =>
+                    Func<Message, Print> printing = default;
+                    Func<Message, Fetch> fetching = default;
+
+                    container.RegisterFactory(dependency =>
                     {
-                        return (currentSegment, currentField, currentDelay) =>
-                            new AutoPrint(currentSegment, currentField, currentDelay);
+                        fetching ??= dependency.Resolve<Func<Message, Fetch>>();
+
+                        return printing = message => new Print(fetching, message, field, delay);
+
+                    }, Lifetime.Transient);
+
+                    container.RegisterFactory(_ =>
+                    {
+                        printing ??= _ => default; // Breaking Resolution Cycle
+
+                        return fetching ??= message => new Fetch(printing, message);
 
                     }, Lifetime.Transient);
                 });
 
-                using (scope) return new Sequencer(firstState: scope.Resolve<Setup>());
+                using (scope) return new Sequencer(firstState: scope.Resolve<Initial>());
 
             }, Lifetime.Transient);
 
-            builder.RegisterComponent(presenter);
+            builder.RegisterComponentInHierarchy<AnimatedTextPresenter>();
 
             return builder;
         }

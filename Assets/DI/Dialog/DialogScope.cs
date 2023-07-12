@@ -9,11 +9,9 @@ using VContainer.Unity;
 namespace MagicSwords.DI.Dialog
 {
     using Dependencies;
-    using Features.Dialog;
 
     internal sealed class DialogScope : LifetimeScope
     {
-        [field: SerializeField] public AnimatedTextPresenter Presenter { get; private set; }
         [field: SerializeField] public TextMeshProUGUI Field { get; private set; }
         [AnySerialize] [UsedImplicitly] public TimeSpan Delay { get; }
         [field: SerializeField] public string[] Monologue { get; private set; }
@@ -22,7 +20,7 @@ namespace MagicSwords.DI.Dialog
         {
             base.Configure(builder);
 
-            builder.AddAnimatedTextPresenter(Presenter, Field, Delay, Monologue);
+            builder.AddAnimatedTextPresenter(Field, Delay, Monologue);
         }
     }
 }
