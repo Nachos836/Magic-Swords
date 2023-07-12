@@ -1,6 +1,5 @@
 ﻿using System.Threading;
 using Cysharp.Threading.Tasks;
-using VContainer.Unity;
 
 namespace MagicSwords.Features.Generic.Sequencer
 {
@@ -22,8 +21,6 @@ namespace MagicSwords.Features.Generic.Sequencer
                 if (cancellation.IsCancellationRequested) return Expected.Canceled;
                 if (current is not IStage.IProcess candidate) return Unexpected.Error;
 
-                if (candidate is IAsyncStartable startable) await startable.StartAsync(cancellation);
-
                 var outcome = await candidate.ProcessAsync(cancellation);
                 var option = await outcome.MatchAsync
                 (
@@ -34,8 +31,6 @@ namespace MagicSwords.Features.Generic.Sequencer
                     (error, _) => new UniTask<IStage>(error),
                     cancellation
                 );
-
-                if (candidate is IUniTaskAsyncDisposable disposable) await disposable.DisposeAsync();
 
                 if (cancellation.IsCancellationRequested) return Expected.Canceled;
 
