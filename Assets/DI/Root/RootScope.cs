@@ -19,7 +19,7 @@ namespace MagicSwords.DI.Root
             base.Configure(builder);
 
             builder
-                .AddApplicationEntry<EntryPoint>(Default.MainMenuScene)
+                .AddApplicationEntry<ApplicationEntryPoint>(Default.MainMenuScene)
                 .AddMessagePipeFeature(out var messagePipeOptions)
                 .AddSceneLoaderFeature();
         }

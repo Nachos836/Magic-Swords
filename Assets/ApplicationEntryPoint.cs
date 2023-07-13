@@ -7,12 +7,12 @@ namespace MagicSwords
 {
     using Features.SceneLoader;
 
-    public sealed class EntryPoint : IAsyncStartable, IDisposable
+    public sealed class ApplicationEntryPoint : IAsyncStartable, IDisposable
     {
         private readonly ISceneLoader _sceneLoader;
         private readonly int _mainMenu;
 
-        public EntryPoint(ISceneLoader sceneLoader, int mainMenu)
+        public ApplicationEntryPoint(ISceneLoader sceneLoader, int mainMenu)
         {
             _sceneLoader = sceneLoader;
             _mainMenu = mainMenu;
