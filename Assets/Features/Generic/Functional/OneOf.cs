@@ -87,7 +87,7 @@ namespace MagicSwords.Features.Generic.Functional
     }
 
     [BurstCompile]
-    internal readonly struct OneOf<TFirst, TSecond, TThird>
+    public readonly struct OneOf<TFirst, TSecond, TThird>
     {
         private readonly (TFirst Value, bool Provided) _first;
         private readonly (TSecond Value, bool Provided) _second;

@@ -6,7 +6,7 @@ namespace MagicSwords.Features.Generic.Sequencer
 {
     using Functional;
 
-    internal static class Stage
+    public static class Stage
     {
         private static readonly Lazy<Canceled> LazyCancel= new (() => new Canceled());
         private static readonly Lazy<Ended> LazyEnd = new (() => new Ended());
@@ -23,7 +23,7 @@ namespace MagicSwords.Features.Generic.Sequencer
 
     public interface IStage
     {
-        internal interface IProcess
+        public interface IProcess
         {
             UniTask<OneOf<IStage, Stage.Canceled, Stage.Errored>> ProcessAsync(CancellationToken cancellation = default);
         }

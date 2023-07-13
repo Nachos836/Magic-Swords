@@ -4,7 +4,7 @@ using Unity.Burst;
 
 namespace MagicSwords.Features.Generic.Extensions
 {
-    internal static class DisposableSubscription
+    public static class DisposableSubscription
     {
         public static DisposableBagBuilder Append(this DisposableBagBuilder builder, IDisposable income)
         {
