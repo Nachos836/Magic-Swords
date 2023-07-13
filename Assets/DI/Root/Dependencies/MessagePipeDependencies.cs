@@ -1,7 +1,7 @@
 ﻿using MessagePipe;
 using VContainer;
 
-namespace MagicSwords.DI.ApplicationEntry.Dependencies
+namespace MagicSwords.DI.Root.Dependencies
 {
     public static class MessagePipeDependencies
     {

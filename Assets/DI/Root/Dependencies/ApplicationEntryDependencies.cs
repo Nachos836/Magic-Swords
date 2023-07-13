@@ -1,7 +1,7 @@
 ﻿using VContainer;
 using VContainer.Unity;
 
-namespace MagicSwords.DI.ApplicationEntry.Dependencies
+namespace MagicSwords.DI.Root.Dependencies
 {
     internal static class ApplicationEntryDependencies
     {
