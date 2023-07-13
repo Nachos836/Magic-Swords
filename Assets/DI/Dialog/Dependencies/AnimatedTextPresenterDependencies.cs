@@ -7,8 +7,8 @@ namespace MagicSwords.DI.Dialog.Dependencies
 {
     using Features.Dialog;
     using Features.Dialog.Stages;
-    using Features.Generic.Sequencer;
     using Features.Dialog.Payload;
+    using Features.Generic.Sequencer;
 
     internal static class AnimatedTextPresenterDependencies
     {
