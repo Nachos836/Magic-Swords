@@ -5,7 +5,7 @@ using VContainer.Unity;
 
 namespace MagicSwords
 {
-    using Features.Miscellaneous;
+    using Features.SceneLoader;
 
     public sealed class EntryPoint : IAsyncStartable, IDisposable
     {
