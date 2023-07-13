@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 1242508475032212476}
   - component: {fileID: 6694591866069146611}
   m_Layer: 0
-  m_Name: pref_ctrl.scope.resolver.applicationEntry_01
+  m_Name: pref_ctrl.scope.resolver.root_01
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
