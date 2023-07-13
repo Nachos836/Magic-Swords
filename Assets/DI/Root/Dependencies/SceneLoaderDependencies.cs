@@ -1,8 +1,9 @@
-﻿using MagicSwords.Features.Miscellaneous;
-using VContainer;
+﻿using VContainer;
 
 namespace MagicSwords.DI.Root.Dependencies
 {
+    using Features.SceneLoader;
+
     internal static class SceneLoaderDependencies
     {
         public static IContainerBuilder AddSceneLoaderFeature(this IContainerBuilder builder)
