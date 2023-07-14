@@ -26,9 +26,9 @@ namespace MagicSwords.Features.Dialog.Stages
         private readonly TextMeshProUGUI _field;
         private readonly TimeSpan _delay;
 
-        public Print(Func<Message, IStage> resolveFetch, Message message, TextMeshProUGUI field, TimeSpan delay)
+        public Print(Func<Message, IStage> resolveNext, Message message, TextMeshProUGUI field, TimeSpan delay)
         {
-            _resolveNext = resolveFetch;
+            _resolveNext = resolveNext;
             _message = message;
             _field = field;
             _delay = delay;
