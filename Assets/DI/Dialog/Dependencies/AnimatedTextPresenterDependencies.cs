@@ -23,25 +23,27 @@ namespace MagicSwords.DI.Dialog.Dependencies
             {
                 var scope = resolver.CreateScope(container =>
                 {
-                    container.Register<Initial>(Lifetime.Transient)
-                        .WithParameter(monologue)
-                        .AsSelf();
-
                     Func<Message, Print> printing = default;
                     Func<Message, Fetch> fetching = default;
 
-                    container.RegisterFactory(dependency =>
+                    container.Register(dependency =>
                     {
-                        fetching ??= dependency.Resolve<Func<Message, Fetch>>();
+                        printing ??= dependency.Resolve<Func<Message, Print>>();
 
-                        return printing = message => new Print(fetching, message, field, delay);
+                        return new Initial(printing, monologue);
 
                     }, Lifetime.Transient);
 
-                    container.RegisterFactory(_ =>
+                    container.Register(dependency =>
                     {
-                        printing ??= _ => default; // Breaking Resolution Cycle
+                        fetching ??= dependency.Resolve<Func<Message, Fetch>>();
 
+                        return printing ??= message => new Print(fetching, message, field, delay);
+
+                    }, Lifetime.Transient);
+
+                    container.Register(_ =>
+                    {
                         return fetching ??= message => new Fetch(printing, message);
 
                     }, Lifetime.Transient);
