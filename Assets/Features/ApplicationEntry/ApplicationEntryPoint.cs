@@ -3,9 +3,9 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using VContainer.Unity;
 
-namespace MagicSwords
+namespace MagicSwords.Features.ApplicationEntry
 {
-    using Features.SceneLoader;
+    using SceneLoader;
 
     public sealed class ApplicationEntryPoint : IAsyncStartable, IDisposable
     {
