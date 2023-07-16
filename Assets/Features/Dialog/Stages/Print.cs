@@ -2,6 +2,7 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using TMPro;
+using UnityEngine.InputSystem;
 
 using static System.Threading.CancellationTokenSource;
 using static Cysharp.Threading.Tasks.Linq.UniTaskAsyncEnumerable;
@@ -22,13 +23,15 @@ namespace MagicSwords.Features.Dialog.Stages
     public sealed class Print : IStage, IStage.IProcess
     {
         private readonly Func<Message, IStage> _resolveNext;
+        private readonly Func<Message, IStage> _resolveSkip;
         private readonly Message _message;
         private readonly TextMeshProUGUI _field;
         private readonly TimeSpan _delay;
 
-        public Print(Func<Message, IStage> resolveNext, Message message, TextMeshProUGUI field, TimeSpan delay)
+        public Print(Func<Message, IStage> resolveNext,Func<Message, IStage> resolveSkip, Message message, TextMeshProUGUI field, TimeSpan delay)
         {
             _resolveNext = resolveNext;
+            _resolveSkip = resolveSkip;
             _message = message;
             _field = field;
             _delay = delay;
@@ -48,6 +51,12 @@ namespace MagicSwords.Features.Dialog.Stages
                     if (cancellation.IsCancellationRequested) return Option.From(Stage.Cancel);
 
                     _field.text = message[..i];
+
+                    if (Mouse.current.leftButton.isPressed)
+                    {
+                        displaying.Cancel();
+                        return Option.From(_resolveSkip.Invoke(_message));
+                    }
 
                     if (await UniTask.Delay(_delay, ignoreTimeScale: true, EarlyUpdate, cancellation)
                         .SuppressCancellationThrow()) return Option.From(Stage.Cancel);
