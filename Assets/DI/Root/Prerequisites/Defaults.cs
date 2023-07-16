@@ -2,7 +2,7 @@
 using NaughtyAttributes;
 using UnityEngine;
 
-namespace MagicSwords.DI.ApplicationEntry.Prerequisites
+namespace MagicSwords.DI.Root.Prerequisites
 {
     [Serializable]
     internal struct Defaults

@@ -1,4 +1,4 @@
-﻿namespace MagicSwords.DI.ApplicationEntry.Prerequisites
+﻿namespace MagicSwords.DI.Root.Prerequisites
 {
     internal static class DefaultsValidation
     {

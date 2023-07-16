@@ -189,7 +189,7 @@ PrefabInstance:
     - target: {fileID: 9045086579259898523, guid: f40555cad2673e34c99c47372d0889b0,
         type: 3}
       propertyPath: m_Name
-      value: pref_ctrl.scope.resolver.applicationEntry_01
+      value: pref_ctrl.scope.resolver.root_01
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

@@ -3,12 +3,12 @@ using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
-namespace MagicSwords.DI.ApplicationEntry
+namespace MagicSwords.DI.Root
 {
     using Dependencies;
     using Prerequisites;
 
-    internal sealed class ApplicationEntryScope : LifetimeScope
+    internal sealed class RootScope : LifetimeScope
     {
         [field: SerializeField]
         [field: ValidateInput(nameof(DefaultsValidation.ConfigIsProvided))]
@@ -19,7 +19,7 @@ namespace MagicSwords.DI.ApplicationEntry
             base.Configure(builder);
 
             builder
-                .AddApplicationEntry<EntryPoint>(Default.MainMenuScene)
+                .AddApplicationEntry(Default.MainMenuScene)
                 .AddMessagePipeFeature(out var messagePipeOptions)
                 .AddSceneLoaderFeature();
         }

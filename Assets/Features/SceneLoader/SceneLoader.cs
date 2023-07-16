@@ -2,14 +2,8 @@
 using Cysharp.Threading.Tasks;
 using UnityEngine.SceneManagement;
 
-namespace MagicSwords.Features.Miscellaneous
+namespace MagicSwords.Features.SceneLoader
 {
-    public interface ISceneLoader
-    {
-        UniTask LoadAlongsideAsync(int buildIndex, CancellationToken cancellation = default);
-        UniTask TransferToAsync(int buildIndex, CancellationToken cancellation = default);
-    }
-
     public sealed class SceneLoader : ISceneLoader
     {
         async UniTask ISceneLoader.LoadAlongsideAsync(int buildIndex, CancellationToken cancellation)
