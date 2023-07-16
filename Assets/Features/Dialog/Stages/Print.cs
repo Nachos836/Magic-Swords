@@ -42,7 +42,7 @@ namespace MagicSwords.Features.Dialog.Stages
             using var displaying = CreateLinkedTokenSource(cancellation);
             cancellation = displaying.Token;
 
-            await foreach (var _ in EveryUpdate(EarlyUpdate).TakeUntilCanceled(cancellation).WithCancellation(cancellation))
+            await foreach (var _ in EveryUpdate(Update).TakeUntilCanceled(cancellation).WithCancellation(cancellation))
             {
                 var message = _message.Part;
 
@@ -55,13 +55,11 @@ namespace MagicSwords.Features.Dialog.Stages
                     if (Mouse.current.leftButton.wasPressedThisFrame)
                     {
                         displaying.Cancel();
+
                         return Option.From(_resolveSkip.Invoke(_message));
                     }
 
-                    if (await UniTask.Delay(_delay, ignoreTimeScale: true, EarlyUpdate, cancellation)
-                        .SuppressCancellationThrow()) return Option.From(Stage.Cancel);
-
-                    if (await UniTask.Yield(EarlyUpdate, cancellation)
+                    if (await UniTask.Delay(_delay, ignoreTimeScale: false, Update, cancellation)
                         .SuppressCancellationThrow()) return Option.From(Stage.Cancel);
                 }
 
