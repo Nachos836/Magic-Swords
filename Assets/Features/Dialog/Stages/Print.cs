@@ -36,7 +36,7 @@ namespace MagicSwords.Features.Dialog.Stages
 
         async UniTask<Option> IStage.IProcess.ProcessAsync(CancellationToken cancellation)
         {
-            var displaying = CreateLinkedTokenSource(cancellation);
+            using var displaying = CreateLinkedTokenSource(cancellation);
             cancellation = displaying.Token;
 
             await foreach (var _ in EveryUpdate(EarlyUpdate).TakeUntilCanceled(cancellation).WithCancellation(cancellation))
