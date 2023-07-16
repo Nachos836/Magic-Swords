@@ -52,7 +52,7 @@ namespace MagicSwords.Features.Dialog.Stages
 
                     _field.text = message[..i];
 
-                    if (Mouse.current.leftButton.isPressed)
+                    if (Mouse.current.leftButton.wasPressedThisFrame)
                     {
                         displaying.Cancel();
                         return Option.From(_resolveSkip.Invoke(_message));

@@ -2,6 +2,7 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using TMPro;
+using UnityEngine.InputSystem;
 
 namespace MagicSwords.Features.Dialog.Stages
 {
@@ -32,8 +33,16 @@ namespace MagicSwords.Features.Dialog.Stages
             if (cancellation.IsCancellationRequested) return Stage.Cancel;
 
             _text.text = _message.Part;
-            if (await UniTask.Delay(1000, cancellationToken: cancellation).SuppressCancellationThrow())
+
+            if (await UniTask.WaitUntil(() => Mouse.current.leftButton.wasPressedThisFrame, cancellationToken: cancellation).SuppressCancellationThrow())
                 return Stage.Cancel;
+
+            // while (!Mouse.current.leftButton.wasPressedThisFrame)
+            // {
+            //     if (await UniTask.Yield(cancellationToken: cancellation).SuppressCancellationThrow())
+            //         return Stage.Cancel;
+            // }
+
             return Option.From(_resolveNext.Invoke(_message));
         }
     }
