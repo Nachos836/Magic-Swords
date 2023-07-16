@@ -25,6 +25,7 @@ namespace MagicSwords.DI.Dialog.Dependencies
                 {
                     Func<Message, Print> printing = default;
                     Func<Message, Fetch> fetching = default;
+                    Func<Message, Skip> skipping = default;
 
                     container.Register(dependency =>
                     {
@@ -37,8 +38,17 @@ namespace MagicSwords.DI.Dialog.Dependencies
                     container.Register(dependency =>
                     {
                         fetching ??= dependency.Resolve<Func<Message, Fetch>>();
+                        skipping ??= dependency.Resolve<Func<Message, Skip>>();
 
-                        return printing ??= message => new Print(fetching, message, field, delay);
+                        return printing ??= message => new Print(fetching, skipping, message, field, delay);
+
+                    }, Lifetime.Transient);
+
+                    container.Register(dependency =>
+                    {
+                        fetching ??= dependency.Resolve<Func<Message, Fetch>>();
+
+                        return skipping ??= message => new Skip(fetching, message, field);
 
                     }, Lifetime.Transient);
 
