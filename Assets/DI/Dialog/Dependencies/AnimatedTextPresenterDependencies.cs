@@ -23,6 +23,8 @@ namespace MagicSwords.DI.Dialog.Dependencies
             {
                 var scope = resolver.CreateScope(container =>
                 {
+                    const PlayerLoopTiming yieldPoint = PlayerLoopTiming.Update;
+
                     Func<Message, Print> printing = default;
                     Func<Message, Fetch> fetching = default;
                     Func<Message, Skip> skipping = default;
@@ -40,7 +42,15 @@ namespace MagicSwords.DI.Dialog.Dependencies
                         fetching ??= dependency.Resolve<Func<Message, Fetch>>();
                         skipping ??= dependency.Resolve<Func<Message, Skip>>();
 
-                        return printing ??= message => new Print(fetching, skipping, message, field, delay);
+                        return printing ??= message => new Print
+                        (
+                            yieldPoint, 
+                            fetching,
+                            skipping,
+                            message,
+                            field,
+                            symbolsDelay
+                        );
 
                     }, Lifetime.Transient);
 

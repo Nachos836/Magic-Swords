@@ -22,14 +22,23 @@ namespace MagicSwords.Features.Dialog.Stages
 
     public sealed class Print : IStage, IStage.IProcess
     {
+        private readonly PlayerLoopTiming _yieldTarget;
         private readonly Func<Message, IStage> _resolveNext;
         private readonly Func<Message, IStage> _resolveSkip;
         private readonly Message _message;
         private readonly TextMeshProUGUI _field;
         private readonly TimeSpan _delay;
 
-        public Print(Func<Message, IStage> resolveNext,Func<Message, IStage> resolveSkip, Message message, TextMeshProUGUI field, TimeSpan delay)
-        {
+        public Print
+        (
+            PlayerLoopTiming yieldTarget,
+            Func<Message, IStage> resolveNext,
+            Func<Message, IStage> resolveSkip,
+            Message message,
+            TextMeshProUGUI field,
+            TimeSpan delay
+        ) {
+            _yieldTarget = yieldTarget;
             _resolveNext = resolveNext;
             _resolveSkip = resolveSkip;
             _message = message;
@@ -42,7 +51,7 @@ namespace MagicSwords.Features.Dialog.Stages
             using var displaying = CreateLinkedTokenSource(cancellation);
             cancellation = displaying.Token;
 
-            await foreach (var _ in EveryUpdate(Update).TakeUntilCanceled(cancellation).WithCancellation(cancellation))
+            await foreach (var _ in EveryUpdate(_yieldTarget).TakeUntilCanceled(cancellation).WithCancellation(cancellation))
             {
                 var message = _message.Part;
 
@@ -59,7 +68,7 @@ namespace MagicSwords.Features.Dialog.Stages
                         return Option.From(_resolveSkip.Invoke(_message));
                     }
 
-                    if (await UniTask.Delay(_delay, ignoreTimeScale: false, Update, cancellation)
+                    if (await UniTask.Delay(_delay, ignoreTimeScale: false, _yieldTarget, cancellation)
                         .SuppressCancellationThrow()) return Option.From(Stage.Cancel);
                 }
 
