@@ -17,7 +17,7 @@ namespace MagicSwords.Features.Dialog.Stages
     public sealed class Fetch : IStage, IStage.IProcess
     {
         private readonly Func<Message, IStage> _resolveNext;
-        private readonly Message _message;
+        private readonly IFetchMessage _message;
 
         public Fetch(Func<Message, IStage> resolveNext, Message message)
         {

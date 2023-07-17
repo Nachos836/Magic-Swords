@@ -13,14 +13,15 @@ namespace MagicSwords.DI.Dialog
     internal sealed class DialogScope : LifetimeScope
     {
         [field: SerializeField] public TextMeshProUGUI Field { get; private set; }
-        [AnySerialize] [UsedImplicitly] public TimeSpan Delay { get; }
+        [AnySerialize] [UsedImplicitly] public TimeSpan SymbolsDelay { get; }
+        [AnySerialize] [UsedImplicitly] public TimeSpan MessagesDelay { get; }
         [field: SerializeField] public string[] Monologue { get; private set; }
 
         protected override void Configure(IContainerBuilder builder)
         {
             base.Configure(builder);
 
-            builder.AddAnimatedTextPresenter(Field, Delay, Monologue);
+            builder.AddAnimatedTextPresenter(Field, SymbolsDelay, MessagesDelay, Monologue);
         }
     }
 }

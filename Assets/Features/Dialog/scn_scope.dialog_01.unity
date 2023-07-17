@@ -886,6 +886,16 @@ PrefabInstance:
       objectReference: {fileID: 196146235}
     - target: {fileID: 1762443155537056728, guid: 6d1c3878e5a1d954dbdf23ac93f56af2,
         type: 3}
+      propertyPath: <SymbolsDelay>k__BackingField._ticks
+      value: 25
+      objectReference: {fileID: 0}
+    - target: {fileID: 1762443155537056728, guid: 6d1c3878e5a1d954dbdf23ac93f56af2,
+        type: 3}
+      propertyPath: <MessagesDelay>k__BackingField._ticks
+      value: 5000000
+      objectReference: {fileID: 0}
+    - target: {fileID: 1762443155537056728, guid: 6d1c3878e5a1d954dbdf23ac93f56af2,
+        type: 3}
       propertyPath: <Monologue>k__BackingField.Array.size
       value: 3
       objectReference: {fileID: 0}
@@ -915,6 +925,16 @@ PrefabInstance:
       propertyPath: <Monologue>k__BackingField.Array.data[2]
       value: Interdum et malesuada fames ac ante ipsum primis in faucibus. Curabitur
         sed nulla bibendum, commodo dolor quis, condimentum nibh.
+      objectReference: {fileID: 0}
+    - target: {fileID: 1762443155537056728, guid: 6d1c3878e5a1d954dbdf23ac93f56af2,
+        type: 3}
+      propertyPath: <SymbolsDelay>k__BackingField._displayUnit
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1762443155537056728, guid: 6d1c3878e5a1d954dbdf23ac93f56af2,
+        type: 3}
+      propertyPath: <MessagesDelay>k__BackingField._displayUnit
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4032011308348852144, guid: 6d1c3878e5a1d954dbdf23ac93f56af2,
         type: 3}
