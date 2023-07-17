@@ -38,7 +38,7 @@ namespace MagicSwords.DI.Dialog.Dependencies
 
                         return new Initial(printing, monologue);
 
-                    }, Lifetime.Transient);
+                    }, Lifetime.Scoped);
 
                     container.Register(dependency =>
                     {
@@ -55,7 +55,7 @@ namespace MagicSwords.DI.Dialog.Dependencies
                             symbolsDelay
                         );
 
-                    }, Lifetime.Transient);
+                    }, Lifetime.Scoped);
 
                     container.Register(_ =>
                     {
@@ -63,7 +63,7 @@ namespace MagicSwords.DI.Dialog.Dependencies
 
                         return skipping ??= message => new Skip(yieldPoint, InstantPrint, message, field);
 
-                    }, Lifetime.Transient);
+                    }, Lifetime.Scoped);
 
                     container.Register(dependency =>
                     {
@@ -71,18 +71,18 @@ namespace MagicSwords.DI.Dialog.Dependencies
 
                         return fetching ??= message => new Fetch(delaying, message);
 
-                    }, Lifetime.Transient);
+                    }, Lifetime.Scoped);
 
                     container.Register(_ =>
                     {
                         return delaying ??= message => new Delay(yieldPoint, printing, message, messagesDelay);
 
-                    }, Lifetime.Transient);
+                    }, Lifetime.Scoped);
                 });
 
                 using (scope) return new Sequencer(firstState: scope.Resolve<Initial>());
 
-            }, Lifetime.Transient);
+            }, Lifetime.Scoped);
 
             builder.RegisterComponentInHierarchy<AnimatedTextPresenter>();
 
