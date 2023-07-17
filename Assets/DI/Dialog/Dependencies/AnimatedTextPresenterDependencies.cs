@@ -1,4 +1,5 @@
 ﻿using System;
+using Cysharp.Threading.Tasks;
 using TMPro;
 using VContainer;
 using VContainer.Unity;
@@ -16,7 +17,8 @@ namespace MagicSwords.DI.Dialog.Dependencies
         (
             this IContainerBuilder builder,
             TextMeshProUGUI field,
-            TimeSpan delay,
+            TimeSpan symbolsDelay,
+            TimeSpan messagesDelay,
             string[] monologue
         ) {
             builder.Register(resolver =>
@@ -28,6 +30,7 @@ namespace MagicSwords.DI.Dialog.Dependencies
                     Func<Message, Print> printing = default;
                     Func<Message, Fetch> fetching = default;
                     Func<Message, Skip> skipping = default;
+                    Func<Message, Delay> delaying = default;
 
                     container.Register(dependency =>
                     {
@@ -54,17 +57,25 @@ namespace MagicSwords.DI.Dialog.Dependencies
 
                     }, Lifetime.Transient);
 
+                    container.Register(_ =>
+                    {
+                        IStage InstantPrint(Message message) => new Fetch(printing, message);
+
+                        return skipping ??= message => new Skip(yieldPoint, InstantPrint, message, field);
+
+                    }, Lifetime.Transient);
+
                     container.Register(dependency =>
                     {
-                        fetching ??= dependency.Resolve<Func<Message, Fetch>>();
+                        delaying ??= dependency.Resolve<Func<Message, Delay>>();
 
-                        return skipping ??= message => new Skip(fetching, message, field);
+                        return fetching ??= message => new Fetch(delaying, message);
 
                     }, Lifetime.Transient);
 
                     container.Register(_ =>
                     {
-                        return fetching ??= message => new Fetch(printing, message);
+                        return delaying ??= message => new Delay(yieldPoint, printing, message, messagesDelay);
 
                     }, Lifetime.Transient);
                 });
