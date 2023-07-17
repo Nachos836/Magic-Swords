@@ -6,12 +6,11 @@ using UnityEngine.InputSystem;
 
 using static System.Threading.CancellationTokenSource;
 using static Cysharp.Threading.Tasks.Linq.UniTaskAsyncEnumerable;
-using static Cysharp.Threading.Tasks.PlayerLoopTiming;
 
 namespace MagicSwords.Features.Dialog.Stages
 {
-    using Generic.Sequencer;
     using Payload;
+    using Generic.Sequencer;
 
     using Option = Generic.Functional.OneOf
     <
