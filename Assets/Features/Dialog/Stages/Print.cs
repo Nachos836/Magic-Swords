@@ -60,15 +60,22 @@ namespace MagicSwords.Features.Dialog.Stages
 
                     _field.text = message[..i];
 
-                    if (Mouse.current.leftButton.wasPressedThisFrame)
+                    var processing = await UniTask.WhenAny
+                    (
+                        UniTask.WaitUntil(() => Mouse.current.leftButton.wasPressedThisFrame, _yieldTarget, cancellation),
+                        UniTask.Delay(_delay, ignoreTimeScale: false, _yieldTarget, cancellation)
+                    ).SuppressCancellationThrow();
+
+                    if (processing.IsCanceled)
+                    {
+                        return Option.From(Stage.Cancel);
+                    }
+                    else if (processing.Result is 0)
                     {
                         displaying.Cancel();
 
                         return Option.From(_resolveSkip.Invoke(_message));
                     }
-
-                    if (await UniTask.Delay(_delay, ignoreTimeScale: false, _yieldTarget, cancellation)
-                        .SuppressCancellationThrow()) return Option.From(Stage.Cancel);
                 }
 
                 displaying.Cancel();
