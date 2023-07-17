@@ -27,9 +27,9 @@ namespace MagicSwords.Features.Dialog.Stages
 
         UniTask<Option> IStage.IProcess.ProcessAsync(CancellationToken cancellation)
         {
-            if (cancellation.IsCancellationRequested) return new UniTask<Option>(Stage.Cancel);
-
-            return new UniTask<Option>(Option.From(_resolveNext.Invoke(new Message(_monologue))));
+            return cancellation.IsCancellationRequested
+                ? new UniTask<Option>(Stage.Cancel)
+                : new UniTask<Option>(Option.From(_resolveNext.Invoke(new Message(_monologue))));
         }
     }
 }
