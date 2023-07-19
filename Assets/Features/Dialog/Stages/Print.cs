@@ -49,6 +49,9 @@ namespace MagicSwords.Features.Dialog.Stages
         {
             using var displaying = CreateLinkedTokenSource(cancellation);
             cancellation = displaying.Token;
+            var hasClick = false;
+
+            HandleInputAsync(cancellation).Forget();
 
             await foreach (var _ in EveryUpdate(_yieldTarget).TakeUntilCanceled(cancellation).WithCancellation(cancellation))
             {
@@ -62,7 +65,7 @@ namespace MagicSwords.Features.Dialog.Stages
 
                     var processing = await UniTask.WhenAny
                     (
-                        UniTask.WaitUntil(() => Mouse.current.leftButton.wasPressedThisFrame, _yieldTarget, cancellation),
+                        UniTask.WaitUntil(() => hasClick, _yieldTarget, cancellation),
                         UniTask.Delay(_delay, ignoreTimeScale: false, _yieldTarget, cancellation)
                     ).SuppressCancellationThrow();
 
@@ -82,6 +85,14 @@ namespace MagicSwords.Features.Dialog.Stages
             }
 
             return Option.From(_resolveNext.Invoke(_message));
+
+            async UniTaskVoid HandleInputAsync(CancellationToken token = default)
+            {
+                await UniTask
+                    .WaitUntil(() => Mouse.current.leftButton.wasPressedThisFrame, _yieldTarget, token)
+                    .ContinueWith(() => hasClick = true)
+                    .SuppressCancellationThrow();
+            }
         }
     }
 }
