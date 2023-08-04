@@ -1,6 +1,7 @@
 ﻿using System;
 using NaughtyAttributes;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 namespace MagicSwords.DI.Root.Prerequisites
 {
@@ -8,9 +9,7 @@ namespace MagicSwords.DI.Root.Prerequisites
     internal struct Defaults
     {
         [field: SerializeField]
-        [field: Scene]
-        [field: MinValue(1)]
-        [field: ValidateInput(nameof(DefaultsValidation.SceneIsGrantedToLoad), "It's forbidden to Load Application Entry explicitly")]
-        public int MainMenuScene { get; private set; }
+        [field: ValidateInput(nameof(DefaultsValidation.AssetIsScene), "It's forbidden to Load Application Entry explicitly")]
+        public AssetReference MainMenuSceneReference { get; private set; }
     }
 }
