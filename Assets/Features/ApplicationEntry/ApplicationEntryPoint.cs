@@ -3,26 +3,48 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using VContainer.Unity;
 
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("MagicSwords.DI")]
+
 namespace MagicSwords.Features.ApplicationEntry
 {
     using SceneLoader;
 
-    public sealed class ApplicationEntryPoint : IAsyncStartable, IDisposable
+    internal sealed class ApplicationEntryPoint : IAsyncStartable, IDisposable
     {
-        private readonly ISceneLoader _sceneLoader;
-        private readonly int _mainMenu;
+        private readonly LazySceneLoader _sceneLoader;
 
-        public ApplicationEntryPoint(ISceneLoader sceneLoader, int mainMenu)
+        public ApplicationEntryPoint(LazySceneLoader sceneLoader)
         {
             _sceneLoader = sceneLoader;
-            _mainMenu = mainMenu;
         }
 
         async UniTask IAsyncStartable.StartAsync(CancellationToken cancellation)
         {
             UnityEngine.Debug.Log("Ура, мы начали проект!!!");
 
-            await _sceneLoader.LoadAlongsideAsync(_mainMenu, cancellation);
+            var loading = await _sceneLoader.LoadAsync(cancellation);
+            await loading.MatchAsync
+            (
+                success: _ =>
+                {
+                    UnityEngine.Debug.Log("Мы загрузились!!");
+
+                    return UniTask.CompletedTask;
+                },
+                cancellation: _ =>
+                {
+                    UnityEngine.Debug.Log("Загрузка прервана!!");
+
+                    return UniTask.CompletedTask;
+                },
+                failure: (exception, _) =>
+                {
+                    UnityEngine.Debug.Log(exception);
+
+                    return UniTask.CompletedTask;
+                },
+                cancellation
+            );
         }
 
         void IDisposable.Dispose()
