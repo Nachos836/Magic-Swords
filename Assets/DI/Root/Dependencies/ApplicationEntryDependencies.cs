@@ -7,11 +7,9 @@ namespace MagicSwords.DI.Root.Dependencies
 
     internal static class ApplicationEntryDependencies
     {
-        public static IContainerBuilder AddApplicationEntry(this IContainerBuilder builder, int targetSceneIndex)
+        public static IContainerBuilder AddApplicationEntry(this IContainerBuilder builder)
         {
-            builder
-                .RegisterEntryPoint<ApplicationEntryPoint>()
-                .WithParameter(targetSceneIndex);
+            builder.RegisterEntryPoint<ApplicationEntryPoint>();
 
             return builder;
         }

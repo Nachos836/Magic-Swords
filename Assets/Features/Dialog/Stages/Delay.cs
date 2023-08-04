@@ -21,8 +21,13 @@ namespace MagicSwords.Features.Dialog.Stages
         private readonly Message _message;
         private readonly TimeSpan _amount;
 
-        public Delay(PlayerLoopTiming yieldTarget, Func<Message, IStage> resolveNext, Message message, TimeSpan amount)
-        {
+        public Delay
+        (
+            PlayerLoopTiming yieldTarget,
+            Func<Message, IStage> resolveNext,
+            Message message,
+            TimeSpan amount
+        ) {
             _yieldTarget = yieldTarget;
             _resolveNext = resolveNext;
             _message = message;

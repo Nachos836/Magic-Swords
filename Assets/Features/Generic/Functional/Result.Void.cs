@@ -8,14 +8,14 @@ using Unity.Burst;
 namespace MagicSwords.Features.Generic.Functional
 {
     [BurstCompile]
-    internal readonly struct Result
+    public readonly struct Result
     {
         private readonly (Exception Value, bool Provided) _error;
 
         private Result(NoneResult value = default) => _error = default;
         public Result(Exception error) => _error = (error, Provided: true);
 
-        public static Result Success { get; } = new ();
+        public static Result Success { get; } = new (value: default);
         public static Result Failure { get; } = new (Outcome.Unexpected.Error);
 
         public bool IsSuccessful => _error is { Provided: false };

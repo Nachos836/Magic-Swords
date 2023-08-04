@@ -63,17 +63,17 @@ namespace MagicSwords.Features.Dialog.Stages
 
                     _field.text = message[..i];
 
-                    var processing = await UniTask.WhenAny
+                    var (wasCanceled, finishedIndex) = await UniTask.WhenAny
                     (
                         UniTask.WaitUntil(() => hasClick, _yieldTarget, cancellation),
                         UniTask.Delay(_delay, ignoreTimeScale: false, _yieldTarget, cancellation)
                     ).SuppressCancellationThrow();
 
-                    if (processing.IsCanceled)
+                    if (wasCanceled)
                     {
                         return Option.From(Stage.Cancel);
                     }
-                    else if (processing.Result is 0)
+                    else if (finishedIndex is 0)
                     {
                         displaying.Cancel();
 

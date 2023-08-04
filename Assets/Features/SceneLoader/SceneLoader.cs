@@ -1,23 +1,43 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using Cysharp.Threading.Tasks;
+using UnityEngine.AddressableAssets;
 using UnityEngine.SceneManagement;
 
 namespace MagicSwords.Features.SceneLoader
 {
-    public sealed class SceneLoader : ISceneLoader
+    using Generic.Functional;
+
+    public sealed class SceneLoader
     {
-        async UniTask ISceneLoader.LoadAlongsideAsync(int buildIndex, CancellationToken cancellation)
+        private readonly AssetReference _target;
+        private readonly PlayerLoopTiming _yieldTarget;
+
+        public SceneLoader(AssetReference target, PlayerLoopTiming yieldTarget)
         {
-            await SceneManager.LoadSceneAsync(buildIndex, LoadSceneMode.Additive)
-                .WithCancellation(cancellation)
-                .SuppressCancellationThrow();
+            _target = target;
+            _yieldTarget = yieldTarget;
         }
 
-        async UniTask ISceneLoader.TransferToAsync(int buildIndex, CancellationToken cancellation)
+        public async UniTask<AsyncResult> LoadAsync(CancellationToken cancellation = default)
         {
-            await SceneManager.LoadSceneAsync(buildIndex, LoadSceneMode.Single)
-                .WithCancellation(cancellation)
-                .SuppressCancellationThrow();
+            if (cancellation.IsCancellationRequested) return cancellation;
+
+            try
+            {
+                var (wasCanceled, _) = await _target
+                    .LoadSceneAsync(LoadSceneMode.Additive, activateOnLoad: true, priority: 100)
+                    .ToUniTask(timing: _yieldTarget, cancellationToken: cancellation)
+                    .SuppressCancellationThrow();
+
+                return wasCanceled
+                    ? AsyncResult.Success
+                    : AsyncResult.Cancel;
+            }
+            catch (Exception unexpected)
+            {
+                return unexpected;
+            }
         }
     }
 }

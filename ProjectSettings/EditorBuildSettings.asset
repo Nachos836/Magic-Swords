@@ -8,9 +8,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Magic-Swords.unity
     guid: 18931105c2bdbfe4b919a3a31998632d
-  - enabled: 1
-    path: Assets/Features/MainMenu/scn_scope.mainMenu_01.unity
-    guid: 3df0ec48d6388c9429215cb5bdcd9bc7
   m_configObjects:
+    com.unity.addressableassets: {fileID: 11400000, guid: 7b7a5569ab47b1046a9054dceb508e04,
+      type: 2}
     com.unity.input.settings: {fileID: 11400000, guid: dcbdeb812847b1644ba8957fd7a6e72a,
       type: 2}
