@@ -8,13 +8,13 @@ namespace MagicSwords.Features.SceneLoader
 {
     using Generic.Functional;
 
-    public sealed class LazySceneSwitch : IScenePrefetcher
+    public sealed class LazySceneSwitcher : IScenePrefetcher
     {
         private readonly AssetReference _target;
         private readonly PlayerLoopTiming _yieldTarget;
         private UniTask<SceneInstance>? _prefetching;
 
-        public LazySceneSwitch(AssetReference target, PlayerLoopTiming yieldTarget)
+        public LazySceneSwitcher(AssetReference target, PlayerLoopTiming yieldTarget)
         {
             _target = target;
             _yieldTarget = yieldTarget;
