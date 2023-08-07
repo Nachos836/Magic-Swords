@@ -1,11 +1,11 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using UnityEngine;
+using Cysharp.Threading.Tasks.Linq;
 using TMPro;
-
+using UnityEngine;
 using static Cysharp.Threading.Tasks.Linq.UniTaskAsyncEnumerable;
 
-namespace MagicSwords.Features.MainMenu.Effects
+namespace MagicSwords.Features.TextAnimator.Effects
 {
     [RequireComponent(typeof(TMP_Text))]
     public sealed class WobbleText : MonoBehaviour
