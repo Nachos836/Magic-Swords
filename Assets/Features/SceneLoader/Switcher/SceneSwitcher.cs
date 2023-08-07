@@ -2,37 +2,36 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine.AddressableAssets;
-using UnityEngine.SceneManagement;
 
-namespace MagicSwords.Features.SceneLoader
+namespace MagicSwords.Features.SceneLoader.Switcher
 {
     using Generic.Functional;
 
-    public sealed class SceneLoader
+    internal sealed class SceneSwitcher : ISceneSwitcher
     {
         private readonly AssetReference _target;
         private readonly PlayerLoopTiming _yieldTarget;
 
-        public SceneLoader(AssetReference target, PlayerLoopTiming yieldTarget)
+        public SceneSwitcher(AssetReference target, PlayerLoopTiming yieldTarget)
         {
             _target = target;
             _yieldTarget = yieldTarget;
         }
 
-        public async UniTask<AsyncResult> LoadAsync(CancellationToken cancellation = default)
+        async UniTask<AsyncResult> ISceneSwitcher.SwitchAsync(CancellationToken cancellation = default)
         {
             if (cancellation.IsCancellationRequested) return cancellation;
 
             try
             {
                 var (wasCanceled, _) = await _target
-                    .LoadSceneAsync(LoadSceneMode.Additive, activateOnLoad: true, priority: 100)
+                    .LoadSceneAsync()
                     .ToUniTask(timing: _yieldTarget, cancellationToken: cancellation)
                     .SuppressCancellationThrow();
 
                 return wasCanceled
-                    ? AsyncResult.Success
-                    : AsyncResult.Cancel;
+                    ? AsyncResult.Cancel
+                    : AsyncResult.Success;
             }
             catch (Exception unexpected)
             {
