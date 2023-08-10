@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
+using UnityEngine;
 
 namespace MagicSwords.Features.TextAnimator
 {
@@ -14,6 +16,14 @@ namespace MagicSwords.Features.TextAnimator
         {
             _letters = letters;
             _effect = effect;
+        }
+
+        public IEnumerable<Func<float, Vector3>> GetTweens()
+        {
+            foreach (var _ in _letters)
+            {
+                yield return _effect.Tween;
+            }
         }
 
         public async UniTask ShowSequence(CancellationToken cancellation)
@@ -63,5 +73,6 @@ namespace MagicSwords.Features.TextAnimator
 
     public interface IEffect
     {
+        Func<float, Vector3> Tween { get; }
     }
 }

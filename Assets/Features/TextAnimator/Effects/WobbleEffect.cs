@@ -1,55 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 
-namespace MagicSwords.Features.TextAnimator
+namespace MagicSwords.Features.TextAnimator.Effects
 {
-    public sealed class TextAnimator : MonoBehaviour
+    public class WobbleEffect
     {
-        [SerializeField] private TMP_Text _field;
-        [SerializeField] private string _text;
+        private TMP_Text _field;
 
-        private async UniTaskVoid Start()
-        {
-            await PresentAsync(destroyCancellationToken);
-        }
-
-        // text = "<wobble>Cyka</>"
-        public async UniTask PresentAsync(CancellationToken cancellation=default)
-        {
-            var tags = BuildTags(_text,cancellation);
-            var tweens = tags.SelectMany(sequence => sequence.GetTweens());
-            await PlayText
-            (
-                tweens: tweens.ToArray(),
-                cancellation: cancellation
-            );
-
-            // foreach (var tag in tags)
-            // {
-            //     await tag.ShowSequence(cancellation);
-            // }
-        }
-
-        // text = "<wobble>Cyka</>"
-        private IEnumerable<TagSequence> BuildTags(string text, CancellationToken cancellation)
-        {
-            ITag[] tags = { new WobbleTag() };
-            foreach (var i in tags)
-            {
-                if (text.Contains(i.Open))
-                {
-                    yield return new TagSequence(text[text.IndexOf(i.Open)..text.IndexOf(i.Close)],i.Effect);
-                }
-            }
-        }
-        
-        private async UniTask PlayText(Func<float, Vector3>[] tweens, CancellationToken cancellation = default)
+        private async void PlayText(Func<float, Vector3>[] tweens, CancellationToken cancellation = default)
         {
             await foreach (var letter in PrepareTextPiecesAsync(_field, tweens, cancellation))
             {
@@ -168,24 +131,6 @@ namespace MagicSwords.Features.TextAnimator
 
                 return UniTask.CompletedTask;
             }
-        }
-        
-        
-        
-
-
-        private sealed class WobbleTag : ITag
-        {
-            string ITag.Open { get; } = "<wobble>";
-            string ITag.Close { get; } = "</wobble>";
-            public IEffect Effect { get; } = default;
-        }
-
-        private interface ITag
-        {
-            string Open { get; }
-            string Close { get; }
-            IEffect Effect { get; }
         }
     }
 }
