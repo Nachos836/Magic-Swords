@@ -6,8 +6,9 @@ using UnityEngine.InputSystem;
 
 namespace MagicSwords.Features.Dialog.Stages
 {
-    using Payload;
     using Generic.Sequencer;
+    using Payload;
+
     using Option = Generic.Functional.OneOf
     <
         Generic.Sequencer.IStage,
@@ -15,7 +16,7 @@ namespace MagicSwords.Features.Dialog.Stages
         Generic.Sequencer.Stage.Errored
     >;
 
-    public sealed class Skip : IStage, IStage.IProcess
+    internal sealed class Skip : IStage, IStage.IProcess
     {
         private readonly PlayerLoopTiming _yieldTarget;
         private readonly Func<Message, IStage> _resolveNext;

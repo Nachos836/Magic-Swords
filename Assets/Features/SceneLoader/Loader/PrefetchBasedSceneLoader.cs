@@ -7,29 +7,32 @@ namespace MagicSwords.Features.SceneLoader.Loader
 {
     using Generic.Functional;
 
-    internal sealed class PrefetchBasedSceneLoader : ISceneLoader
+    internal static class PrefetchBasedSceneLoader
     {
-        private readonly UniTask<SceneInstance> _prefetching;
-        private readonly PlayerLoopTiming _yieldTarget;
-
-        public PrefetchBasedSceneLoader(UniTask<SceneInstance> prefetching, PlayerLoopTiming yieldTarget)
+        public static Func<CancellationToken, UniTask<AsyncResult>> CreateLoadingJob(SceneLoadingPrefetcher.Handler handler)
         {
-            _prefetching = prefetching;
-            _yieldTarget = yieldTarget;
+            var continuation = handler.Continuation;
+            var yieldTarget = handler.YieldContext;
+
+            return token => LoadingJob(continuation, yieldTarget, token);
         }
 
-        async UniTask<AsyncResult> ISceneLoader.LoadAsync(CancellationToken cancellation)
-        {
+        private static async UniTask<AsyncResult> LoadingJob
+        (
+            AsyncLazy<SceneInstance> continuation,
+            PlayerLoopTiming yieldTarget,
+            CancellationToken cancellation = default
+        ) {
             if (cancellation.IsCancellationRequested) return cancellation;
 
             try
             {
-                var (prefetchingWasCanceled, sceneInstance) = await _prefetching.SuppressCancellationThrow();
+                var (prefetchingWasCanceled, sceneInstance) = await continuation.Task.SuppressCancellationThrow();
                 if (prefetchingWasCanceled) return AsyncResult.Cancel;
 
                 var activatingWasCanceled = await sceneInstance
                     .ActivateAsync()
-                    .ToUniTask(timing: _yieldTarget, cancellationToken: cancellation)
+                    .ToUniTask(timing: yieldTarget, cancellationToken: cancellation)
                     .SuppressCancellationThrow();
 
                 return activatingWasCanceled

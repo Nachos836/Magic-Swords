@@ -1,5 +1,6 @@
 ﻿using System;
 using Cysharp.Threading.Tasks;
+using MagicSwords.Features.Dialog.Stages.Payload;
 using TMPro;
 using VContainer;
 using VContainer.Unity;
@@ -8,7 +9,6 @@ namespace MagicSwords.DI.Dialog.Dependencies
 {
     using Features.Dialog;
     using Features.Dialog.Stages;
-    using Features.Dialog.Payload;
     using Features.Generic.Sequencer;
 
     internal static class AnimatedTextPresenterDependencies

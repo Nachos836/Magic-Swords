@@ -14,7 +14,7 @@ namespace MagicSwords.Features.Dialog.Stages
         Generic.Sequencer.Stage.Errored
     >;
 
-    public sealed class Initial : IStage, IStage.IProcess
+    internal sealed class Initial : IStage, IStage.IProcess
     {
         private readonly Func<Message, IStage> _resolveNext;
         private readonly string[] _monologue;

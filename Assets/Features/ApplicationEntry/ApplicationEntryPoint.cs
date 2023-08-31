@@ -5,13 +5,13 @@ using VContainer.Unity;
 
 namespace MagicSwords.Features.ApplicationEntry
 {
-    using SceneLoader;
+    using Generic.Functional;
 
     internal sealed class ApplicationEntryPoint : IAsyncStartable, IDisposable
     {
-        private readonly ISceneLoader _sceneLoader;
+        private readonly Func<CancellationToken, UniTask<AsyncResult>> _sceneLoader;
 
-        public ApplicationEntryPoint(ISceneLoader sceneLoader)
+        public ApplicationEntryPoint(Func<CancellationToken, UniTask<AsyncResult>> sceneLoader)
         {
             _sceneLoader = sceneLoader;
         }
@@ -20,7 +20,7 @@ namespace MagicSwords.Features.ApplicationEntry
         {
             UnityEngine.Debug.Log("Ура, мы начали проект!!!");
 
-            var loading = await _sceneLoader.LoadAsync(cancellation);
+            var loading = await _sceneLoader.Invoke(cancellation);
             await loading.MatchAsync
             (
                 success: _ =>

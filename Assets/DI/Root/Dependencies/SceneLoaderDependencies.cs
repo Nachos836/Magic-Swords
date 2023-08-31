@@ -1,11 +1,11 @@
-﻿using Cysharp.Threading.Tasks;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.AddressableAssets;
 using VContainer;
 
+using static Cysharp.Threading.Tasks.PlayerLoopTiming;
+
 namespace MagicSwords.DI.Root.Dependencies
 {
-    using Features.SceneLoader;
     using Features.SceneLoader.Loader;
 
     internal static class SceneLoaderDependencies
@@ -14,12 +14,19 @@ namespace MagicSwords.DI.Root.Dependencies
         {
             builder.Register(_ =>
             {
-                var prefetcher = new SceneLoadingPrefetcher(target, PlayerLoopTiming.Initialization, priority: 100);
-                var prefetching = prefetcher.PrefetchAsync(Application.exitCancellationToken);
+                var prefetcher = new SceneLoadingPrefetcher
+                (
+                    target,
+                    yieldTarget: Initialization,
+                    priority: 100,
+                    instantLoad: true
+                );
 
-                return new PrefetchBasedSceneLoader(prefetching.Handler, prefetching.YieldTarget);
+                var handler = prefetcher.PrefetchAsync(Application.exitCancellationToken);
 
-            }, Lifetime.Scoped).As<ISceneLoader>();
+                return PrefetchBasedSceneLoader.CreateLoadingJob(handler);
+
+            }, Lifetime.Scoped);
 
             return builder;
         }

@@ -25,8 +25,6 @@ namespace MagicSwords.Features.SceneLoader.Switcher
                 .ToUniTask(timing: _yieldTarget, cancellationToken: cancellation)
                 .Preserve();
 
-            prefetching.Forget();
-
             return (prefetching, _yieldTarget);
         }
     }

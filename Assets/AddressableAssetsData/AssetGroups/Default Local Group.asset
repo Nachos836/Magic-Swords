@@ -16,7 +16,12 @@ MonoBehaviour:
   m_Data:
     m_SerializedData: []
   m_GUID: 43dcfeea8576bc64a824d7fe23d8238b
-  m_SerializeEntries: []
+  m_SerializeEntries:
+  - m_GUID: 283c6464ad13d9f4c8a17dbddb6b9ccb
+    m_Address: Assets/Features/Dialog/scn_scope.dialog_01.unity
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 69f36f625dff45344b20f3320930ab74, type: 2}
   m_SchemaSet:

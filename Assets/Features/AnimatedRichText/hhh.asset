@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8d476e31c70b408490b638d9d8c7d6b0, type: 3}
+  m_Name: hhh
+  m_EditorClassIdentifier: 
+  <Text>k__BackingField: <wobble>gggg</wobble><wobble>o</>
+  _intermediateConfigs:
+  - PlainText: gggg
+    Effects:
+    - rid: 4130225937409376262
+  - PlainText: o
+    Effects:
+    - rid: 4130225937409376263
+  _editableConfig:
+  - _nameOfConfiguration: 'Animated Text: "gggg"'
+    <TextToShow>k__BackingField: gggg
+    <EffectConfigs>k__BackingField:
+    - rid: 4130225937409376262
+  - _nameOfConfiguration: 'Animated Text: "o"'
+    <TextToShow>k__BackingField: o
+    <EffectConfigs>k__BackingField:
+    - rid: 4130225937409376263
+  _configAreRelevant: 1
+  references:
+    version: 2
+    RefIds:
+    - rid: 4130225937409376262
+      type: {class: WobbleEffect, ns: MagicSwords.Features.AnimatedRichText.Animating.Wobble,
+        asm: MagicSwords.Feature.AnimatedRichText}
+      data:
+        _strength: 4.61
+        _amplitude: 10
+    - rid: 4130225937409376263
+      type: {class: WobbleEffect, ns: MagicSwords.Features.AnimatedRichText.Animating.Wobble,
+        asm: MagicSwords.Feature.AnimatedRichText}
+      data:
+        _strength: 0.01
+        _amplitude: 3.94

@@ -18,7 +18,7 @@ namespace MagicSwords.Features.SceneLoader.Switcher
             _yieldTarget = yieldTarget;
         }
 
-        async UniTask<AsyncResult> ISceneSwitcher.SwitchAsync(CancellationToken cancellation = default)
+        async UniTask<AsyncResult> ISceneSwitcher.SwitchAsync(CancellationToken cancellation)
         {
             if (cancellation.IsCancellationRequested) return cancellation;
 
