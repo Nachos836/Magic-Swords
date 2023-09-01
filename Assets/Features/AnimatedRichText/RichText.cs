@@ -14,7 +14,7 @@ namespace MagicSwords.Features.AnimatedRichText
     using Parsing;
 
     [CreateAssetMenu(menuName = "Novel Framework/Rich Text/Create Text")]
-    // [PreferBinarySerialization]
+    [PreferBinarySerialization]
     internal sealed class RichText : ScriptableObject
     {
         [field: Header("Configuration")]

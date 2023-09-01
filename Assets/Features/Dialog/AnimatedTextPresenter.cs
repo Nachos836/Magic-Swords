@@ -1,4 +1,5 @@
 using Cysharp.Threading.Tasks;
+using JetBrains.Annotations;
 using UnityEngine;
 using VContainer;
 
@@ -12,6 +13,7 @@ namespace MagicSwords.Features.Dialog
 
         [Inject] internal void Construct(Sequencer sequencer) => _sequencer = sequencer;
 
+        [UsedImplicitly] // ReSharper disable once Unity.IncorrectMethodSignature
         private async UniTaskVoid Start()
         {
             var outcome = await _sequencer.StartAsync(destroyCancellationToken);
