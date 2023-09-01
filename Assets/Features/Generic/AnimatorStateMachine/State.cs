@@ -6,7 +6,7 @@ namespace MagicSwords.Features.Generic.AnimatorStateMachine
 {
     public abstract class State : StateMachineBehaviour
     {
-        protected StateMachine.IController _controller;
+        protected StateMachine.IController Controller;
         private bool _isInitialized;
 		private bool _isFirstEnter = true;
 
@@ -19,7 +19,7 @@ namespace MagicSwords.Features.Generic.AnimatorStateMachine
         {
             if (AssertIsNotInitialized() is false) return;
 
-            _controller = controller;
+            Controller = controller;
 
             _isInitialized = true;
         }
