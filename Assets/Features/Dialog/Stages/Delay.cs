@@ -4,8 +4,8 @@ using Cysharp.Threading.Tasks;
 
 namespace MagicSwords.Features.Dialog.Stages
 {
-    using Payload;
     using Generic.Sequencer;
+    using Payload;
 
     using Option = Generic.Functional.OneOf
     <
@@ -14,7 +14,7 @@ namespace MagicSwords.Features.Dialog.Stages
         Generic.Sequencer.Stage.Errored
     >;
 
-    public sealed class Delay : IStage, IStage.IProcess
+    internal sealed class Delay : IStage, IStage.IProcess
     {
         private readonly PlayerLoopTiming _yieldTarget;
         private readonly Func<Message, IStage> _resolveNext;

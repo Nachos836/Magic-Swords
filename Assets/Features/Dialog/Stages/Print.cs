@@ -9,8 +9,8 @@ using static Cysharp.Threading.Tasks.Linq.UniTaskAsyncEnumerable;
 
 namespace MagicSwords.Features.Dialog.Stages
 {
-    using Payload;
     using Generic.Sequencer;
+    using Payload;
 
     using Option = Generic.Functional.OneOf
     <
@@ -19,7 +19,7 @@ namespace MagicSwords.Features.Dialog.Stages
         Generic.Sequencer.Stage.Errored
     >;
 
-    public sealed class Print : IStage, IStage.IProcess
+    internal sealed class Print : IStage, IStage.IProcess
     {
         private readonly PlayerLoopTiming _yieldTarget;
         private readonly Func<Message, IStage> _resolveNext;
@@ -53,7 +53,7 @@ namespace MagicSwords.Features.Dialog.Stages
 
             HandleInputAsync(cancellation).Forget();
 
-            await foreach (var _ in EveryUpdate(_yieldTarget).TakeUntilCanceled(cancellation).WithCancellation(cancellation))
+            await foreach (var _ in EveryUpdate(_yieldTarget).TakeUntilCanceled(cancellation))
             {
                 var message = _message.Part;
 

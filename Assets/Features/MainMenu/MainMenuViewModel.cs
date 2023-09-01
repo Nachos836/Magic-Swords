@@ -5,8 +5,9 @@ using ZBase.Foundation.Mvvm.Input;
 
 namespace MagicSwords.Features.MainMenu
 {
-    public partial class MainMenuViewModel : MonoBehaviour, IObservableObject
+    internal partial class MainMenuViewModel : MonoBehaviour, IObservableObject
     {
+        [ObservableProperty] private bool _gameStarted;
         [ObservableProperty] private bool _playing;
         [ObservableProperty] private bool _exitNeeded;
         [ObservableProperty] private bool _restartNeeded;
@@ -19,14 +20,17 @@ namespace MagicSwords.Features.MainMenu
         {
             _onChangedExitNeeded += _model.ApplicationExitHandler;
             _onChangedRestartNeeded += _model.ApplicationRestartHandler;
+            _onChangedGameStarted += _model.StartGameHandler;
         }
 
         private void OnDisable()
         {
             _onChangedExitNeeded -= _model.ApplicationExitHandler;
             _onChangedRestartNeeded -= _model.ApplicationRestartHandler;
+            _onChangedGameStarted -= _model.StartGameHandler;
         }
 
+        [RelayCommand] private void OnGameStarted() => GameStarted = !GameStarted;
         [RelayCommand] private void OnSetPlayState() => Playing = !Playing;
         [RelayCommand] private void OnSetExit() => ExitNeeded = !ExitNeeded;
         [RelayCommand] private void OnSetRestart() => RestartNeeded = !RestartNeeded;
