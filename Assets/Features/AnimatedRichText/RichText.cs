@@ -35,6 +35,8 @@ namespace MagicSwords.Features.AnimatedRichText
         [CanBeNull] private Config _generatedConfigCached;
         public Config GeneratedConfig => _generatedConfigCached ??= GenerateResultedConfig(_intermediateConfigs);
 
+#       if UNITY_EDITOR
+
         [Button] [UsedImplicitly]
         private void Configure()
         {
@@ -55,6 +57,8 @@ namespace MagicSwords.Features.AnimatedRichText
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
         }
+
+#       endif
 
         private static AnimationConfiguration[] GenerateEditableConfig(string richText)
         {
