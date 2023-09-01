@@ -6,7 +6,8 @@ using static Cysharp.Threading.Tasks.PlayerLoopTiming;
 
 namespace MagicSwords.DI.Root.Dependencies
 {
-    using Features.SceneLoader.Loader;
+    using Features.SceneOperations;
+    using Features.SceneOperations.Loader;
 
     internal static class SceneLoaderDependencies
     {
@@ -24,7 +25,7 @@ namespace MagicSwords.DI.Root.Dependencies
 
                 var handler = prefetcher.PrefetchAsync(Application.exitCancellationToken);
 
-                return PrefetchBasedSceneLoader.CreateLoadingJob(handler);
+                return Operations.CreateLoadingJob(handler);
 
             }, Lifetime.Scoped);
 

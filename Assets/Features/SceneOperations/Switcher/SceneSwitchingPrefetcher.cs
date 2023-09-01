@@ -5,28 +5,16 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.ResourceProviders;
 using UnityEngine.SceneManagement;
 
-namespace MagicSwords.Features.SceneLoader.Loader
+namespace MagicSwords.Features.SceneOperations.Switcher
 {
-    internal readonly ref struct SceneLoadingPrefetcher
+    internal readonly ref struct SceneSwitchingPrefetcher
     {
-        internal readonly ref struct Handler
-        {
-            public readonly AsyncLazy<SceneInstance> Continuation;
-            public readonly PlayerLoopTiming YieldContext;
-
-            public Handler(AsyncLazy<SceneInstance> continuation, PlayerLoopTiming yieldContext)
-            {
-                Continuation = continuation;
-                YieldContext = yieldContext;
-            }
-        }
-
         private readonly AssetReference _target;
         private readonly PlayerLoopTiming _yieldTarget;
         private readonly int _priority;
         private readonly bool _instantLoad;
 
-        public SceneLoadingPrefetcher
+        public SceneSwitchingPrefetcher
         (
             AssetReference target,
             PlayerLoopTiming yieldTarget,
@@ -45,9 +33,10 @@ namespace MagicSwords.Features.SceneLoader.Loader
             var priority = _priority;
             var yieldTarget = _yieldTarget;
 
-            var prefetching = (_instantLoad is false
+            var prefetching = _instantLoad is false
                 ? LoadWithWorkaroundDelayAsync(yieldTarget, target, priority, cancellation)
-                : LoadAsync(yieldTarget, target, priority, cancellation))
+                    .ToAsyncLazy()
+                : LoadAsync(yieldTarget, target, priority, cancellation)
                     .ToAsyncLazy();
 
             return new Handler(prefetching, _yieldTarget);
@@ -55,7 +44,7 @@ namespace MagicSwords.Features.SceneLoader.Loader
             static async UniTask<SceneInstance> LoadAsync(PlayerLoopTiming yieldTarget, AssetReference target, int priority, CancellationToken token = default)
             {
                 return await target
-                    .LoadSceneAsync(loadMode: LoadSceneMode.Additive, activateOnLoad: true, priority)
+                    .LoadSceneAsync(loadMode: LoadSceneMode.Single, activateOnLoad: true, priority)
                     .ToUniTask(progress: null, timing: yieldTarget, cancellationToken: token);
             }
 
@@ -71,8 +60,20 @@ namespace MagicSwords.Features.SceneLoader.Loader
                 await UniTask.Yield(yieldTarget, token);
 
                 return await target
-                    .LoadSceneAsync(loadMode: LoadSceneMode.Additive, activateOnLoad: false, priority)
+                    .LoadSceneAsync(loadMode: LoadSceneMode.Single, activateOnLoad: false, priority)
                     .ToUniTask(progress: null, timing: yieldTarget, cancellationToken: token);
+            }
+        }
+
+        public readonly ref struct Handler
+        {
+            public readonly AsyncLazy<SceneInstance> Continuation;
+            public readonly PlayerLoopTiming YieldContext;
+
+            public Handler(AsyncLazy<SceneInstance> continuation, PlayerLoopTiming yieldContext)
+            {
+                Continuation = continuation;
+                YieldContext = yieldContext;
             }
         }
     }

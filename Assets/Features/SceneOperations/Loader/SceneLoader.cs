@@ -1,23 +1,17 @@
 ﻿using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.ResourceProviders;
+using UnityEngine.SceneManagement;
 
-namespace MagicSwords.Features.SceneLoader.Loader
+namespace MagicSwords.Features.SceneOperations.Loader
 {
     using Generic.Functional;
 
-    internal static class PrefetchBasedSceneLoader
+    internal static class SceneLoader
     {
-        public static Func<CancellationToken, UniTask<AsyncResult>> CreateLoadingJob(SceneLoadingPrefetcher.Handler handler)
-        {
-            var continuation = handler.Continuation;
-            var yieldTarget = handler.YieldContext;
-
-            return token => LoadingJob(continuation, yieldTarget, token);
-        }
-
-        private static async UniTask<AsyncResult> LoadingJob
+        internal static async UniTask<AsyncResult> PrefetchedLoadingJob
         (
             AsyncLazy<SceneInstance> continuation,
             PlayerLoopTiming yieldTarget,
@@ -38,6 +32,31 @@ namespace MagicSwords.Features.SceneLoader.Loader
                 return activatingWasCanceled
                     ? AsyncResult.Cancel
                     : AsyncResult.Success;
+            }
+            catch (Exception unexpected)
+            {
+                return unexpected;
+            }
+        }
+
+        internal static async UniTask<AsyncResult> RegularLoadingJob
+        (
+            AssetReference target,
+            PlayerLoopTiming yieldTarget,
+            CancellationToken cancellation = default
+        ) {
+            if (cancellation.IsCancellationRequested) return cancellation;
+
+            try
+            {
+                var (wasCanceled, _) = await target
+                    .LoadSceneAsync(LoadSceneMode.Additive, activateOnLoad: true, priority: 100)
+                    .ToUniTask(timing: yieldTarget, cancellationToken: cancellation)
+                    .SuppressCancellationThrow();
+
+                return wasCanceled
+                    ? AsyncResult.Success
+                    : AsyncResult.Cancel;
             }
             catch (Exception unexpected)
             {
