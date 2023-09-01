@@ -1,5 +1,5 @@
 {
-    "name": "MagicSwords.ApplicationEntry",
+    "name": "MagicSwords.Feature.ApplicationEntry",
     "rootNamespace": "MagicSwords",
     "references": [
         "GUID:813278abd41bbbd4c81556716e32b716",
