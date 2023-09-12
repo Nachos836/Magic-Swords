@@ -17,11 +17,9 @@ namespace MagicSwords.Features.Generic.StateMachine
 
         public StateMachine()
         {
-            var candidate = _transitions.FirstOrDefault();
+            var (_, transition) = _transitions.FirstOrDefault();
 
-            _current = candidate.Equals(default)
-                ? candidate.Value.From
-                : new InitialState();
+            _current = transition.From ?? new InitialState();
         }
 
         public async UniTask TransitAsync<TTrigger>(CancellationToken cancellation = default)
