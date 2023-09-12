@@ -5,9 +5,10 @@
     "com.cysharp.unitask": "2.3.3",
     "com.dbrizov.naughtyattributes": "2.1.4",
     "com.quabug.any-serialize": "0.5.0",
+    "com.quabug.one-shot-injection": "3.0.1",
     "com.unity.addressables": "1.21.17",
-    "com.unity.ide.rider": "3.0.24",
-    "com.unity.inputsystem": "1.6.3",
+    "com.unity.ide.rider": "3.0.25",
+    "com.unity.inputsystem": "1.7.0",
     "com.unity.render-pipelines.universal": "14.0.8",
     "com.unity.test-framework": "1.1.33",
     "com.unity.textmeshpro": "3.0.6",
@@ -15,6 +16,8 @@
     "com.unity.ugui": "1.0.0",
     "com.zbase.foundation.mvvm": "1.0.10",
     "jp.hadashikick.vcontainer": "1.13.2",
+    "org.nuget.system.collections.immutable": "7.0.0",
+    "org.nuget.system.numerics.vectors": "4.5.0",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",
     "com.unity.modules.animation": "1.0.0",
@@ -45,8 +48,7 @@
     "com.unity.modules.video": "1.0.0",
     "com.unity.modules.vr": "1.0.0",
     "com.unity.modules.wind": "1.0.0",
-    "com.unity.modules.xr": "1.0.0",
-    "org.nuget.system.collections.immutable": "7.0.0"
+    "com.unity.modules.xr": "1.0.0"
   },
   "scopedRegistries": [
     {

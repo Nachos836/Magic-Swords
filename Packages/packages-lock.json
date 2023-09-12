@@ -49,8 +49,8 @@
       "url": "https://package.openupm.com"
     },
     "com.quabug.one-shot-injection": {
-      "version": "2.6.2",
-      "depth": 1,
+      "version": "3.0.1",
+      "depth": 0,
       "source": "registry",
       "dependencies": {},
       "url": "https://package.openupm.com"
@@ -86,7 +86,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.ide.rider": {
-      "version": "3.0.24",
+      "version": "3.0.25",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -95,7 +95,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.inputsystem": {
-      "version": "1.6.3",
+      "version": "1.7.0",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -264,8 +264,8 @@
       "url": "https://package.openupm.com"
     },
     "org.nuget.system.numerics.vectors": {
-      "version": "4.4.0",
-      "depth": 2,
+      "version": "4.5.0",
+      "depth": 0,
       "source": "registry",
       "dependencies": {},
       "url": "https://package.openupm.com"
