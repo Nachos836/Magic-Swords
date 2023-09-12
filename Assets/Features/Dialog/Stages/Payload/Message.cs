@@ -2,12 +2,7 @@
 
 namespace MagicSwords.Features.Dialog.Stages.Payload
 {
-    internal interface IFetchMessage
-    {
-        OptionalResult<Message> Next { get; }
-    }
-
-    internal readonly struct Message : IFetchMessage
+    internal readonly struct Message
     {
         private readonly string[] _monologue;
         private readonly int _current;
@@ -22,8 +17,20 @@ namespace MagicSwords.Features.Dialog.Stages.Payload
 
         public string Part => _monologue[_current];
 
-        OptionalResult<Message> IFetchMessage.Next => _current < _monologue.Length - 1
+        private OptionalResult<Message> Next => _current < _monologue.Length - 1
             ? new Message(_monologue, _current + 1)
             : OptionalResult<Message>.None;
+
+        internal readonly struct Fetcher
+        {
+            private readonly Message _message;
+
+            public Fetcher(Message message)
+            {
+                _message = message;
+            }
+
+            public OptionalResult<Message> Next => _message.Next;
+        }
     }
 }

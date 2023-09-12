@@ -59,9 +59,9 @@ namespace MagicSwords.DI.Dialog.Dependencies
 
                     container.Register(_ =>
                     {
-                        IStage InstantPrint(Message message) => new Fetch(printing, message);
-
                         return skipping ??= message => new Skip(yieldPoint, InstantPrint, message, field);
+
+                        IStage InstantPrint(Message message) => new Fetch(printing, new Message.Fetcher(message));
 
                     }, Lifetime.Scoped);
 
@@ -69,7 +69,7 @@ namespace MagicSwords.DI.Dialog.Dependencies
                     {
                         delaying ??= dependency.Resolve<Func<Message, Delay>>();
 
-                        return fetching ??= message => new Fetch(delaying, message);
+                        return fetching ??= message => new Fetch(delaying, new Message.Fetcher(message));
 
                     }, Lifetime.Scoped);
 

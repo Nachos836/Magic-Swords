@@ -17,19 +17,19 @@ namespace MagicSwords.Features.Dialog.Stages
     internal sealed class Fetch : IStage, IStage.IProcess
     {
         private readonly Func<Message, IStage> _resolveNext;
-        private readonly IFetchMessage _message;
+        private readonly Message.Fetcher _fetcher;
 
-        public Fetch(Func<Message, IStage> resolveNext, Message message)
+        public Fetch(Func<Message, IStage> resolveNext, Message.Fetcher fetcher)
         {
             _resolveNext = resolveNext;
-            _message = message;
+            _fetcher = fetcher;
         }
 
         UniTask<Option> IStage.IProcess.ProcessAsync(CancellationToken cancellation)
         {
             if (cancellation.IsCancellationRequested) return new UniTask<Option>(Option.From(Stage.Cancel));
 
-            return new UniTask<Option>(Option.From(_message.Next.Match
+            return new UniTask<Option>(Option.From(_fetcher.Next.Match
             (
                 something: message => cancellation.IsCancellationRequested
                     ? Stage.Cancel
