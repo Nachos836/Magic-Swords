@@ -2,7 +2,7 @@
 using System.Linq;
 using UnityEngine.SceneManagement;
 
-namespace MagicSwords.Editor
+namespace MagicSwords.Features.UnityEditorUtils
 {
     internal static class EditorSceneManagerUtility
     {

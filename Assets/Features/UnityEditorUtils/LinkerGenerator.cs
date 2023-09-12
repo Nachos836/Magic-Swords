@@ -8,7 +8,7 @@ using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 
-namespace MagicSwords.Editor
+namespace MagicSwords.Features.UnityEditorUtils
 {
     internal sealed class LinkerGenerator : IPreprocessBuildWithReport
     {
