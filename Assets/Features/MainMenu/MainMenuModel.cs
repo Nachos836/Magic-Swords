@@ -48,9 +48,9 @@ namespace MagicSwords.Features.MainMenu
 
                 await result.MatchAsync
                 (
-                    success: async token => { return 5; },
-                    cancellation: async token => { return 0; },
-                    failure: async (exception, token) => { return 6; },
+                    success: _ => UniTask.FromResult(AsyncResult.Success),
+                    cancellation: _ => UniTask.FromResult(AsyncResult.Cancel),
+                    failure: (_, _) => UniTask.FromResult(AsyncResult.Failure),
                     cancellation
                 );
             }
