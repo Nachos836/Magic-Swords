@@ -11,7 +11,7 @@ namespace MagicSwords.Features.Generic.Utilities
             get
             {
                 return GetAllScenes().AsQueryable();
-                
+
                 IEnumerable<Scene> GetAllScenes()
                 {
                     for (var index = 0; index < SceneManager.sceneCount; index++)
