@@ -1,7 +1,7 @@
-﻿using MagicSwords.Features.Generic.Functional;
-
-namespace MagicSwords.Features.Dialog.Stages.Payload
+﻿namespace MagicSwords.Features.Dialog.Stages.Payload
 {
+    using Generic.Functional;
+
     internal readonly struct Message
     {
         private readonly string[] _monologue;

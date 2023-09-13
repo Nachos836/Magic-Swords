@@ -41,8 +41,13 @@ namespace MagicSwords.Features.SceneOperations.Loader
 
             return new Handler(prefetching, _yieldTarget);
 
-            static async UniTask<SceneInstance> LoadAsync(PlayerLoopTiming yieldTarget, AssetReference target, int priority, CancellationToken token = default)
-            {
+            static async UniTask<SceneInstance> LoadAsync
+            (
+                PlayerLoopTiming yieldTarget,
+                AssetReference target,
+                int priority,
+                CancellationToken token = default
+            ) {
                 return await target
                     .LoadSceneAsync(loadMode: LoadSceneMode.Additive, activateOnLoad: true, priority)
                     .ToUniTask(progress: null, timing: yieldTarget, cancellationToken: token);
@@ -55,9 +60,15 @@ namespace MagicSwords.Features.SceneOperations.Loader
              * Thus compatibility and builds reliability are not guaranteed
              */
             [Obsolete("Workaround for https://issuetracker.unity3d.com/issues/loadsceneasync-allowsceneactivation-flag-is-ignored-in-awake")]
-            static async UniTask<SceneInstance> LoadWithWorkaroundDelayAsync(PlayerLoopTiming yieldTarget, AssetReference target, int priority, CancellationToken token = default)
-            {
-                await UniTask.Yield(yieldTarget, token);
+            static async UniTask<SceneInstance> LoadWithWorkaroundDelayAsync
+            (
+                PlayerLoopTiming yieldTarget,
+                AssetReference target,
+                int priority,
+                CancellationToken token = default
+            ) {
+                await UniTask.Yield(yieldTarget, token)
+                    .SuppressCancellationThrow();
 
                 return await target
                     .LoadSceneAsync(loadMode: LoadSceneMode.Additive, activateOnLoad: false, priority)
@@ -65,7 +76,7 @@ namespace MagicSwords.Features.SceneOperations.Loader
             }
         }
 
-        public readonly ref struct Handler
+        internal readonly ref struct Handler
         {
             public readonly AsyncLazy<SceneInstance> Continuation;
             public readonly PlayerLoopTiming YieldContext;

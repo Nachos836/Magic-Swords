@@ -10,9 +10,9 @@ namespace MagicSwords.Features.UnityEditorUtils
         {
             get
             {
-                return GetAllScenes().AsQueryable();
-                
-                IEnumerable<Scene> GetAllScenes()
+                return GetAllScenesInternal().AsQueryable();
+
+                IEnumerable<Scene> GetAllScenesInternal()
                 {
                     for (var index = 0; index < SceneManager.sceneCount; index++)
                     {

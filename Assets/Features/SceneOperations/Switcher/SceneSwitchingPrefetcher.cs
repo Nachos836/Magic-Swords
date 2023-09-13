@@ -65,7 +65,7 @@ namespace MagicSwords.Features.SceneOperations.Switcher
             }
         }
 
-        public readonly ref struct Handler
+        internal readonly ref struct Handler
         {
             public readonly AsyncLazy<SceneInstance> Continuation;
             public readonly PlayerLoopTiming YieldContext;
