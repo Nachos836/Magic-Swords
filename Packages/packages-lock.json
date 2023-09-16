@@ -15,7 +15,7 @@
       "url": "https://package.openupm.com"
     },
     "com.cysharp.unitask": {
-      "version": "2.3.3",
+      "version": "2.4.0",
       "depth": 0,
       "source": "registry",
       "dependencies": {},
@@ -218,7 +218,7 @@
       }
     },
     "com.zbase.foundation.mvvm": {
-      "version": "1.0.10",
+      "version": "1.0.11",
       "depth": 0,
       "source": "registry",
       "dependencies": {
