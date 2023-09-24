@@ -1,9 +1,10 @@
-﻿using MagicSwords.Features.Logger;
-using MagicSwords.Features.Logger.Loggers;
-using VContainer;
+﻿using VContainer;
 
 namespace MagicSwords.DI.Root.Dependencies
 {
+    using Features.Logger;
+    using Features.Logger.Loggers;
+
     internal static class LoggerDependencies
     {
         public static IContainerBuilder AddLogger(this IContainerBuilder builder)
