@@ -9,17 +9,20 @@ namespace MagicSwords.Features.MainMenu
     internal sealed class MainMenuEntryPoint : IAsyncStartable
     {
         private readonly ILogger _logger;
+        private readonly PlayerLoopTiming _initializationPoint;
 
-        public MainMenuEntryPoint(ILogger logger)
+        public MainMenuEntryPoint(ILogger logger, PlayerLoopTiming initializationPoint)
         {
             _logger = logger;
+            _initializationPoint = initializationPoint;
         }
 
-        public UniTask StartAsync(CancellationToken cancellation)
+        async UniTask IAsyncStartable.StartAsync(CancellationToken cancellation)
         {
-            _logger.LogInformation("Вот наше главное меню!");
+            if (await UniTask.Yield(_initializationPoint, cancellation)
+                .SuppressCancellationThrow()) return;
 
-            return UniTask.CompletedTask;
+            _logger.LogInformation("Вот наше главное меню!");
         }
     }
 }
