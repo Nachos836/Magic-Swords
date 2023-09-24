@@ -10,6 +10,7 @@ namespace MagicSwords.DI.Root.Dependencies
         public static IContainerBuilder AddApplicationEntry(this IContainerBuilder builder)
         {
             builder.RegisterEntryPoint<ApplicationEntryPoint>();
+            builder.RegisterEntryPointExceptionHandler(Handlers.DefaultExceptionHandler);
 
             return builder;
         }

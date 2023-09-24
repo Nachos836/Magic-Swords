@@ -188,6 +188,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7107654323105639296, guid: 24dd3c148dcff6149afdf0de7082b223,
         type: 3}
+      propertyPath: parentReference.TypeName
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 7107654323105639296, guid: 24dd3c148dcff6149afdf0de7082b223,
+        type: 3}
       propertyPath: <MainMenuViewModel>k__BackingField
       value: 
       objectReference: {fileID: 7957749375331240044}

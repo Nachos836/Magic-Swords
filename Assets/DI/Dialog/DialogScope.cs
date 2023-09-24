@@ -9,6 +9,7 @@ using VContainer.Unity;
 namespace MagicSwords.DI.Dialog
 {
     using Dependencies;
+    using Features.Dialog;
 
     internal sealed class DialogScope : LifetimeScope
     {
@@ -20,6 +21,9 @@ namespace MagicSwords.DI.Dialog
         protected override void Configure(IContainerBuilder builder)
         {
             base.Configure(builder);
+
+            builder.RegisterEntryPoint<DialogEntryPoint>(Lifetime.Scoped);
+            builder.RegisterEntryPointExceptionHandler(Handlers.DefaultExceptionHandler);
 
             builder.AddAnimatedTextPresenter(Field, SymbolsDelay, MessagesDelay, Monologue);
         }
