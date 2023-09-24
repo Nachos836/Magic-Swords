@@ -12,13 +12,28 @@ namespace MagicSwords.Features.Logger.Loggers
 
         [StringFormatMethod("format")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        void ILogger.LogInformation(string format, params object[] arguments) { }
+
+        [StringFormatMethod("format")]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void ILogger.LogWarning(Object context, string format, params object[] arguments) { }
+
+        [StringFormatMethod("format")]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        void ILogger.LogWarning(string format, params object[] arguments) { }
 
         [StringFormatMethod("format")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void ILogger.LogError(Object context, string format, params object[] arguments) { }
 
+        [StringFormatMethod("format")]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        void ILogger.LogError(string format, params object[] arguments) { }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void ILogger.LogException(Object context, System.Exception exception) { }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        void ILogger.LogException(System.Exception exception) { }
     }
 }
