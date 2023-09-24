@@ -1,4 +1,3 @@
-using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -20,7 +19,9 @@ namespace MagicSwords.DI.MainMenu
         {
             base.Configure(builder);
 
-            builder.RegisterEntryPoint<MainMenuEntry>();
+            builder.RegisterEntryPoint<MainMenuEntryPoint>(Lifetime.Scoped);
+            builder.RegisterEntryPointExceptionHandler(Handlers.DefaultExceptionHandler);
+
             builder.Register(_ =>
             {
                 var prefetcher = new SceneLoadingPrefetcher(GameplayScene, PlayerLoopTiming.Initialization, priority: 1);
@@ -28,18 +29,10 @@ namespace MagicSwords.DI.MainMenu
                 var loadGameplay = Operations.CreateLoadingJob(handler);
 
                 return new MainMenuModel(loadGameplay);
+
             }, Lifetime.Scoped);
+
             builder.RegisterComponent(MainMenuViewModel);
-        }
-    }
-
-    internal sealed class MainMenuEntry : IAsyncStartable
-    {
-        UniTask IAsyncStartable.StartAsync(CancellationToken cancellation)
-        {
-            Debug.Log("Вот наше главное меню!");
-
-            return UniTask.CompletedTask;
         }
     }
 }
