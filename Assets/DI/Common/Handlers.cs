@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace MagicSwords.DI
+namespace MagicSwords.DI.Common
 {
     internal static class Handlers
     {

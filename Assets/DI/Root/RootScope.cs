@@ -5,6 +5,7 @@ using VContainer.Unity;
 
 namespace MagicSwords.DI.Root
 {
+    using Common.Dependencies;
     using Dependencies;
     using Prerequisites;
 

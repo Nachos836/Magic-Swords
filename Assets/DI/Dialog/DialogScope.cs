@@ -8,6 +8,7 @@ using VContainer.Unity;
 
 namespace MagicSwords.DI.Dialog
 {
+    using Common;
     using Dependencies;
     using Features.Dialog;
 

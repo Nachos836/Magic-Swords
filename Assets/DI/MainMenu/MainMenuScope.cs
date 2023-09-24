@@ -6,6 +6,8 @@ using VContainer.Unity;
 
 namespace MagicSwords.DI.MainMenu
 {
+    using Common;
+    using Common.Dependencies;
     using Features.MainMenu;
     using Features.SceneOperations;
     using Features.SceneOperations.Loader;
@@ -33,6 +35,8 @@ namespace MagicSwords.DI.MainMenu
             }, Lifetime.Scoped);
 
             builder.RegisterComponent(MainMenuViewModel);
+
+            builder.AddLogger();
         }
     }
 }

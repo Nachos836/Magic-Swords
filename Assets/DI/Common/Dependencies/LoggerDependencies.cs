@@ -1,6 +1,6 @@
 ﻿using VContainer;
 
-namespace MagicSwords.DI.Root.Dependencies
+namespace MagicSwords.DI.Common.Dependencies
 {
     using Features.Logger;
     using Features.Logger.Loggers;

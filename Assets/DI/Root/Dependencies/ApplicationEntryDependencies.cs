@@ -4,6 +4,7 @@ using VContainer.Unity;
 
 namespace MagicSwords.DI.Root.Dependencies
 {
+    using Common;
     using Features.ApplicationEntry;
 
     internal static class ApplicationEntryDependencies
