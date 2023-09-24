@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using UnityEngine;
 using VContainer.Unity;
 
 namespace MagicSwords.Features.ApplicationEntry
@@ -18,26 +19,26 @@ namespace MagicSwords.Features.ApplicationEntry
 
         async UniTask IAsyncStartable.StartAsync(CancellationToken cancellation)
         {
-            UnityEngine.Debug.Log("Ура, мы начали проект!!!");
+            Debug.Log("Ура, мы начали проект!!!");
 
             var loading = await _sceneLoader.Invoke(cancellation);
             await loading.MatchAsync
             (
                 success: _ =>
                 {
-                    UnityEngine.Debug.Log("Мы загрузились!!");
+                    Debug.Log("Мы загрузились!!");
 
                     return UniTask.CompletedTask;
                 },
                 cancellation: _ =>
                 {
-                    UnityEngine.Debug.Log("Загрузка прервана!!");
+                    Debug.Log("Загрузка прервана!!");
 
                     return UniTask.CompletedTask;
                 },
                 failure: (exception, _) =>
                 {
-                    UnityEngine.Debug.Log(exception);
+                    Debug.Log(exception);
 
                     return UniTask.CompletedTask;
                 },
@@ -47,7 +48,7 @@ namespace MagicSwords.Features.ApplicationEntry
 
         void IDisposable.Dispose()
         {
-            UnityEngine.Debug.Log("Пока!!");
+            Debug.Log("Пока!!");
         }
     }
 }

@@ -10,8 +10,11 @@ namespace MagicSwords.DI.Root
 
     internal sealed class RootScope : LifetimeScope
     {
+        [field: Header("Configuration")]
+
         [field: SerializeField]
         [field: ValidateInput(nameof(DefaultsValidation.ConfigIsProvided))]
+        [field: Label("Default Settings")]
         private Defaults Default { get; set; }
 
         protected override void Configure(IContainerBuilder builder)
