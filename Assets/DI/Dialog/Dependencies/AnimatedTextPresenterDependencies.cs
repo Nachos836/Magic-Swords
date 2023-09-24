@@ -2,11 +2,9 @@
 using Cysharp.Threading.Tasks;
 using TMPro;
 using VContainer;
-using VContainer.Unity;
 
 namespace MagicSwords.DI.Dialog.Dependencies
 {
-    using Features.Dialog;
     using Features.Dialog.Stages;
     using Features.Dialog.Stages.Payload;
     using Features.Generic.Sequencer;
@@ -83,8 +81,6 @@ namespace MagicSwords.DI.Dialog.Dependencies
                 using (scope) return new Sequencer(firstState: scope.Resolve<Initial>());
 
             }, Lifetime.Scoped);
-
-            builder.RegisterComponentInHierarchy<AnimatedTextPresenter>();
 
             return builder;
         }

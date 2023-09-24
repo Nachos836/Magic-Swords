@@ -1,22 +1,24 @@
+﻿using System.Threading;
 using Cysharp.Threading.Tasks;
-using JetBrains.Annotations;
 using UnityEngine;
 using VContainer;
+using VContainer.Unity;
 
 namespace MagicSwords.Features.Dialog
 {
     using Generic.Sequencer;
 
-    public sealed class AnimatedTextPresenter : MonoBehaviour
+    internal sealed class DialogEntryPoint : IAsyncStartable
     {
         private Sequencer _sequencer;
 
         [Inject] internal void Construct(Sequencer sequencer) => _sequencer = sequencer;
 
-        [UsedImplicitly] // ReSharper disable once Unity.IncorrectMethodSignature
-        private async UniTaskVoid Start()
+        public async UniTask StartAsync(CancellationToken cancellation)
         {
-            var outcome = await _sequencer.StartAsync(destroyCancellationToken);
+            Debug.Log("Вот начало диалога!");
+
+            var outcome = await _sequencer.StartAsync(cancellation);
             outcome.Match
             (
                 success: _ =>
