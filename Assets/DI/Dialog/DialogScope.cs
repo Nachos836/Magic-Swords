@@ -23,8 +23,9 @@ namespace MagicSwords.DI.Dialog
         {
             base.Configure(builder);
 
-            builder.RegisterEntryPoint<DialogEntryPoint>(Lifetime.Scoped);
-            builder.RegisterEntryPointExceptionHandler(Handlers.DefaultExceptionHandler);
+            builder
+                .AddLogger(out var logger)
+                .AddScopeEntry<DialogEntryPoint>(logger);
 
             builder.AddAnimatedTextPresenter(Field, SymbolsDelay, MessagesDelay, Monologue);
         }
