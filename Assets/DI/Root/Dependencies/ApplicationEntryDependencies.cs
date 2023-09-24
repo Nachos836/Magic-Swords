@@ -1,4 +1,5 @@
-﻿using VContainer;
+﻿using Cysharp.Threading.Tasks;
+using VContainer;
 using VContainer.Unity;
 
 namespace MagicSwords.DI.Root.Dependencies
@@ -9,7 +10,8 @@ namespace MagicSwords.DI.Root.Dependencies
     {
         public static IContainerBuilder AddApplicationEntry(this IContainerBuilder builder)
         {
-            builder.RegisterEntryPoint<ApplicationEntryPoint>();
+            builder.RegisterEntryPoint<ApplicationEntryPoint>()
+                .WithParameter(PlayerLoopTiming.Initialization);
             builder.RegisterEntryPointExceptionHandler(Handlers.DefaultExceptionHandler);
 
             return builder;

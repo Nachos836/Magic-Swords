@@ -11,14 +11,19 @@ namespace MagicSwords.Features.ApplicationEntry
     internal sealed class ApplicationEntryPoint : IAsyncStartable, IDisposable
     {
         private readonly Func<CancellationToken, UniTask<AsyncResult>> _sceneLoader;
+        private readonly PlayerLoopTiming _initializationPoint;
 
-        public ApplicationEntryPoint(Func<CancellationToken, UniTask<AsyncResult>> sceneLoader)
+        public ApplicationEntryPoint(Func<CancellationToken, UniTask<AsyncResult>> sceneLoader, PlayerLoopTiming initializationPoint)
         {
             _sceneLoader = sceneLoader;
+            _initializationPoint = initializationPoint;
         }
 
         async UniTask IAsyncStartable.StartAsync(CancellationToken cancellation)
         {
+            if (await UniTask.Yield(_initializationPoint, cancellation)
+                .SuppressCancellationThrow()) return;
+
             Debug.Log("Ура, мы начали проект!!!");
 
             var loading = await _sceneLoader.Invoke(cancellation);
