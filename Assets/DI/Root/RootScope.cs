@@ -5,6 +5,7 @@ using VContainer.Unity;
 
 namespace MagicSwords.DI.Root
 {
+    using Common;
     using Dependencies;
     using Prerequisites;
 
@@ -22,7 +23,8 @@ namespace MagicSwords.DI.Root
             base.Configure(builder);
 
             builder
-                .AddApplicationEntry()
+                .AddLogger(out var logger)
+                .AddApplicationEntry(logger)
                 .AddMessagePipeFeature(out var messagePipeOptions)
                 .AddSceneLoaderFeature(Default.MainMenuSceneReference);
         }

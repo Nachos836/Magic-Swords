@@ -1,17 +1,28 @@
 ﻿using System.Threading;
 using Cysharp.Threading.Tasks;
-using UnityEngine;
 using VContainer.Unity;
 
 namespace MagicSwords.Features.MainMenu
 {
+    using Logger;
+
     internal sealed class MainMenuEntryPoint : IAsyncStartable
     {
-        public UniTask StartAsync(CancellationToken cancellation)
-        {
-            Debug.Log("Вот наше главное меню!");
+        private readonly ILogger _logger;
+        private readonly PlayerLoopTiming _initializationPoint;
 
-            return UniTask.CompletedTask;
+        public MainMenuEntryPoint(ILogger logger, PlayerLoopTiming initializationPoint)
+        {
+            _logger = logger;
+            _initializationPoint = initializationPoint;
+        }
+
+        async UniTask IAsyncStartable.StartAsync(CancellationToken cancellation)
+        {
+            if (await UniTask.Yield(_initializationPoint, cancellation)
+                .SuppressCancellationThrow()) return;
+
+            _logger.LogInformation("Вот наше главное меню!");
         }
     }
 }

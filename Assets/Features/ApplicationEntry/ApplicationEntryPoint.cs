@@ -1,22 +1,28 @@
 ﻿using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using UnityEngine;
 using VContainer.Unity;
 
 namespace MagicSwords.Features.ApplicationEntry
 {
     using Generic.Functional;
+    using Logger;
 
     internal sealed class ApplicationEntryPoint : IAsyncStartable, IDisposable
     {
         private readonly Func<CancellationToken, UniTask<AsyncResult>> _sceneLoader;
         private readonly PlayerLoopTiming _initializationPoint;
+        private readonly ILogger _logger;
 
-        public ApplicationEntryPoint(Func<CancellationToken, UniTask<AsyncResult>> sceneLoader, PlayerLoopTiming initializationPoint)
-        {
+        public ApplicationEntryPoint
+        (
+            Func<CancellationToken, UniTask<AsyncResult>> sceneLoader,
+            PlayerLoopTiming initializationPoint,
+            ILogger logger
+        ) {
             _sceneLoader = sceneLoader;
             _initializationPoint = initializationPoint;
+            _logger = logger;
         }
 
         async UniTask IAsyncStartable.StartAsync(CancellationToken cancellation)
@@ -24,26 +30,26 @@ namespace MagicSwords.Features.ApplicationEntry
             if (await UniTask.Yield(_initializationPoint, cancellation)
                 .SuppressCancellationThrow()) return;
 
-            Debug.Log("Ура, мы начали проект!!!");
+            _logger.LogInformation("Ура, мы начали проект!!!");
 
             var loading = await _sceneLoader.Invoke(cancellation);
             await loading.MatchAsync
             (
                 success: _ =>
                 {
-                    Debug.Log("Мы загрузились!!");
+                    _logger.LogInformation("Мы загрузились!!");
 
                     return UniTask.CompletedTask;
                 },
                 cancellation: _ =>
                 {
-                    Debug.Log("Загрузка прервана!!");
+                    _logger.LogWarning("Загрузка прервана!!");
 
                     return UniTask.CompletedTask;
                 },
                 failure: (exception, _) =>
                 {
-                    Debug.Log(exception);
+                    _logger.LogException(exception);
 
                     return UniTask.CompletedTask;
                 },
@@ -53,7 +59,7 @@ namespace MagicSwords.Features.ApplicationEntry
 
         void IDisposable.Dispose()
         {
-            Debug.Log("Пока!!");
+            _logger.LogInformation("Пока!!");
         }
     }
 }

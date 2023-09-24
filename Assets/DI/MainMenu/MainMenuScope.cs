@@ -6,6 +6,7 @@ using VContainer.Unity;
 
 namespace MagicSwords.DI.MainMenu
 {
+    using Common;
     using Features.MainMenu;
     using Features.SceneOperations;
     using Features.SceneOperations.Loader;
@@ -19,8 +20,9 @@ namespace MagicSwords.DI.MainMenu
         {
             base.Configure(builder);
 
-            builder.RegisterEntryPoint<MainMenuEntryPoint>(Lifetime.Scoped);
-            builder.RegisterEntryPointExceptionHandler(Handlers.DefaultExceptionHandler);
+            builder
+                .AddLogger(out var logger)
+                .AddScopeEntry<MainMenuEntryPoint>(logger);
 
             builder.Register(_ =>
             {
