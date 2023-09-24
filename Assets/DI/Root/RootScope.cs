@@ -24,7 +24,8 @@ namespace MagicSwords.DI.Root
             builder
                 .AddApplicationEntry()
                 .AddMessagePipeFeature(out var messagePipeOptions)
-                .AddSceneLoaderFeature(Default.MainMenuSceneReference);
+                .AddSceneLoaderFeature(Default.MainMenuSceneReference)
+                .AddLogger();
         }
     }
 }
