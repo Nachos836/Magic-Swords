@@ -1,10 +1,12 @@
-﻿namespace MagicSwords.Features.ApplicationExit.Routines
+﻿using System.Threading;
+using UnityEngine;
+
+namespace MagicSwords.Features.ApplicationExit.Routines
 {
     internal sealed class RuntimeExitRoutine : IApplicationExitRoutine
     {
-        public void Perform()
-        {
-            UnityEngine.Application.Quit();
-        }
+        CancellationToken IApplicationExitRoutine.CancellationToken { get; } = Application.exitCancellationToken;
+
+        void IApplicationExitRoutine.Perform() => Application.Quit();
     }
 }
