@@ -1,41 +1,39 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using UnityEditor;
-using UnityEngine;
-using UnityEngine.SceneManagement;
 using ZBase.Foundation.Mvvm.ComponentModel;
 
 namespace MagicSwords.Features.MainMenu
 {
     using Generic.Functional;
+    using ApplicationExit;
 
     internal sealed class MainMenuModel
     {
         private readonly Func<CancellationToken, UniTask<AsyncResult>> _sceneLoader;
+        private readonly IApplicationExitRoutine _exitRoutine;
 
-        public MainMenuModel(Func<CancellationToken, UniTask<AsyncResult>> sceneLoader)
-        {
+        public MainMenuModel
+        (
+            Func<CancellationToken, UniTask<AsyncResult>> sceneLoader,
+            IApplicationExitRoutine exitRoutine
+        ) {
             _sceneLoader = sceneLoader;
+            _exitRoutine = exitRoutine;
         }
 
         public void ApplicationExitHandler(in PropertyChangeEventArgs args)
         {
-#       if UNITY_EDITOR
-            EditorApplication.ExitPlaymode();
-#       else
-            UnityEngine.Application.Quit();
-#       endif
+            _exitRoutine.Perform();
         }
 
         public void ApplicationRestartHandler(in PropertyChangeEventArgs args)
         {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
 
         public void StartGameHandler(in PropertyChangeEventArgs args)
         {
-            InnerHandlerAsync(_sceneLoader, Application.exitCancellationToken).Forget();
+            InnerHandlerAsync(_sceneLoader, _exitRoutine.CancellationToken).Forget();
 
             return;
 
