@@ -34,7 +34,10 @@ namespace MagicSwords.DI.MainMenu
 
             }, Lifetime.Scoped);
 
-            builder.RegisterComponent(MainMenuViewModel);
+            builder.RegisterBuildCallback(container =>
+            {
+                container.Inject(MainMenuViewModel);
+            });
         }
     }
 }
