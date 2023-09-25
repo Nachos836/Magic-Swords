@@ -1,6 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
-using UnityEditor;
 using UnityEngine;
 
 namespace MagicSwords.Features.Logger.Loggers
