@@ -7,7 +7,7 @@ namespace MagicSwords.Features.Logger.Loggers
 {
     internal sealed class UnityBasedLogger : ILogger, System.IDisposable
     {
-        private readonly Object _defaultContext = ObjectFactory.CreateInstance<DefaultContext>();
+        private readonly Object _defaultContext = new ();
 
         [StringFormatMethod("format")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
