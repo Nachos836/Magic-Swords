@@ -5,6 +5,7 @@ using VContainer;
 
 namespace MagicSwords.DI.Dialog.Dependencies
 {
+    using Features.Input;
     using Features.Dialog.Stages;
     using Features.Dialog.Stages.Payload;
     using Features.Generic.Sequencer;
@@ -25,6 +26,7 @@ namespace MagicSwords.DI.Dialog.Dependencies
                 {
                     const PlayerLoopTiming yieldPoint = PlayerLoopTiming.Update;
 
+                    IInputFor<SubmitAction> submitAction = default;
                     Func<Message, Print> printing = default;
                     Func<Message, Fetch> fetching = default;
                     Func<Message, Skip> skipping = default;
@@ -42,12 +44,14 @@ namespace MagicSwords.DI.Dialog.Dependencies
                     {
                         fetching ??= dependency.Resolve<Func<Message, Fetch>>();
                         skipping ??= dependency.Resolve<Func<Message, Skip>>();
+                        submitAction ??= dependency.Resolve<IInputFor<SubmitAction>>();
 
                         return printing ??= message => new Print
                         (
-                            yieldPoint, 
-                            fetching,
-                            skipping,
+                            submitAction,
+                            yieldPoint,
+                            resolveNext: fetching,
+                            resolveSkip: skipping,
                             message,
                             field,
                             symbolsDelay
@@ -55,9 +59,11 @@ namespace MagicSwords.DI.Dialog.Dependencies
 
                     }, Lifetime.Scoped);
 
-                    container.Register(_ =>
+                    container.Register(dependency =>
                     {
-                        return skipping ??= message => new Skip(yieldPoint, InstantPrint, message, field);
+                        submitAction ??= dependency.Resolve<IInputFor<SubmitAction>>();
+
+                        return skipping ??= message => new Skip(submitAction, yieldPoint, InstantPrint, message, field);
 
                         IStage InstantPrint(Message message) => new Fetch(printing, new Message.Fetcher(message));
 
