@@ -12,9 +12,9 @@ namespace MagicSwords.DI.MainMenu.Dependencies
             builder.Register<IApplicationExitRoutine>(_ =>
             {
 #           if UNITY_EDITOR
-                return new RuntimeExitRoutine();
-#           else
                 return new PlaymodeExitRoutine();
+#           else
+                return new RuntimeExitRoutine();
 #           endif
 
             }, Lifetime.Scoped);
