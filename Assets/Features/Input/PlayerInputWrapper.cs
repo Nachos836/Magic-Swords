@@ -36,7 +36,7 @@ namespace MagicSwords.Features.Input
 
             Enable();
 
-            InputFetchLoopAsync(_initializationPoint, _produceInputUpdates.Token)
+            AcquireInputJobAsync(_initializationPoint, _produceInputUpdates.Token)
                 .Forget();
         }
 
@@ -65,15 +65,16 @@ namespace MagicSwords.Features.Input
             return ref _uiActions.Value;
         }
 
-        private static async UniTaskVoid InputFetchLoopAsync(PlayerLoopTiming timing, CancellationToken cancellation = default)
+        private static async UniTaskVoid AcquireInputJobAsync(PlayerLoopTiming timing, CancellationToken cancellation = default)
         {
-            while (cancellation.IsCancellationRequested is false)
+            await UniTask.WaitWhile(() =>
             {
                 InputSystem.Update();
 
-                await UniTask.Yield(timing, cancellation)
-                    .SuppressCancellationThrow();
-            }
+                return true;
+
+            }, timing, cancellation)
+                .SuppressCancellationThrow();
         }
     }
 }
