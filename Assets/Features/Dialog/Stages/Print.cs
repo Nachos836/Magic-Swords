@@ -21,7 +21,7 @@ namespace MagicSwords.Features.Dialog.Stages
 
     internal sealed class Print : IStage, IStage.IProcess
     {
-        private readonly IInputFor<SubmitAction> _submitAction;
+        private readonly IInputFor<UISubmission> _uiSubmissionInput;
         private readonly PlayerLoopTiming _yieldTarget;
         private readonly Func<Message, IStage> _resolveNext;
         private readonly Func<Message, IStage> _resolveSkip;
@@ -31,7 +31,7 @@ namespace MagicSwords.Features.Dialog.Stages
 
         public Print
         (
-            IInputFor<SubmitAction> submitAction,
+            IInputFor<UISubmission> uiSubmissionInput,
             PlayerLoopTiming yieldTarget,
             Func<Message, IStage> resolveNext,
             Func<Message, IStage> resolveSkip,
@@ -39,7 +39,7 @@ namespace MagicSwords.Features.Dialog.Stages
             TextMeshProUGUI field,
             TimeSpan delay
         ) {
-            _submitAction = submitAction;
+            _uiSubmissionInput = uiSubmissionInput;
             _yieldTarget = yieldTarget;
             _resolveNext = resolveNext;
             _resolveSkip = resolveSkip;
@@ -91,7 +91,7 @@ namespace MagicSwords.Features.Dialog.Stages
 
             async UniTaskVoid HandleInputAsync(CancellationToken token = default)
             {
-                using var _ = _submitAction.Subscribe
+                using var _ = _uiSubmissionInput.Subscribe
                 (
                     started: _ => skipPerformed = true,
                     performed: _ => skipPerformed = true,

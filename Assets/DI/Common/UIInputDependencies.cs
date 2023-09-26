@@ -13,7 +13,7 @@ namespace MagicSwords.DI.Common
             builder.Register<UI>(Lifetime.Scoped)
                 .WithParameter(PlayerLoopTiming.Update)
                 .As<IAsyncStartable>()
-                .As<IInputFor<SubmitAction>>();
+                .As<IInputFor<UISubmission>>();
 
             return builder;
         }

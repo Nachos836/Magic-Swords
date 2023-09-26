@@ -6,27 +6,9 @@ using VContainer.Unity;
 
 namespace MagicSwords.Features.Input
 {
-    // ReSharper disable once UnusedTypeParameter
-    // Added for a sake of Ad-hoc polymorphism
-    public interface IInputFor<TUIAction> where TUIAction : unmanaged, IActionInputUI
-    {
-        IDisposable Subscribe
-        (
-            Action<InputContext> started,
-            Action<InputContext> performed,
-            Action<InputContext> canceled
-        );
-    }
+    public readonly struct UISubmission : IInputAcquire { }
 
-    public interface IActionInputUI { }
-    public readonly struct SubmitAction : IActionInputUI { }
-
-    public readonly struct InputContext
-    {
-        
-    }
-
-    internal sealed class UI : IAsyncStartable, IDisposable, IInputFor<SubmitAction>
+    internal sealed class UI : IAsyncStartable, IDisposable, IInputFor<UISubmission>
     {
         private readonly IUIActionsProvider _uiActions;
         private readonly PlayerLoopTiming _initializationPoint;
@@ -72,7 +54,7 @@ namespace MagicSwords.Features.Input
             _back.Dispose();
         }
 
-        IDisposable IInputFor<SubmitAction>.Subscribe
+        IDisposable IInputFor<UISubmission>.Subscribe
         (
             Action<InputContext> started,
             Action<InputContext> performed,

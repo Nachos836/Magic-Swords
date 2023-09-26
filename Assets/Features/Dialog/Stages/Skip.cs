@@ -18,7 +18,7 @@ namespace MagicSwords.Features.Dialog.Stages
 
     internal sealed class Skip : IStage, IStage.IProcess
     {
-        private readonly IInputFor<SubmitAction> _submitAction;
+        private readonly IInputFor<UISubmission> _uiSubmissionInput;
         private readonly PlayerLoopTiming _yieldTarget;
         private readonly Func<Message, IStage> _resolveNext;
         private readonly Message _message;
@@ -26,13 +26,13 @@ namespace MagicSwords.Features.Dialog.Stages
 
         public Skip
         (
-            IInputFor<SubmitAction> submitAction,
+            IInputFor<UISubmission> uiSubmissionInput,
             PlayerLoopTiming yieldTarget,
             Func<Message, IStage> resolveNext,
             Message message,
             TextMeshProUGUI text
         ) {
-            _submitAction = submitAction;
+            _uiSubmissionInput = uiSubmissionInput;
             _yieldTarget = yieldTarget;
             _resolveNext = resolveNext;
             _message = message;
@@ -46,7 +46,7 @@ namespace MagicSwords.Features.Dialog.Stages
             _text.text = _message.Part;
             var skipPerformed = false;
 
-            using var _ = _submitAction.Subscribe
+            using var _ = _uiSubmissionInput.Subscribe
             (
                 started: _ => skipPerformed = true,
                 performed: _ => skipPerformed = true,
