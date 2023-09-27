@@ -26,133 +26,6 @@ namespace MagicSwords.Features.Input.PlayerDriven
     ""name"": ""pref_input.movement.actions_01"",
     ""maps"": [
         {
-            ""name"": ""Player"",
-            ""id"": ""cde0800a-14e6-4996-8bce-f4a38191ab0b"",
-            ""actions"": [
-                {
-                    ""name"": ""Movement"",
-                    ""type"": ""Value"",
-                    ""id"": ""aa628627-7db1-4bab-8500-f39924f753c3"",
-                    ""expectedControlType"": ""Vector2"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": true
-                }
-            ],
-            ""bindings"": [
-                {
-                    ""name"": ""WASD"",
-                    ""id"": ""c99014a0-fe14-4c35-9939-fc78ac8a6d94"",
-                    ""path"": ""2DVector"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Movement"",
-                    ""isComposite"": true,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": ""up"",
-                    ""id"": ""7f0bdbd0-0ebe-4014-8a11-7c04116a3ad4"",
-                    ""path"": ""<Keyboard>/w"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Movement"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""down"",
-                    ""id"": ""13f33973-abf0-4877-a03e-152e36e8fa12"",
-                    ""path"": ""<Keyboard>/s"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Movement"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""left"",
-                    ""id"": ""b76f3153-7daf-4e29-84b7-adb4e38c08f8"",
-                    ""path"": ""<Keyboard>/a"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Movement"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""right"",
-                    ""id"": ""de9ad15b-76ea-4a39-b01a-aba02eff7e21"",
-                    ""path"": ""<Keyboard>/d"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Movement"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""Arrows"",
-                    ""id"": ""73b7d1c0-a68c-40e9-8ae9-18b91727161a"",
-                    ""path"": ""2DVector"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Movement"",
-                    ""isComposite"": true,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": ""up"",
-                    ""id"": ""264b55b9-a2b7-4526-8717-3e856a0e52b8"",
-                    ""path"": ""<Keyboard>/upArrow"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Movement"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""down"",
-                    ""id"": ""34a7f24d-eb85-42ea-bb01-3b58d4f58a08"",
-                    ""path"": ""<Keyboard>/downArrow"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Movement"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""left"",
-                    ""id"": ""622c7be9-3972-4ee4-8835-c22827f12a6e"",
-                    ""path"": ""<Keyboard>/leftArrow"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Movement"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""right"",
-                    ""id"": ""7803356f-aea9-49a2-9ca1-5c64655ebaac"",
-                    ""path"": ""<Keyboard>/rightArrow"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Movement"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                }
-            ]
-        },
-        {
             ""name"": ""UI"",
             ""id"": ""5e64c273-080e-45eb-9a46-c0b3dcb070ef"",
             ""actions"": [
@@ -239,19 +112,58 @@ namespace MagicSwords.Features.Input.PlayerDriven
                     ""isPartOfComposite"": false
                 }
             ]
+        },
+        {
+            ""name"": ""Reading"",
+            ""id"": ""2a8cdf40-252c-48e3-bf26-3a5c755ea08b"",
+            ""actions"": [
+                {
+                    ""name"": ""Skip"",
+                    ""type"": ""Button"",
+                    ""id"": ""aa85c26f-804b-4dad-951d-c95300e2dff7"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""131fb73e-410f-493a-a181-d33d1ecdf375"",
+                    ""path"": ""*/{Submit}"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Skip"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""6bc10cf0-241a-4e3d-81dc-794fcb9d9e0c"",
+                    ""path"": ""*/{PrimaryAction}"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Skip"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
         }
     ],
     ""controlSchemes"": []
 }");
-            // Player
-            m_Player = asset.FindActionMap("Player", throwIfNotFound: true);
-            m_Player_Movement = m_Player.FindAction("Movement", throwIfNotFound: true);
             // UI
             m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
             m_UI_Submit = m_UI.FindAction("Submit", throwIfNotFound: true);
             m_UI_Pointer = m_UI.FindAction("Pointer", throwIfNotFound: true);
             m_UI_Back = m_UI.FindAction("Back", throwIfNotFound: true);
             m_UI_Click = m_UI.FindAction("Click", throwIfNotFound: true);
+            // Reading
+            m_Reading = asset.FindActionMap("Reading", throwIfNotFound: true);
+            m_Reading_Skip = m_Reading.FindAction("Skip", throwIfNotFound: true);
         }
 
         public void Dispose()
@@ -309,52 +221,6 @@ namespace MagicSwords.Features.Input.PlayerDriven
         {
             return asset.FindBinding(bindingMask, out action);
         }
-
-        // Player
-        private readonly InputActionMap m_Player;
-        private List<IPlayerActions> m_PlayerActionsCallbackInterfaces = new List<IPlayerActions>();
-        private readonly InputAction m_Player_Movement;
-        public struct PlayerActions
-        {
-            private @Autogenerated_PlayerInputActions m_Wrapper;
-            public PlayerActions(@Autogenerated_PlayerInputActions wrapper) { m_Wrapper = wrapper; }
-            public InputAction @Movement => m_Wrapper.m_Player_Movement;
-            public InputActionMap Get() { return m_Wrapper.m_Player; }
-            public void Enable() { Get().Enable(); }
-            public void Disable() { Get().Disable(); }
-            public bool enabled => Get().enabled;
-            public static implicit operator InputActionMap(PlayerActions set) { return set.Get(); }
-            public void AddCallbacks(IPlayerActions instance)
-            {
-                if (instance == null || m_Wrapper.m_PlayerActionsCallbackInterfaces.Contains(instance)) return;
-                m_Wrapper.m_PlayerActionsCallbackInterfaces.Add(instance);
-                @Movement.started += instance.OnMovement;
-                @Movement.performed += instance.OnMovement;
-                @Movement.canceled += instance.OnMovement;
-            }
-
-            private void UnregisterCallbacks(IPlayerActions instance)
-            {
-                @Movement.started -= instance.OnMovement;
-                @Movement.performed -= instance.OnMovement;
-                @Movement.canceled -= instance.OnMovement;
-            }
-
-            public void RemoveCallbacks(IPlayerActions instance)
-            {
-                if (m_Wrapper.m_PlayerActionsCallbackInterfaces.Remove(instance))
-                    UnregisterCallbacks(instance);
-            }
-
-            public void SetCallbacks(IPlayerActions instance)
-            {
-                foreach (var item in m_Wrapper.m_PlayerActionsCallbackInterfaces)
-                    UnregisterCallbacks(item);
-                m_Wrapper.m_PlayerActionsCallbackInterfaces.Clear();
-                AddCallbacks(instance);
-            }
-        }
-        public PlayerActions @Player => new PlayerActions(this);
 
         // UI
         private readonly InputActionMap m_UI;
@@ -425,16 +291,62 @@ namespace MagicSwords.Features.Input.PlayerDriven
             }
         }
         public UIActions @UI => new UIActions(this);
-        public interface IPlayerActions
+
+        // Reading
+        private readonly InputActionMap m_Reading;
+        private List<IReadingActions> m_ReadingActionsCallbackInterfaces = new List<IReadingActions>();
+        private readonly InputAction m_Reading_Skip;
+        public struct ReadingActions
         {
-            void OnMovement(InputAction.CallbackContext context);
+            private @Autogenerated_PlayerInputActions m_Wrapper;
+            public ReadingActions(@Autogenerated_PlayerInputActions wrapper) { m_Wrapper = wrapper; }
+            public InputAction @Skip => m_Wrapper.m_Reading_Skip;
+            public InputActionMap Get() { return m_Wrapper.m_Reading; }
+            public void Enable() { Get().Enable(); }
+            public void Disable() { Get().Disable(); }
+            public bool enabled => Get().enabled;
+            public static implicit operator InputActionMap(ReadingActions set) { return set.Get(); }
+            public void AddCallbacks(IReadingActions instance)
+            {
+                if (instance == null || m_Wrapper.m_ReadingActionsCallbackInterfaces.Contains(instance)) return;
+                m_Wrapper.m_ReadingActionsCallbackInterfaces.Add(instance);
+                @Skip.started += instance.OnSkip;
+                @Skip.performed += instance.OnSkip;
+                @Skip.canceled += instance.OnSkip;
+            }
+
+            private void UnregisterCallbacks(IReadingActions instance)
+            {
+                @Skip.started -= instance.OnSkip;
+                @Skip.performed -= instance.OnSkip;
+                @Skip.canceled -= instance.OnSkip;
+            }
+
+            public void RemoveCallbacks(IReadingActions instance)
+            {
+                if (m_Wrapper.m_ReadingActionsCallbackInterfaces.Remove(instance))
+                    UnregisterCallbacks(instance);
+            }
+
+            public void SetCallbacks(IReadingActions instance)
+            {
+                foreach (var item in m_Wrapper.m_ReadingActionsCallbackInterfaces)
+                    UnregisterCallbacks(item);
+                m_Wrapper.m_ReadingActionsCallbackInterfaces.Clear();
+                AddCallbacks(instance);
+            }
         }
+        public ReadingActions @Reading => new ReadingActions(this);
         public interface IUIActions
         {
             void OnSubmit(InputAction.CallbackContext context);
             void OnPointer(InputAction.CallbackContext context);
             void OnBack(InputAction.CallbackContext context);
             void OnClick(InputAction.CallbackContext context);
+        }
+        public interface IReadingActions
+        {
+            void OnSkip(InputAction.CallbackContext context);
         }
     }
 }
