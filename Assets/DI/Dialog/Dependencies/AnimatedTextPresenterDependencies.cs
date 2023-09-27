@@ -26,7 +26,7 @@ namespace MagicSwords.DI.Dialog.Dependencies
                 {
                     const PlayerLoopTiming yieldPoint = PlayerLoopTiming.Update;
 
-                    IInputFor<UISubmission> uiSubmissionInput = default;
+                    IInputFor<ReadingSkip> readingSkipInput = default;
                     Func<Message, Print> printing = default;
                     Func<Message, Fetch> fetching = default;
                     Func<Message, Skip> skipping = default;
@@ -44,11 +44,11 @@ namespace MagicSwords.DI.Dialog.Dependencies
                     {
                         fetching ??= dependency.Resolve<Func<Message, Fetch>>();
                         skipping ??= dependency.Resolve<Func<Message, Skip>>();
-                        uiSubmissionInput ??= dependency.Resolve<IInputFor<UISubmission>>();
+                        readingSkipInput ??= dependency.Resolve<IInputFor<ReadingSkip>>();
 
                         return printing ??= message => new Print
                         (
-                            uiSubmissionInput,
+                            readingSkipInput,
                             yieldPoint,
                             resolveNext: fetching,
                             resolveSkip: skipping,
@@ -61,9 +61,9 @@ namespace MagicSwords.DI.Dialog.Dependencies
 
                     container.Register(dependency =>
                     {
-                        uiSubmissionInput ??= dependency.Resolve<IInputFor<UISubmission>>();
+                        readingSkipInput ??= dependency.Resolve<IInputFor<ReadingSkip>>();
 
-                        return skipping ??= message => new Skip(uiSubmissionInput, yieldPoint, InstantPrint, message, field);
+                        return skipping ??= message => new Skip(readingSkipInput, yieldPoint, InstantPrint, message, field);
 
                         IStage InstantPrint(Message message) => new Fetch(printing, new Message.Fetcher(message));
 
