@@ -8,10 +8,7 @@ namespace MagicSwords.DI.MainMenu.Dependencies
     {
         public static IContainerBuilder AddMainMenuViewModel(this IContainerBuilder builder, MainMenuViewModel mainMenuViewModel)
         {
-            builder.RegisterBuildCallback(container =>
-            {
-                container.Inject(mainMenuViewModel);
-            });
+            builder.RegisterBuildCallback(container => container.Inject(mainMenuViewModel));
 
             return builder;
         }
