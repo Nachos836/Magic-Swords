@@ -11,12 +11,15 @@ namespace MagicSwords.Features.SceneOperations
 
     internal static class Operations
     {
-        public static Func<CancellationToken, UniTask<AsyncResult>> CreateLoadingJob(SceneLoadingPrefetcher.Handler handler)
-        {
+        public static Func<CancellationToken, UniTask<AsyncResult>> CreateLoadingJob
+        (
+            SceneLoadingPrefetcher.Handler handler,
+            Action whenFinished = null
+        ) {
             var continuation = handler.Continuation;
             var yieldTarget = handler.YieldContext;
 
-            return token => SceneLoader.PrefetchedLoadingJob(continuation, yieldTarget, token);
+            return token => SceneLoader.PrefetchedLoadingJob(continuation, yieldTarget, whenFinished, token);
         }
 
         public static Func<CancellationToken, UniTask<AsyncResult>> CreateLoadingJob
