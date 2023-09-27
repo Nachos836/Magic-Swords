@@ -13,7 +13,8 @@ namespace MagicSwords.DI.Root.Dependencies
             builder.Register<PlayerInputWrapper>(Lifetime.Singleton)
                 .WithParameter(PlayerLoopTiming.Update)
                 .As<IAsyncStartable>()
-                .As<IUIActionsProvider>();
+                .As<IUIActionsProvider>()
+                .As<IReadingActionsProvider>();
 
             return builder;
         }
