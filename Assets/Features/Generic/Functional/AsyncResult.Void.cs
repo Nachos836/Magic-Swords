@@ -98,6 +98,15 @@ namespace MagicSwords.Features.Generic.Functional
         }
 
         [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public AsyncResult Run(Action whenSuccessful)
+        {
+            if (IsSuccessful) whenSuccessful.Invoke();
+
+            return this;
+        }
+
+        [BurstCompile]
         [StructLayout(LayoutKind.Sequential, Size = 1)]
         private readonly ref struct NoneResult { }
     }
