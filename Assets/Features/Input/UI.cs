@@ -63,49 +63,5 @@ namespace MagicSwords.Features.Input
             return new InputSubscription(_submit, started, performed, canceled)
                 .Subscribe();
         }
-
-        private sealed class InputSubscription
-        {
-            private readonly InputAction _input;
-            private readonly Action<InputAction.CallbackContext> _started;
-            private readonly Action<InputAction.CallbackContext> _performed;
-            private readonly Action<InputAction.CallbackContext> _canceled;
-
-            public InputSubscription
-            (
-                InputAction input,
-                Action<InputContext> started,
-                Action<InputContext> performed,
-                Action<InputContext> canceled
-            ) {
-                _input = input;
-                _started = _ => started.Invoke(new InputContext());
-                _performed = _ => performed.Invoke(new InputContext());
-                _canceled = _ => canceled.Invoke(new InputContext());
-            }
-
-            public IDisposable Subscribe()
-            {
-                _input.started += _started;
-                _input.performed += _performed;
-                _input.canceled += _canceled;
-
-                return new Handler(() =>
-                {
-                    _input.canceled -= _canceled;
-                    _input.performed -= _performed;
-                    _input.started -= _started;
-                });
-            }
-
-            private sealed class Handler : IDisposable
-            {
-                private readonly Action _unsubscribe;
-
-                public Handler(Action unsubscribe) => _unsubscribe = unsubscribe;
-
-                void IDisposable.Dispose() => _unsubscribe.Invoke();
-            }
-        }
     }
 }
