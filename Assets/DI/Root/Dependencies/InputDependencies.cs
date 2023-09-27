@@ -4,7 +4,7 @@ using VContainer.Unity;
 
 namespace MagicSwords.DI.Root.Dependencies
 {
-    using Features.Input;
+    using Features.Input.Actions.PlayerDriven;
 
     internal static class InputDependencies
     {

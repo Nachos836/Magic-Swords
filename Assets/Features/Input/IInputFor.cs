@@ -15,6 +15,8 @@ namespace MagicSwords.Features.Input
     }
 
     public interface IInputAcquire { }
+    public readonly struct UISubmission : IInputAcquire { }
+    public readonly struct ReadingSkip : IInputAcquire { }
 
     public readonly struct InputContext
     {

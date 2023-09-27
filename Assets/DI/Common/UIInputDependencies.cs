@@ -5,6 +5,7 @@ using VContainer.Unity;
 namespace MagicSwords.DI.Common
 {
     using Features.Input;
+    using Features.Input.Actions;
 
     internal static class UIInputDependencies
     {

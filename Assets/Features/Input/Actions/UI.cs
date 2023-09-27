@@ -4,9 +4,10 @@ using Cysharp.Threading.Tasks;
 using UnityEngine.InputSystem;
 using VContainer.Unity;
 
-namespace MagicSwords.Features.Input
+namespace MagicSwords.Features.Input.Actions
 {
-    public readonly struct UISubmission : IInputAcquire { }
+    using PlayerDriven;
+    using Handling;
 
     internal sealed class UI : IAsyncStartable, IDisposable, IInputFor<UISubmission>
     {

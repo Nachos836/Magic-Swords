@@ -4,9 +4,10 @@ using Cysharp.Threading.Tasks;
 using UnityEngine.InputSystem;
 using VContainer.Unity;
 
-namespace MagicSwords.Features.Input
+namespace MagicSwords.Features.Input.Actions
 {
-    public readonly struct ReadingSkip : IInputAcquire { }
+    using PlayerDriven;
+    using Handling;
 
     internal sealed class Reading : IAsyncStartable, IDisposable, IInputFor<ReadingSkip>
     {

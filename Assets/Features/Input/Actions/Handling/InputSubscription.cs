@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine.InputSystem;
 
-namespace MagicSwords.Features.Input
+namespace MagicSwords.Features.Input.Actions.Handling
 {
     internal sealed class InputSubscription
     {
