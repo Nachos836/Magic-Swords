@@ -2,7 +2,6 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using TMPro;
-using UnityEngine.InputSystem;
 
 using static System.Threading.CancellationTokenSource;
 using static Cysharp.Threading.Tasks.Linq.UniTaskAsyncEnumerable;
@@ -10,6 +9,7 @@ using static Cysharp.Threading.Tasks.Linq.UniTaskAsyncEnumerable;
 namespace MagicSwords.Features.Dialog.Stages
 {
     using Generic.Sequencer;
+    using Input;
     using Payload;
 
     using Option = Generic.Functional.OneOf
@@ -21,6 +21,7 @@ namespace MagicSwords.Features.Dialog.Stages
 
     internal sealed class Print : IStage, IStage.IProcess
     {
+        private readonly IInputFor<ReadingSkip> _readingSkipInput;
         private readonly PlayerLoopTiming _yieldTarget;
         private readonly Func<Message, IStage> _resolveNext;
         private readonly Func<Message, IStage> _resolveSkip;
@@ -30,6 +31,7 @@ namespace MagicSwords.Features.Dialog.Stages
 
         public Print
         (
+            IInputFor<ReadingSkip> readingSkipInput,
             PlayerLoopTiming yieldTarget,
             Func<Message, IStage> resolveNext,
             Func<Message, IStage> resolveSkip,
@@ -37,6 +39,7 @@ namespace MagicSwords.Features.Dialog.Stages
             TextMeshProUGUI field,
             TimeSpan delay
         ) {
+            _readingSkipInput = readingSkipInput;
             _yieldTarget = yieldTarget;
             _resolveNext = resolveNext;
             _resolveSkip = resolveSkip;
@@ -49,7 +52,7 @@ namespace MagicSwords.Features.Dialog.Stages
         {
             using var displaying = CreateLinkedTokenSource(cancellation);
             cancellation = displaying.Token;
-            var hasClick = false;
+            var skipPerformed = false;
 
             HandleInputAsync(cancellation).Forget();
 
@@ -65,7 +68,7 @@ namespace MagicSwords.Features.Dialog.Stages
 
                     var (wasCanceled, finishedIndex) = await UniTask.WhenAny
                     (
-                        UniTask.WaitUntil(() => hasClick, _yieldTarget, cancellation),
+                        UniTask.WaitUntil(() => skipPerformed, _yieldTarget, cancellation),
                         UniTask.Delay(_delay, ignoreTimeScale: false, _yieldTarget, cancellation)
                     ).SuppressCancellationThrow();
 
@@ -88,9 +91,15 @@ namespace MagicSwords.Features.Dialog.Stages
 
             async UniTaskVoid HandleInputAsync(CancellationToken token = default)
             {
+                using var _ = _readingSkipInput.Subscribe
+                (
+                    started: _ => skipPerformed = true,
+                    performed: _ => skipPerformed = true,
+                    canceled: _ => { }
+                );
+
                 await UniTask
-                    .WaitUntil(() => Mouse.current.leftButton.wasPressedThisFrame, _yieldTarget, token)
-                    .ContinueWith(() => hasClick = true)
+                    .WaitUntil(() => skipPerformed, _yieldTarget, token)
                     .SuppressCancellationThrow();
             }
         }

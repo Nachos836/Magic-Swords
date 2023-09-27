@@ -2,7 +2,7 @@
   "dependencies": {
     "com.cysharp.messagepipe": "1.7.4",
     "com.cysharp.messagepipe.vcontainer": "1.7.4",
-    "com.cysharp.unitask": "2.4.0",
+    "com.cysharp.unitask": "2.4.1",
     "com.dbrizov.naughtyattributes": "2.1.4",
     "com.quabug.any-serialize": "0.5.0",
     "com.quabug.one-shot-injection": "3.0.1",

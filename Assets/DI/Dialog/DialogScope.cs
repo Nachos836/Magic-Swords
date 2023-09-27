@@ -26,7 +26,9 @@ namespace MagicSwords.DI.Dialog
             builder
                 .AddLogger(out var logger)
                 .AddScopeEntry<DialogEntryPoint>(logger)
-                .AddAnimatedTextPresenter(Field, SymbolsDelay, MessagesDelay, Monologue);
+                .AddAnimatedTextPresenter(Field, SymbolsDelay, MessagesDelay, Monologue)
+                .AddUIInput()
+                .AddReadingInput();
         }
     }
 }
