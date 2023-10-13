@@ -3,47 +3,68 @@ using UnityEngine.InputSystem;
 
 namespace MagicSwords.Features.Input.Actions.Handling
 {
-    internal sealed class InputSubscription
+    internal readonly ref struct InputSubscription
     {
         private readonly InputAction _input;
-        private readonly Action<InputAction.CallbackContext> _started;
-        private readonly Action<InputAction.CallbackContext> _performed;
-        private readonly Action<InputAction.CallbackContext> _canceled;
+        private readonly Action<StartedContext> _started;
+        private readonly Action<PerformedContext> _performed;
+        private readonly Action<CanceledContext> _canceled;
 
         public InputSubscription
         (
             InputAction input,
-            Action<InputContext> started,
-            Action<InputContext> performed,
-            Action<InputContext> canceled
+            Action<StartedContext> started,
+            Action<PerformedContext> performed,
+            Action<CanceledContext> canceled
         ) {
             _input = input;
-            _started = _ => started.Invoke(new InputContext());
-            _performed = _ => performed.Invoke(new InputContext());
-            _canceled = _ => canceled.Invoke(new InputContext());
+            _started = started;
+            _performed = performed;
+            _canceled = canceled;
         }
 
         public IDisposable Subscribe()
         {
-            _input.started += _started;
-            _input.performed += _performed;
-            _input.canceled += _canceled;
+            var startedAction = _started;
+            var performedAction = _performed;
+            var canceledAction = _canceled;
+            Action<InputAction.CallbackContext> startedCallback = _ => startedAction.Invoke(StartedContext.Empty);
+            Action<InputAction.CallbackContext> performedCallback = _ => performedAction.Invoke(PerformedContext.Empty);
+            Action<InputAction.CallbackContext> canceledCallback = _ => canceledAction.Invoke(CanceledContext.Empty);
 
-            return new UnsubscribeHandler(() =>
-            {
-                _input.canceled -= _canceled;
-                _input.performed -= _performed;
-                _input.started -= _started;
-            });
+            _input.started += startedCallback;
+            _input.performed += performedCallback;
+            _input.canceled += canceledCallback;
+
+            return new UnsubscribeHandler(_input, startedCallback, performedCallback, canceledCallback);
         }
 
         private sealed class UnsubscribeHandler : IDisposable
         {
-            private readonly Action _unsubscribe;
+            private readonly InputAction _input;
+            private readonly Action<InputAction.CallbackContext> _started;
+            private readonly Action<InputAction.CallbackContext> _performed;
+            private readonly Action<InputAction.CallbackContext> _canceled;
 
-            public UnsubscribeHandler(Action unsubscribe) => _unsubscribe = unsubscribe;
+            public UnsubscribeHandler
+            (
+                InputAction input,
+                Action<InputAction.CallbackContext> started,
+                Action<InputAction.CallbackContext> performed,
+                Action<InputAction.CallbackContext> canceled
+            ) {
+                _input = input;
+                _started = started;
+                _performed = performed;
+                _canceled = canceled;
+            }
 
-            void IDisposable.Dispose() => _unsubscribe.Invoke();
+            void IDisposable.Dispose()
+            {
+                _input.canceled -= _started;
+                _input.performed -= _performed;
+                _input.started -= _canceled;
+            }
         }
     }
 }
