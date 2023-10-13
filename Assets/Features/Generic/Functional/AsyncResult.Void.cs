@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Unity.Burst;
@@ -15,34 +14,33 @@ namespace MagicSwords.Features.Generic.Functional
     {
         private readonly (Exception Value, bool Provided) _error;
         private readonly (Cancellation Value, bool Provided) _cancellation;
-        private readonly bool _success;
 
-        private AsyncResult(NoneResult value = default)
+        private AsyncResult(bool success = true)
         {
-            _success = true;
+            IsSuccessful = success;
             _error = default;
             _cancellation = default;
         }
 
         public AsyncResult(Exception error)
         {
-            _success = false;
+            IsSuccessful = false;
             _error = (error, Provided: true);
             _cancellation = default;
         }
 
         private AsyncResult(Cancellation cancellation)
         {
-            _success = false;
+            IsSuccessful = false;
             _error = default;
             _cancellation = (cancellation, Provided: true);
         }
 
-        public static AsyncResult Success { get; } = new (value: default);
+        public static AsyncResult Success { get; } = new (success: true);
         public static AsyncResult Failure { get; } = new (Error);
         public static AsyncResult Cancel { get; } = new (Canceled);
 
-        public bool IsSuccessful => _success;
+        public bool IsSuccessful { get; }
         public bool IsFailure => _error is { Provided: true };
         public bool IsCancellation => _cancellation is { Provided: true };
 
@@ -107,7 +105,24 @@ namespace MagicSwords.Features.Generic.Functional
         }
 
         [BurstCompile]
-        [StructLayout(LayoutKind.Sequential, Size = 1)]
-        private readonly ref struct NoneResult { }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public AsyncResult Combine(AsyncResult another)
+        {
+            var success = IsSuccessful & another.IsSuccessful;
+            var cancellation = IsCancellation & another.IsCancellation;
+
+            if (success)
+            {
+                return Success;
+            }
+            else if (cancellation)
+            {
+                return Cancel;
+            }
+            else
+            {
+                return Failure;
+            }
+        }
     }
 }
