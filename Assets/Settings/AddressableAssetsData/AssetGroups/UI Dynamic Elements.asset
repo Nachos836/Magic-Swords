@@ -10,20 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
-  m_Name: Default Local Group
+  m_Name: UI Dynamic Elements
   m_EditorClassIdentifier: 
-  m_GroupName: Default Local Group
+  m_GroupName: UI Dynamic Elements
   m_Data:
     m_SerializedData: []
-  m_GUID: 43dcfeea8576bc64a824d7fe23d8238b
+  m_GUID: 70046855616921847ac8231a61f69307
   m_SerializeEntries:
-  - m_GUID: 283c6464ad13d9f4c8a17dbddb6b9ccb
-    m_Address: Assets/Features/Dialog/scn_scope.dialog_01.unity
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: bbaf797a3787a0e4eb3eea6fc2b844c0
-    m_Address: Assets/Features/Text/UI/pref_ctrl.ui.text.pannel_02.prefab
+  - m_GUID: 51306e0bd518abc4895d0c73ad6ad4fb
+    m_Address: Assets/Features/Text/UI/pref_ctrl.ui.text.pannel_01.prefab
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -31,5 +26,6 @@ MonoBehaviour:
   m_Settings: {fileID: 11400000, guid: 69f36f625dff45344b20f3320930ab74, type: 2}
   m_SchemaSet:
     m_Schemas:
-    - {fileID: 11400000, guid: 9d4704c6b54b0254a9ed90afc5452e64, type: 2}
-    - {fileID: 11400000, guid: b31668306f391eb4d986fc32e862a448, type: 2}
+    - {fileID: 11400000, guid: 343c76afe35f94849a2596c87dff3a6e, type: 2}
+    - {fileID: 11400000, guid: e408af29a95a6764e8399ee1da487df1, type: 2}
+    - {fileID: 11400000, guid: 95952745813a53f4092dcd5380964e0a, type: 2}
