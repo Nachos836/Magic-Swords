@@ -19,7 +19,7 @@ namespace MagicSwords.DI.MainMenu
             base.Configure(builder);
 
             builder
-                .AddLogger(out var logger)
+                .AddUnityBasedLogger(out var logger)
                 .AddScopeEntry<MainMenuEntryPoint>(logger)
                 .AddApplicationExitRoutine()
                 .AddMainMenuModel(GameplayScene)

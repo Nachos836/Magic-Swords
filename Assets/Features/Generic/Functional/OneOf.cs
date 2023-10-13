@@ -145,7 +145,7 @@ namespace MagicSwords.Features.Generic.Functional
             }
             else
             {
-                return whenThird.Invoke(_third.Value); 
+                return whenThird.Invoke(_third.Value);
             }
         }
 
@@ -167,7 +167,7 @@ namespace MagicSwords.Features.Generic.Functional
             }
             else
             {
-                whenThird.Invoke(_third.Value); 
+                whenThird.Invoke(_third.Value);
             }
         }
 
@@ -190,7 +190,7 @@ namespace MagicSwords.Features.Generic.Functional
             }
             else
             {
-                return whenThird.Invoke(_third.Value, cancellation); 
+                return whenThird.Invoke(_third.Value, cancellation);
             }
         }
 
@@ -213,7 +213,7 @@ namespace MagicSwords.Features.Generic.Functional
             }
             else
             {
-                return whenThird.Invoke(_third.Value, cancellation); 
+                return whenThird.Invoke(_third.Value, cancellation);
             }
         }
     }

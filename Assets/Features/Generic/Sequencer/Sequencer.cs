@@ -27,8 +27,8 @@ namespace MagicSwords.Features.Generic.Sequencer
                     (next, token) => token.IsCancellationRequested
                         ? new UniTask<IStage>(Stage.Cancel)
                         : new UniTask<IStage>(current = next),
-                    (cancelled, _) => new UniTask<IStage>(cancelled),
-                    (error, _) => new UniTask<IStage>(error),
+                    static (cancelled, _) => new UniTask<IStage>(cancelled),
+                    static (error, _) => new UniTask<IStage>(error),
                     cancellation
                 );
 

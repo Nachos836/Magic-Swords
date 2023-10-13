@@ -16,7 +16,7 @@ namespace MagicSwords.Features.UnityEditorUtils
         }
 
         [MenuItem(PlayFromFirstMenuStr, false, 150)]
-        private static void PlayFromFirstSceneCheckMenu() 
+        private static void PlayFromFirstSceneCheckMenu()
         {
             PlayFromFirstScene = !PlayFromFirstScene;
             Menu.SetChecked(PlayFromFirstMenuStr, PlayFromFirstScene);

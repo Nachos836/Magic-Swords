@@ -15,7 +15,7 @@ namespace MagicSwords.Features.Generic.AnimatorStateMachine
         protected event Action Updated;
         protected event Action Exited;
 
-        public void Construct(StateMachine.IController controller)
+        internal void Construct(StateMachine.IController controller)
         {
             if (AssertIsNotInitialized() is false) return;
 
@@ -89,14 +89,16 @@ namespace MagicSwords.Features.Generic.AnimatorStateMachine
 
         private bool AssertIsInitialized()
         {
-            var claim = $"{GetType().Name} is not initialized";
-            return _isInitialized ? true : throw new InvalidOperationException(claim);
+            return _isInitialized
+                ? true
+                : throw new InvalidOperationException($"{GetType().Name} is not initialized");
         }
 
         private bool AssertIsNotInitialized()
         {
-            var claim = $"{GetType().Name} is already initialized";
-            return !_isInitialized ? true : throw new InvalidOperationException(claim);
+            return _isInitialized is false
+                ? true
+                : throw new InvalidOperationException($"{GetType().Name} is already initialized");
         }
     }
 }

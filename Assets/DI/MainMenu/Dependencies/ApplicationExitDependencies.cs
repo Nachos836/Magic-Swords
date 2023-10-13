@@ -9,7 +9,7 @@ namespace MagicSwords.DI.MainMenu.Dependencies
     {
         public static IContainerBuilder AddApplicationExitRoutine(this IContainerBuilder builder)
         {
-            builder.Register<IApplicationExitRoutine>(_ =>
+            builder.Register<IApplicationExitRoutine>(static _ =>
             {
 #           if UNITY_EDITOR
                 return new PlaymodeExitRoutine();

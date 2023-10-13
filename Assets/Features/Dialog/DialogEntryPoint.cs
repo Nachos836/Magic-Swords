@@ -1,27 +1,30 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using VContainer.Unity;
 
 namespace MagicSwords.Features.Dialog
 {
+    using Text.UI;
     using Logger;
-    using Generic.Sequencer;
 
-    internal sealed class DialogEntryPoint : IAsyncStartable
+    internal sealed class DialogEntryPoint : IAsyncStartable, IDisposable
     {
         private readonly ILogger _logger;
         private readonly PlayerLoopTiming _initializationPoint;
-        private readonly Sequencer _sequencer;
+        private readonly ITextPanel _panel;
+
+        private IDisposable _unLoader;
 
         public DialogEntryPoint
         (
             ILogger logger,
             PlayerLoopTiming initializationPoint,
-            Sequencer sequencer
+            ITextPanel panel
         ) {
             _logger = logger;
             _initializationPoint = initializationPoint;
-            _sequencer = sequencer;
+            _panel = panel;
         }
 
         async UniTask IAsyncStartable.StartAsync(CancellationToken cancellation)
@@ -31,28 +34,33 @@ namespace MagicSwords.Features.Dialog
 
             _logger.LogInformation("Вот начало диалога!");
 
-            var outcome = await _sequencer.StartAsync(cancellation);
-            outcome.Match
+            var outcome = await _panel.LoadAsync(cancellation);
+            _unLoader = await outcome.MapAsync
             (
-                success: _ =>
-                {
-                    _logger.LogInformation("Успешно завершено!");
-
-                    return 1;
-                },
-                expected: _ =>
+                success: static (unLoader, _) => UniTask.FromResult(unLoader),
+                cancellation: _ =>
                 {
                     _logger.LogWarning("Выполнение было отменено!");
 
-                    return 2;
+                    return UniTask.FromResult(NothingToUnload.Instance);
                 },
-                unexpected: exception =>
+                failure: (exception, _) =>
                 {
                     _logger.LogException(exception);
 
-                    return 3;
-                }
+                    return UniTask.FromResult(NothingToUnload.Instance);
+                },
+                cancellation
             );
+        }
+
+        void IDisposable.Dispose() => _unLoader.Dispose();
+
+        private sealed class NothingToUnload : IDisposable
+        {
+            private NothingToUnload() { }
+            internal static IDisposable Instance { get; } = new NothingToUnload();
+            public void Dispose() { }
         }
     }
 }

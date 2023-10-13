@@ -8,9 +8,9 @@ namespace MagicSwords.Features.Generic.Sequencer
 
     public static class Stage
     {
-        private static readonly Lazy<Canceled> LazyCancel= new (() => new Canceled());
-        private static readonly Lazy<Ended> LazyEnd = new (() => new Ended());
-        private static readonly Lazy<Errored> LazyError = new (() => new Errored());
+        private static readonly Lazy<Canceled> LazyCancel= new (static () => new Canceled());
+        private static readonly Lazy<Ended> LazyEnd = new (static () => new Ended());
+        private static readonly Lazy<Errored> LazyError = new (static () => new Errored());
 
         public static Canceled Cancel { get; } = LazyCancel.Value;
         public static Ended End { get; } = LazyEnd.Value;

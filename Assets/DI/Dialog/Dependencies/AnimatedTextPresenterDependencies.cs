@@ -6,8 +6,8 @@ using VContainer;
 namespace MagicSwords.DI.Dialog.Dependencies
 {
     using Features.Input;
-    using Features.Dialog.Stages;
-    using Features.Dialog.Stages.Payload;
+    // using Features.Dialog.Stages;
+    // using Features.Dialog.Stages.Payload;
     using Features.Generic.Sequencer;
 
     internal static class AnimatedTextPresenterDependencies
@@ -20,6 +20,7 @@ namespace MagicSwords.DI.Dialog.Dependencies
             TimeSpan messagesDelay,
             string[] monologue
         ) {
+            /*
             builder.Register(resolver =>
             {
                 var scope = resolver.CreateScope(container =>
@@ -87,6 +88,7 @@ namespace MagicSwords.DI.Dialog.Dependencies
                 using (scope) return new Sequencer(firstState: scope.Resolve<Initial>());
 
             }, Lifetime.Scoped);
+            */
 
             return builder;
         }

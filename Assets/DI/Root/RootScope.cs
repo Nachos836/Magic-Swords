@@ -23,7 +23,7 @@ namespace MagicSwords.DI.Root
             base.Configure(builder);
 
             builder
-                .AddLogger(out var logger)
+                .AddUnityBasedLogger(out var logger)
                 .AddApplicationEntry(logger)
                 .AddMessagePipeFeature(out var messagePipeOptions)
                 .AddSceneLoaderFeature(Default.MainMenuSceneReference)

@@ -17,7 +17,7 @@ namespace MagicSwords.Features.SceneOperations.Switcher
             CancellationToken cancellation = default
         ) {
             if (cancellation.IsCancellationRequested) return cancellation;
-            
+
             try
             {
                 var (prefetchingWasCanceled, sceneInstance) = await continuation.Task.SuppressCancellationThrow();

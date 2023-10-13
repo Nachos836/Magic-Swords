@@ -9,34 +9,27 @@ namespace MagicSwords.Features.Generic.AnimatorStateMachine
     {
         [SerializeField] [HideInInspector] private Animator _animator;
 
-        private bool _isInitialized;
-        public Animator FinalStateMachine => _animator;
+        public Animator FinalStateMachine => _animator ??= GetComponent<Animator>();
 
         private void OnValidate() => _animator = GetComponent<Animator>();
 
         public void Construct()
         {
-            if (AssertIsNotInitialized() is false) return;
- 
+            if (Initialized)
+            {
+                throw new InvalidOperationException($"{GetType().Name} is already initialized");
+            }
+
             foreach (var state in _animator.GetBehaviours<State>())
             {
                 state.Construct(this);
             }
 
-            _isInitialized = true;
+            Initialized = true;
         }
 
-        private bool AssertIsInitialized()
-        {
-            var claim = $"{GetType().Name} is not initialized";
-            return _isInitialized ? true : throw new InvalidOperationException(claim);
-        }
-
-        private bool AssertIsNotInitialized()
-        {
-            var claim = $"{GetType().Name} is already initialized";
-            return !_isInitialized ? true : throw new InvalidOperationException(claim);
-        }
+        private bool Initialized { get; set; }
+        private bool NotInitialized => Initialized is false;
 
         private bool DoesParameterExist(AnimatorControllerParameterType type, string candidate)
         {
@@ -45,45 +38,61 @@ namespace MagicSwords.Features.Generic.AnimatorStateMachine
 
         void IController.Set(string trigger)
         {
-            if (!AssertIsInitialized()) return;
+            if (NotInitialized)
+            {
+                throw new InvalidOperationException($"{GetType().Name} is not initialized");
+            }
 
-            if (!DoesParameterExist(AnimatorControllerParameterType.Trigger, trigger))
+            if (DoesParameterExist(AnimatorControllerParameterType.Trigger, trigger) is false)
             {
                 throw new UnityException($"{_animator.GetScenePath()} Trigger {trigger} not found!");
             }
+
             _animator.SetTrigger(trigger);
         }
 
         void IController.Set(string field, bool value)
         {
-            if (!AssertIsInitialized()) return;
+            if (NotInitialized)
+            {
+                throw new InvalidOperationException($"{GetType().Name} is not initialized");
+            }
 
-            if (!DoesParameterExist(AnimatorControllerParameterType.Bool, field))
+            if (DoesParameterExist(AnimatorControllerParameterType.Bool, field) is false)
             {
                 throw new UnityException($"{_animator.GetScenePath()} Bool {field} not found!");
             }
+
             _animator.SetBool(field, value);
         }
 
         void IController.Set(string field, int value)
         {
-            if (!AssertIsInitialized()) return;
+            if (NotInitialized)
+            {
+                throw new InvalidOperationException($"{GetType().Name} is not initialized");
+            }
 
-            if (!DoesParameterExist(AnimatorControllerParameterType.Int, field))
+            if (DoesParameterExist(AnimatorControllerParameterType.Int, field) is false)
             {
                 throw new UnityException($"{_animator.GetScenePath()} Int {field} not found!");
             }
+
             _animator.SetInteger(field, value);
         }
 
         void IController.Set(string field, float value)
         {
-            if (!AssertIsInitialized()) return;
+            if (NotInitialized)
+            {
+                throw new InvalidOperationException($"{GetType().Name} is not initialized");
+            }
 
-            if (!DoesParameterExist(AnimatorControllerParameterType.Float, field))
+            if (DoesParameterExist(AnimatorControllerParameterType.Float, field) is false)
             {
                 throw new UnityException($"{_animator.GetScenePath()} Float {field} not found!");
             }
+
             _animator.SetFloat(field, value);
         }
 
@@ -99,9 +108,6 @@ namespace MagicSwords.Features.Generic.AnimatorStateMachine
 
     internal static class AnimatorExtensions
     {
-        public static string GetScenePath(this Animator _)
-        {
-            return "";
-        }
+        public static string GetScenePath(this Animator _) => string.Empty;
     }
 }
