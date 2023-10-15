@@ -149,6 +149,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1762443155537056728, guid: 6d1c3878e5a1d954dbdf23ac93f56af2,
         type: 3}
+      propertyPath: _panelScope.m_AssetGUID
+      value: 3cd6fa004309adc4f98136428de162cb
+      objectReference: {fileID: 0}
+    - target: {fileID: 1762443155537056728, guid: 6d1c3878e5a1d954dbdf23ac93f56af2,
+        type: 3}
       propertyPath: parentReference.TypeName
       value: MagicSwords.DI.MainMenu.MainMenuScope
       objectReference: {fileID: 0}

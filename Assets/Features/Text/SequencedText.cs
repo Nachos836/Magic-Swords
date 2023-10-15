@@ -2,6 +2,7 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Cysharp.Threading.Tasks.Linq;
+using MagicSwords.Features.Generic.Sequencer;
 using UnityEngine;
 
 namespace MagicSwords.Features.Text
@@ -17,6 +18,14 @@ namespace MagicSwords.Features.Text
 
         private void OnValidate() => _pieces ??= Array.Empty<RichText>();
 
+        public AsyncLazy<AsyncResult> PresentSequenceAsync(Sequencer sequencer, Player player, CancellationToken cancellation = default)
+        {
+
+
+
+            return null;
+        }
+
         AsyncLazy<AsyncResult> IText.PresentAsync(Player player, CancellationToken cancellation)
         {
             return _pieces.ToUniTaskAsyncEnumerable()
@@ -28,9 +37,9 @@ namespace MagicSwords.Features.Text
 
                     await first;
 
-                    if (token.IsCancellationRequested) return UniTask.FromResult(AsyncResult.Cancel).ToAsyncLazy();
-
-                    return second;
+                    return token.IsCancellationRequested is false
+                        ? second
+                        : UniTask.FromResult(AsyncResult.Cancel).ToAsyncLazy();
                 }, cancellation)
                 .ContinueWith(static async last => await last)
                 .ToAsyncLazy();

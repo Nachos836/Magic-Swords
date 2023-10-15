@@ -571,6 +571,23 @@ namespace MagicSwords.Features.Generic.Functional
 
         [BurstCompile]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static async UniTask<AsyncResult<TResulted1, TResulted2>> RunAsync<TFirst, TSecond, TResulted1, TResulted2>
+        (
+            this UniTask<AsyncResult<TFirst, TSecond>> candidate,
+            Func<TFirst, TSecond, CancellationToken, UniTask<AsyncResult<TResulted1, TResulted2>>> run,
+            CancellationToken cancellation = default
+        ) {
+            var result = await candidate;
+
+            if (result.IsSuccessful) return await run.Invoke(result.Income.First, result.Income.Second, cancellation);
+
+            return result.IsCancellation
+                ? AsyncResult<TResulted1, TResulted2>.Cancel
+                : new AsyncResult<TResulted1, TResulted2>(result.Error.Value);
+        }
+
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static async UniTask<AsyncResult<TResulted>> RunAsync<TFirst, TSecond, TThird, TResulted>
         (
             this UniTask<AsyncResult<TFirst, TSecond, TThird>> candidate,
@@ -631,6 +648,29 @@ namespace MagicSwords.Features.Generic.Functional
             return result.IsCancellation
                 ? AsyncResult<TValue, TFirst, TSecond>.Cancel
                 : new AsyncResult<TValue, TFirst, TSecond>(result.Error.Value);
+        }
+
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static async UniTask<AsyncResult<TValue1, TValue2, TAnother>> AttachAsync<TValue1, TValue2, TAnother>
+        (
+            this UniTask<AsyncResult<TValue1, TValue2>> candidate,
+            TAnother another,
+            CancellationToken cancellation = default
+        ) {
+            if (cancellation.IsCancellationRequested)
+                return AsyncResult<TValue1, TValue2, TAnother>.Cancel;
+
+            var result = await candidate;
+
+            if (result.IsSuccessful) return new AsyncResult<TValue1, TValue2, TAnother>
+            (
+                result.Income.First, result.Income.Second, another
+            );
+
+            return result.IsCancellation
+                ? AsyncResult<TValue1, TValue2, TAnother>.Cancel
+                : new AsyncResult<TValue1, TValue2, TAnother>(result.Error.Value);
         }
     }
 }

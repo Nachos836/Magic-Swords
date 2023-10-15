@@ -25,6 +25,8 @@ namespace MagicSwords.DI.Dialog
         [SerializeField] private AssetReferenceGameObject _panel;
         [SerializeField] private SequencedText _text;
 
+        [SerializeField] private AssetReferenceGameObject _panelScope;
+
         protected override void Configure(IContainerBuilder builder)
         {
             base.Configure(builder);
@@ -37,6 +39,7 @@ namespace MagicSwords.DI.Dialog
                 .AddReadingInput()
                 .Register(_ => new TextUIPanel
                 (
+                    _panelScope,
                     parent: this,
                     _panel,
                     yieldPoint: PlayerLoopTiming.Initialization,

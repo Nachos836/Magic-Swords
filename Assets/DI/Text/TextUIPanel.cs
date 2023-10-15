@@ -14,6 +14,7 @@ namespace MagicSwords.DI.Text
 
     internal sealed class TextUIPanel : ITextPanel
     {
+        private readonly AssetReferenceGameObject _panelScopeAsset;
         private readonly LifetimeScope _parent;
         private readonly AssetReferenceGameObject _panel;
         private readonly PlayerLoopTiming _yieldPoint;
@@ -22,12 +23,14 @@ namespace MagicSwords.DI.Text
 
         public TextUIPanel
         (
+            AssetReferenceGameObject panelScopeAsset,
             LifetimeScope parent,
             AssetReferenceGameObject panel,
             PlayerLoopTiming yieldPoint,
             MessagePipeOptions messagePipeOptions,
             IText text
         ) {
+            _panelScopeAsset = panelScopeAsset;
             _parent = parent;
             _panel = panel;
             _yieldPoint = yieldPoint;
@@ -37,9 +40,61 @@ namespace MagicSwords.DI.Text
 
         UniTask<AsyncResult<IDisposable>> ITextPanel.LoadAsync(CancellationToken cancellation)
         {
+            return AsyncResult<AssetReferenceGameObject, PlayerLoopTiming>
+                .FromResult(_panelScopeAsset, _yieldPoint)
+                .RunAsync(static async (panelScopeAsset, yieldPoint, token) =>
+                {
+                    return await panelScopeAsset.LoadAsync(yieldPoint, token);
+
+                }, cancellation)
+                .RunAsync(static (scopeGameObject, token) =>
+                {
+                    if (token.IsCancellationRequested) return UniTask.FromResult(AsyncResult<TextPanelScope>.Cancel);
+
+                    return UniTask.FromResult<AsyncResult<TextPanelScope>>
+                    (
+                        scopeGameObject.GetComponent<TextPanelScope>()
+                    );
+                }, cancellation: cancellation)
+                .AttachAsync(_messagePipeOptions, cancellation: cancellation)
+                .RunAsync(static (scope, options, token) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        return UniTask.FromResult(AsyncResult<TextPanelInstaller, TextPanelScope>.Cancel);
+                    }
+
+                    return UniTask.FromResult
+                    (
+                        AsyncResult<TextPanelInstaller>.FromResult(new TextPanelInstaller(options))
+                            .Attach(scope)
+                    );
+                }, cancellation)
+                .AttachAsync(_parent, cancellation)
+                .RunAsync(static (installer, scope, parent, token) =>
+                {
+                    if (token.IsCancellationRequested) return UniTask.FromResult(AsyncResult<TextPanelScope>.Cancel);
+
+                    return UniTask.FromResult<AsyncResult<TextPanelScope>>
+                    (
+                        parent.CreateChildFromPrefab(scope, installer)
+                    );
+                }, cancellation)
+                .RunAsync(static (scope, token) =>
+                {
+                    return UniTask.FromResult<AsyncResult<IDisposable>>
+                    (
+                        token.IsCancellationRequested is false
+                            ? new UnloadHandler(scope, null, null)
+                            : token
+                    );
+                }, cancellation: cancellation);
+
+
+
             return AsyncResult<IText, MessagePipeOptions>
                 .FromResult(_text, _messagePipeOptions)
-                .Run<TextPanelInstaller>(static (text, options) => new TextPanelInstaller(options, text))
+                .Run<TextPanelInstaller>(static (text, options) => new TextPanelInstaller(options))
                 .Attach(_parent)
                 .Run<TextPanelScope>(static (installer, parent) => parent.CreateChild<TextPanelScope>(installer))
                 .Attach(_panel, _yieldPoint)
