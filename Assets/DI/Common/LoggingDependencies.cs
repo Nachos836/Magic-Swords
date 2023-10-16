@@ -1,6 +1,4 @@
-﻿using Cysharp.Threading.Tasks;
-using VContainer;
-using VContainer.Unity;
+﻿using VContainer;
 
 namespace MagicSwords.DI.Common
 {
@@ -22,19 +20,6 @@ namespace MagicSwords.DI.Common
                 .As<ILogger>();
             logger = target;
 #       endif
-            return builder;
-        }
-
-        public static IContainerBuilder AddScopeEntry<TEntryPoint>
-        (
-            this IContainerBuilder builder,
-            ILogger logger,
-            PlayerLoopTiming initializationPoint = PlayerLoopTiming.Initialization
-        ) {
-            builder.RegisterEntryPoint<TEntryPoint>()
-                .WithParameter(initializationPoint);
-            builder.RegisterEntryPointExceptionHandler(logger.LogException);
-
             return builder;
         }
     }
