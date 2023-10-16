@@ -27,6 +27,29 @@ namespace MagicSwords.Features.SceneOperations.Loader
             _instantLoad = instantLoad;
         }
 
+        public Handler PrefetchAsync
+        (
+            Func<IDisposable> pathExtraDependencies,
+            CancellationToken cancellation = default
+        ) {
+            var target = _target;
+            var priority = _priority;
+            var yieldTarget = _yieldTarget;
+
+            var dependenciesHandler = pathExtraDependencies.Invoke();
+
+            var prefetching = (_instantLoad is false
+                ? LoadWithWorkaroundDelayAsync(yieldTarget, target, priority, cancellation)
+                : LoadAsync(yieldTarget, target, priority, cancellation))
+                    .ContinueWith(instance =>
+                    {
+                        using (dependenciesHandler) return UniTask.FromResult(instance);
+                    })
+                    .ToAsyncLazy();
+
+            return new Handler(prefetching, _yieldTarget);
+        }
+
         public Handler PrefetchAsync(CancellationToken cancellation = default)
         {
             var target = _target;
@@ -40,40 +63,40 @@ namespace MagicSwords.Features.SceneOperations.Loader
                     .ToAsyncLazy();
 
             return new Handler(prefetching, _yieldTarget);
+        }
 
-            static async UniTask<SceneInstance> LoadAsync
-            (
-                PlayerLoopTiming yieldTarget,
-                AssetReference target,
-                int priority,
-                CancellationToken token = default
-            ) {
-                return await target
-                    .LoadSceneAsync(loadMode: LoadSceneMode.Additive, activateOnLoad: true, priority)
-                    .ToUniTask(progress: null, timing: yieldTarget, cancellationToken: token);
-            }
+        private static async UniTask<SceneInstance> LoadAsync
+        (
+            PlayerLoopTiming yieldTarget,
+            AssetReference target,
+            int priority,
+            CancellationToken token = default
+        ) {
+            return await target
+                .LoadSceneAsync(loadMode: LoadSceneMode.Additive, activateOnLoad: true, priority)
+                .ToUniTask(progress: null, timing: yieldTarget, cancellationToken: token);
+        }
 
-            /*
-             * This workaround could be removed if versions of packages will be
-             * "com.unity.addressables": "1.8.5"
-             * "com.unity.scriptablebuildpipeline": "1.7.3"
-             * Thus compatibility and builds reliability are not guaranteed
-             */
-            [Obsolete("Workaround for https://issuetracker.unity3d.com/issues/loadsceneasync-allowsceneactivation-flag-is-ignored-in-awake")]
-            static async UniTask<SceneInstance> LoadWithWorkaroundDelayAsync
-            (
-                PlayerLoopTiming yieldTarget,
-                AssetReference target,
-                int priority,
-                CancellationToken token = default
-            ) {
-                await UniTask.Yield(yieldTarget, token)
-                    .SuppressCancellationThrow();
+        /*
+         * This workaround could be removed if versions of packages will be
+         * "com.unity.addressables": "1.8.5"
+         * "com.unity.scriptablebuildpipeline": "1.7.3"
+         * Thus compatibility and builds reliability are not guaranteed
+         */
+        [Obsolete("Workaround for https://issuetracker.unity3d.com/issues/loadsceneasync-allowsceneactivation-flag-is-ignored-in-awake")]
+        private static async UniTask<SceneInstance> LoadWithWorkaroundDelayAsync
+        (
+            PlayerLoopTiming yieldTarget,
+            AssetReference target,
+            int priority,
+            CancellationToken token = default
+        ) {
+            await UniTask.Yield(yieldTarget, token)
+                .SuppressCancellationThrow();
 
-                return await target
-                    .LoadSceneAsync(loadMode: LoadSceneMode.Additive, activateOnLoad: false, priority)
-                    .ToUniTask(progress: null, timing: yieldTarget, cancellationToken: token);
-            }
+            return await target
+                .LoadSceneAsync(loadMode: LoadSceneMode.Additive, activateOnLoad: false, priority)
+                .ToUniTask(progress: null, timing: yieldTarget, cancellationToken: token);
         }
 
         internal readonly ref struct Handler

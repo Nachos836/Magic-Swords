@@ -15,7 +15,6 @@ namespace MagicSwords.Features.SceneOperations.Loader
         (
             AsyncLazy<SceneInstance> continuation,
             PlayerLoopTiming yieldTarget,
-            Action postLoadJob = null,
             CancellationToken cancellation = default
         ) {
             if (cancellation.IsCancellationRequested) return cancellation;
@@ -30,13 +29,9 @@ namespace MagicSwords.Features.SceneOperations.Loader
                     .ToUniTask(timing: yieldTarget, cancellationToken: cancellation)
                     .SuppressCancellationThrow();
 
-                var result = activatingWasCanceled
+                return activatingWasCanceled
                     ? AsyncResult.Cancel
                     : AsyncResult.Success;
-
-                return postLoadJob is not null
-                    ? result.Run(whenSuccessful: postLoadJob)
-                    : result;
             }
             catch (Exception unexpected)
             {
