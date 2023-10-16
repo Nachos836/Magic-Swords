@@ -18,32 +18,28 @@ namespace MagicSwords.DI.Dialog
 
     internal sealed class DialogScope : LifetimeScope
     {
-        [AnySerialize] [UsedImplicitly] public TimeSpan SymbolsDelay { get; }
-        [AnySerialize] [UsedImplicitly] public TimeSpan MessagesDelay { get; }
-        [field: SerializeField] public string[] Monologue { get; private set; }
-
-        [SerializeField] private AssetReferenceGameObject _panel;
+        [SerializeField] private AssetReferenceGameObject _panelScope;
         [SerializeField] private SequencedText _text;
 
-        [SerializeField] private AssetReferenceGameObject _panelScope;
+        [field: Header("Presentation Options:")]
+
+        [AnySerialize] [UsedImplicitly] private TimeSpan SymbolsDelay { get; }
+        [AnySerialize] [UsedImplicitly] private TimeSpan MessagesDelay { get; }
 
         protected override void Configure(IContainerBuilder builder)
         {
             base.Configure(builder);
 
             builder
-                .AddUnityBasedLogger(out var logger)
-                .AddScopeEntry<DialogEntryPoint>(logger)
-                // .AddAnimatedTextPresenter(Field, SymbolsDelay, MessagesDelay, Monologue)
+                .AddScopeEntry<DialogEntryPoint>()
                 .AddUIInput()
                 .AddReadingInput()
-                .Register(_ => new TextUIPanel
+                .Register(resolver => new TextUIPanel
                 (
                     _panelScope,
                     parent: this,
-                    _panel,
                     yieldPoint: PlayerLoopTiming.Initialization,
-                    new MessagePipeOptions(),
+                    resolver.Resolve<MessagePipeOptions>(),
                     _text
 
                 ), Lifetime.Scoped).As<ITextPanel>();

@@ -8,22 +8,23 @@ namespace MagicSwords.DI.MainMenu
     using Common;
     using Dependencies;
     using Features.MainMenu;
+    using Root.Dependencies;
 
     internal sealed class MainMenuScope : LifetimeScope
     {
-        [field: SerializeField] public MainMenuViewModel MainMenuViewModel { get; private set; }
-        [field: SerializeField] public AssetReference GameplayScene { get; private set; }
+        [SerializeField] private MainMenuViewModel _mainMenuViewModel;
+        [SerializeField] private AssetReference _gameplayScene;
 
         protected override void Configure(IContainerBuilder builder)
         {
             base.Configure(builder);
 
             builder
-                .AddUnityBasedLogger(out var logger)
-                .AddScopeEntry<MainMenuEntryPoint>(logger)
                 .AddApplicationExitRoutine()
-                .AddMainMenuModel(GameplayScene)
-                .AddMainMenuViewModel(MainMenuViewModel);
+                .AddMainMenuModel(_gameplayScene)
+                .AddMainMenuViewModel(_mainMenuViewModel)
+                .AddPlayerInput()
+                .AddUIInput();
         }
     }
 }

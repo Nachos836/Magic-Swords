@@ -48,7 +48,7 @@ MonoBehaviour:
     TypeName: 
   autoRun: 1
   autoInjectGameObjects: []
-  <Default>k__BackingField:
+  _default:
     <MainMenuSceneReference>k__BackingField:
       m_AssetGUID: 3df0ec48d6388c9429215cb5bdcd9bc7
       m_SubObjectName: 

@@ -20,8 +20,6 @@ namespace MagicSwords.DI.Text
         {
             builder
                 .RegisterMessageBroker<IPresentJob>(_messagePipeOptions)
-                .AddUnityBasedLogger(out var logger)
-                .AddScopeEntry<TextPresentationEntryPoint>(logger)
                 .AddUnityBasedTimeProvider();
         }
     }

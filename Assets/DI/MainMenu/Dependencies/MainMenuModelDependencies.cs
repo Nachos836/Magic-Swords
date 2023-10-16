@@ -1,25 +1,26 @@
-﻿using Cysharp.Threading.Tasks;
-using UnityEngine;
-using UnityEngine.AddressableAssets;
+﻿using UnityEngine.AddressableAssets;
 using VContainer;
 
 namespace MagicSwords.DI.MainMenu.Dependencies
 {
     using Features.MainMenu;
-    using Features.SceneOperations;
-    using Features.SceneOperations.Loader;
+    using Features.ApplicationExit;
+
+    using static Common.SceneLoaderDependencies;
 
     internal static class MainMenuModelDependencies
     {
         public static IContainerBuilder AddMainMenuModel(this IContainerBuilder builder, AssetReference gameplayScene)
         {
-            var prefetcher = new SceneLoadingPrefetcher(gameplayScene, PlayerLoopTiming.Initialization, priority: 1);
-            var handler = prefetcher.PrefetchAsync(Application.exitCancellationToken);
-            var loadGameplay = Operations.CreateLoadingJob(handler);
+            builder.Register(resolver =>
+            {
+                var loadGameplay = AddSceneLoadingJob(gameplayScene, loadInstantly: false);
+                var exitRoutine = resolver.Resolve<IApplicationExitRoutine>();
 
-            builder.Register<MainMenuModel>(Lifetime.Scoped)
-                .AsSelf()
-                .WithParameter(loadGameplay);
+                return new MainMenuModel(loadGameplay, exitRoutine);
+
+            }, Lifetime.Scoped)
+                .AsSelf();
 
             return builder;
         }

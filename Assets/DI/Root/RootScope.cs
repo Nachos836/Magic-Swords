@@ -11,12 +11,11 @@ namespace MagicSwords.DI.Root
 
     internal sealed class RootScope : LifetimeScope
     {
-        [field: Header("Configuration")]
-
-        [field: SerializeField]
-        [field: ValidateInput(nameof(DefaultsValidation.ConfigIsProvided))]
-        [field: Label("Default Settings")]
-        private Defaults Default { get; set; }
+        [Header("Configuration")]
+        [SerializeField]
+        [ValidateInput(nameof(DefaultsValidation.ConfigIsProvided))]
+        [Label("Default Settings")]
+        private Defaults _default;
 
         protected override void Configure(IContainerBuilder builder)
         {
@@ -25,10 +24,8 @@ namespace MagicSwords.DI.Root
             builder
                 .AddUnityBasedLogger(out var logger)
                 .AddApplicationEntry(logger)
-                .AddMessagePipeFeature(out var messagePipeOptions)
-                .AddSceneLoaderFeature(Default.MainMenuSceneReference)
-                .AddPlayerInput()
-                .AddUIInput();
+                .AddMessagePipeFeature()
+                .AddSceneLoaderFeature(_default.MainMenuSceneReference, loadInstantly: true);
         }
     }
 }

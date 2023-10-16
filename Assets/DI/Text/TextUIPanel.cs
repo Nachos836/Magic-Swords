@@ -16,7 +16,6 @@ namespace MagicSwords.DI.Text
     {
         private readonly AssetReferenceGameObject _panelScopeAsset;
         private readonly LifetimeScope _parent;
-        private readonly AssetReferenceGameObject _panel;
         private readonly PlayerLoopTiming _yieldPoint;
         private readonly MessagePipeOptions _messagePipeOptions;
         private readonly IText _text;
@@ -25,14 +24,12 @@ namespace MagicSwords.DI.Text
         (
             AssetReferenceGameObject panelScopeAsset,
             LifetimeScope parent,
-            AssetReferenceGameObject panel,
             PlayerLoopTiming yieldPoint,
             MessagePipeOptions messagePipeOptions,
             IText text
         ) {
             _panelScopeAsset = panelScopeAsset;
             _parent = parent;
-            _panel = panel;
             _yieldPoint = yieldPoint;
             _messagePipeOptions = messagePipeOptions;
             _text = text;
@@ -89,36 +86,6 @@ namespace MagicSwords.DI.Text
                             : token
                     );
                 }, cancellation: cancellation);
-
-
-
-            return AsyncResult<IText, MessagePipeOptions>
-                .FromResult(_text, _messagePipeOptions)
-                .Run<TextPanelInstaller>(static (text, options) => new TextPanelInstaller(options))
-                .Attach(_parent)
-                .Run<TextPanelScope>(static (installer, parent) => parent.CreateChild<TextPanelScope>(installer))
-                .Attach(_panel, _yieldPoint)
-                .RunAsync(static async (scope, asset, yieldPoint, token) =>
-                {
-                    var result = await asset.InstantiateAsync<TextPresenter>(scope.transform, yieldPoint, token);
-
-                    return result.Attach(scope, asset);
-                }, cancellation)
-                .RunAsync(async static (presenter, scope, asset, token) =>
-                {
-                    if (token.IsCancellationRequested) return AsyncResult<IDisposable>.Cancel;
-
-                    var cancelled = await UniTask.RunOnThreadPool
-                    (
-                        action: () => scope.Container.Inject(presenter),
-                        cancellationToken: token
-
-                    ).SuppressCancellationThrow();
-
-                    return cancelled is false
-                        ? new UnloadHandler(scope, asset, presenter.gameObject)
-                        : token;
-                }, cancellation);
         }
 
         private sealed class UnloadHandler : IDisposable

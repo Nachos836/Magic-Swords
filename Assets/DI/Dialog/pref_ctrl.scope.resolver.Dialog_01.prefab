@@ -45,14 +45,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   parentReference:
-    TypeName: 
+    TypeName: MagicSwords.DI.MainMenu.MainMenuScope
   autoRun: 1
   autoInjectGameObjects: []
-  <Field>k__BackingField: {fileID: 0}
+  _panelScope:
+    m_AssetGUID: 3cd6fa004309adc4f98136428de162cb
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
+  _text: {fileID: 11400000, guid: 8b474196a9e10654f862740833b637d3, type: 2}
   <SymbolsDelay>k__BackingField:
-    _displayUnit: 2
-    _ticks: 0
+    _displayUnit: 0
+    _ticks: 25
   <MessagesDelay>k__BackingField:
-    _displayUnit: 2
-    _ticks: 0
-  <Monologue>k__BackingField: []
+    _displayUnit: 1
+    _ticks: 5000000
