@@ -35,7 +35,7 @@ namespace MagicSwords.Features.Dialog
             _logger.LogInformation("Вот начало диалога!");
 
             var outcome = await _panel.LoadAsync(cancellation);
-            _unLoader = await outcome.MapAsync
+            _unLoader = await outcome.MatchAsync
             (
                 success: static (unLoader, _) => UniTask.FromResult(unLoader),
                 cancellation: _ =>
@@ -44,7 +44,7 @@ namespace MagicSwords.Features.Dialog
 
                     return UniTask.FromResult(NothingToUnload.Instance);
                 },
-                failure: (exception, _) =>
+                error: (exception, _) =>
                 {
                     _logger.LogException(exception);
 

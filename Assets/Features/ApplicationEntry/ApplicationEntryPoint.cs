@@ -47,7 +47,7 @@ namespace MagicSwords.Features.ApplicationEntry
 
                     return UniTask.CompletedTask;
                 },
-                failure: (exception, _) =>
+                error: (exception, _) =>
                 {
                     _logger.LogException(exception);
 

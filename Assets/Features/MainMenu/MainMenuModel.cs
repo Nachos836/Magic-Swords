@@ -48,7 +48,7 @@ namespace MagicSwords.Features.MainMenu
                 (
                     success: _ => UniTask.FromResult(AsyncResult.Success),
                     cancellation: _ => UniTask.FromResult(AsyncResult.Cancel),
-                    failure: (_, _) => UniTask.FromResult(AsyncResult.Failure),
+                    error: (_, _) => UniTask.FromResult(AsyncResult.Error),
                     cancellation
                 );
             }

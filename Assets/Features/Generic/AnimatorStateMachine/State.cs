@@ -6,20 +6,17 @@ namespace MagicSwords.Features.Generic.AnimatorStateMachine
 {
     public abstract class State : StateMachineBehaviour
     {
-        protected StateMachine.IController Controller;
         private bool _isInitialized;
 		private bool _isFirstEnter = true;
 
-        protected event Action FirstTimeEntered;
-        protected event Action Entered;
-        protected event Action Updated;
-        protected event Action Exited;
+        protected event Action? FirstTimeEntered;
+        protected event Action? Entered;
+        protected event Action? Updated;
+        protected event Action? Exited;
 
-        internal void Construct(StateMachine.IController controller)
+        internal void Construct()
         {
-            if (AssertIsNotInitialized() is false) return;
-
-            Controller = controller;
+            AssertIsNotInitialized();
 
             _isInitialized = true;
         }
@@ -31,7 +28,7 @@ namespace MagicSwords.Features.Generic.AnimatorStateMachine
             int layerIndex,
             AnimatorControllerPlayable controller
         ) {
-            if (AssertIsInitialized() is false) return;
+            AssertIsInitialized();
 
             base.OnStateEnter(animator, stateInfo, layerIndex, controller);
 
@@ -51,7 +48,7 @@ namespace MagicSwords.Features.Generic.AnimatorStateMachine
             int layerIndex,
             AnimatorControllerPlayable controller
         ) {
-            if (AssertIsInitialized() is false) return;
+            AssertIsInitialized();
 
             base.OnStateUpdate(animator, stateInfo, layerIndex, controller);
 
@@ -65,7 +62,7 @@ namespace MagicSwords.Features.Generic.AnimatorStateMachine
             int layerIndex,
             AnimatorControllerPlayable controller
         ) {
-            if (AssertIsInitialized() is false) return;
+            AssertIsInitialized();
 
             base.OnStateExit(animator, stateInfo, layerIndex, controller);
 
@@ -87,18 +84,14 @@ namespace MagicSwords.Features.Generic.AnimatorStateMachine
             base.OnStateExit(animator, stateInfo, layerIndex);
         }
 
-        private bool AssertIsInitialized()
+        private void AssertIsInitialized()
         {
-            return _isInitialized
-                ? true
-                : throw new InvalidOperationException($"{GetType().Name} is not initialized");
+            if (_isInitialized is false) throw new InvalidOperationException($"{GetType().Name} is not initialized");
         }
 
-        private bool AssertIsNotInitialized()
+        private void AssertIsNotInitialized()
         {
-            return _isInitialized is false
-                ? true
-                : throw new InvalidOperationException($"{GetType().Name} is already initialized");
+            if (_isInitialized) throw new InvalidOperationException($"{GetType().Name} is already initialized");
         }
     }
 }
