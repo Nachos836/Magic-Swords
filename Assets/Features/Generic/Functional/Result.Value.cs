@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
-using System.Threading;
-using Cysharp.Threading.Tasks;
 using Unity.Burst;
 
 namespace MagicSwords.Features.Generic.Functional
@@ -9,100 +7,50 @@ namespace MagicSwords.Features.Generic.Functional
     [BurstCompile]
     public readonly struct Result<TValue>
     {
-        private readonly bool _successful;
+        private readonly (bool Provided, TValue Value) _income;
+        private readonly (bool Provided, Exception Value) _exception;
 
-        private readonly TValue _value;
-        private readonly Exception _error;
-
-        public Result(TValue value)
+        private Result(TValue value)
         {
-            _successful = true;
-
-            _value = value;
-            _error = default;
+            _income = (Provided: true, value);
+            _exception = default;
         }
 
-        public Result(Exception error)
+        private Result(Exception exception)
         {
-            _successful = false;
-
-            _value = default;
-            _error = error;
+            _income = default;
+            _exception = (Provided: true, exception);
         }
 
-        public static Result<TValue> Failure { get; } = new (Outcome.Unexpected.Error);
+        public static Result<TValue> Error { get; } = new (Outcome.Unexpected.Error);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator Result<TValue> (TValue value) => new (value);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Result<TValue> (Exception error) => new (error);
+        public static implicit operator Result<TValue> (Exception exception) => new (exception);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Result<TValue> FromResult(TValue value) => value;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Result<TValue> FromException(Exception exception) => exception;
 
         [BurstCompile]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TMatch Match<TMatch>(Func<TValue, TMatch> success, Func<Exception, TMatch> failure)
+        public TMatch Match<TMatch>(Func<TValue, TMatch> success, Func<Exception, TMatch> error)
         {
-            return _successful
-                ? success.Invoke(_value)
-                : failure.Invoke(_error);
+            return _income.Provided
+                ? success.Invoke(_income.Value)
+                : error.Invoke(_exception.Value);
         }
 
         [BurstCompile]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TValue Match(Func<TValue, TValue> success, Func<Exception, TValue> failure)
+        public TValue Match(Func<TValue, TValue> success, Func<Exception, TValue> error)
         {
-            return _successful
-                ? success.Invoke(_value)
-                : failure.Invoke(_error);
-        }
-
-        [BurstCompile]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UniTask<TMatch> MatchAsync<TMatch>
-        (
-            Func<TValue, CancellationToken, UniTask<TMatch>> success,
-            Func<Exception, CancellationToken, UniTask<TMatch>> failure,
-            CancellationToken cancellation = default
-        ) {
-            return _successful
-                ? success.Invoke(_value, cancellation)
-                : failure.Invoke(_error, cancellation);
-        }
-
-        [BurstCompile]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UniTask<TValue> MatchAsync
-        (
-            Func<TValue, CancellationToken, UniTask<TValue>> success,
-            Func<Exception, CancellationToken, UniTask<TValue>> failure,
-            CancellationToken cancellation = default
-        ) {
-            return _successful
-                ? success.Invoke(_value, cancellation)
-                : failure.Invoke(_error, cancellation);
-        }
-    }
-
-    internal static partial class ResultAsyncExtensions
-    {
-        public static async UniTask<TMatch> MatchAsync<TMatch, TValue>
-        (
-            this UniTask<Result<TValue>> asyncResult,
-            Func<TValue, CancellationToken, UniTask<TMatch>> success,
-            Func<Exception, CancellationToken, UniTask<TMatch>> failure,
-            CancellationToken cancellation = default
-        ) {
-            return await (await asyncResult).MatchAsync(success, failure, cancellation);
-        }
-
-        public static async UniTask<TValue> MatchAsync<TValue>
-        (
-            this UniTask<Result<TValue>> asyncResult,
-            Func<TValue, CancellationToken, UniTask<TValue>> success,
-            Func<Exception, CancellationToken, UniTask<TValue>> failure,
-            CancellationToken cancellation = default
-        ) {
-            return await (await asyncResult).MatchAsync(success, failure, cancellation);
+            return _income.Provided
+                ? success.Invoke(_income.Value)
+                : error.Invoke(_exception.Value);
         }
     }
 }

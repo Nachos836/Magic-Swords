@@ -1,5 +1,5 @@
 ﻿using System;
-using JetBrains.Annotations;
+using System.Runtime.CompilerServices;
 using Unity.Burst;
 
 namespace MagicSwords.Features.Generic.Functional
@@ -7,13 +7,29 @@ namespace MagicSwords.Features.Generic.Functional
     [BurstCompile]
     public readonly struct Optional<T>
     {
-        [CanBeNull] private readonly T _value;
+        private readonly T? _value;
 
-        public Optional(T value) => _value = value;
+        private Optional(T? value) => _value = value;
 
-        public static Optional<T> None { get; }  = new();
-        public static Optional<T> Some(T value) => new (value);
+        public static Optional<T> None { get; } = new ();
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Optional<T> Some(T? value) => new (value);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Run(Action<T> transformation)
+        {
+            if (_value is not null) transformation.Invoke(_value);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Optional<T> Run(Func<T, T> transformation)
+        {
+            return _value is not null
+                ? Some(transformation.Invoke(_value))
+                : this;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Match(Action<T> some, Action none)
         {
             if (_value is not null)
@@ -26,16 +42,12 @@ namespace MagicSwords.Features.Generic.Functional
             }
         }
 
-        public Optional<T> Run(Func<T, T> transformation)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public TMatch Match<TMatch>(Func<T, TMatch> some, Func<TMatch> none)
         {
             return _value is not null
-                ? new Optional<T>(transformation.Invoke(_value))
-                : None;
-        }
-
-        public void Run(Action<T> transformation)
-        {
-            if (_value is not null) transformation.Invoke(_value);
+                ? some.Invoke(_value)
+                : none.Invoke();
         }
     }
 }

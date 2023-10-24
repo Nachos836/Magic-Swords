@@ -6,50 +6,57 @@ using Unity.Burst;
 
 namespace MagicSwords.Features.Generic.Functional
 {
-    using static Outcome.Expected;
+    using Outcome;
 
     [BurstCompile]
     public readonly struct AsyncResult<TValue>
     {
-        internal readonly (Exception Value, bool Provided) Error;
-        internal readonly (Cancellation Value, bool Provided) Cancellation;
-        internal readonly (TValue Value, bool Provided) Income;
+        private readonly (TValue Value, bool Provided) _income;
+        private readonly (CancellationToken Value, bool Provided) _cancellation;
+        private readonly (Exception Value, bool Provided) _exception;
 
-        public AsyncResult(TValue value)
+        private AsyncResult(TValue value)
         {
-            Income = (value, true);
-            Error = default;
-            Cancellation = default;
+            _income = (value, Provided: true);
+            _cancellation = default;
+            _exception = default;
         }
 
-        public AsyncResult(Exception error)
+        private AsyncResult(CancellationToken cancellation)
         {
-            Income = default;
-            Error = (error, Provided: true);
-            Cancellation = default;
+            _income = default;
+            _cancellation = (cancellation, Provided: true);
+            _exception = default;
         }
 
-        private AsyncResult(Cancellation cancellation)
+        private AsyncResult(Exception error)
         {
-            Income = default;
-            Error = default;
-            Cancellation = (cancellation, Provided: true);
+            _income = default;
+            _cancellation = default;
+            _exception = (error, Provided: true);
         }
 
-        public static AsyncResult<TValue> FromResult(TValue value) => new(value);
-        public static AsyncResult<TValue> Failure { get; } = new (Outcome.Unexpected.Error);
-        public static AsyncResult<TValue> Cancel { get; } = new (Canceled);
-
-        public bool IsSuccessful => Income is { Provided: true };
-        public bool IsFailure => Error is { Provided: true };
-        public bool IsCancellation => Cancellation is { Provided: true };
+        public static AsyncResult<TValue> Cancel { get; } = new (CancellationToken.None);
+        public static AsyncResult<TValue> Error { get; } = new (Unexpected.Error);
+        public static AsyncResult<TValue> Impossible { get; } = new (Unexpected.Impossible);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator AsyncResult<TValue> (TValue value) => new (value);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator AsyncResult<TValue> (Exception error) => new (error);
+        public static implicit operator AsyncResult<TValue> (CancellationToken cancellation) => new (cancellation);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator AsyncResult<TValue> (CancellationToken _) => Cancel;
+        public static implicit operator AsyncResult<TValue> (Exception exception) => new (exception);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static AsyncResult<TValue> FromResult(TValue value) => value;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static AsyncResult<TValue> FromCancellation(CancellationToken cancellation) => cancellation;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static AsyncResult<TValue> FromException(Exception error) => error;
+
+        private bool IsSuccessful => _income.Provided;
+        private bool IsCancellation => _cancellation.Provided;
+        private bool IsError => _exception.Provided;
 
         public static AsyncResult<TValue> Produce(Func<TValue> from, CancellationToken cancellation = default)
         {
@@ -77,16 +84,38 @@ namespace MagicSwords.Features.Generic.Functional
 
         [BurstCompile]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public AsyncResult<TValue, TAnother> Attach<TAnother>(TAnother scope)
+        {
+            if (IsSuccessful) return AsyncResult<TValue, TAnother>.FromResult(_income.Value, scope);
+
+            return IsCancellation
+                ? AsyncResult<TValue, TAnother>.Cancel
+                : AsyncResult<TValue, TAnother>.FromException(_exception.Value);
+        }
+
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public AsyncResult<TValue, TFirst, TSecond> Attach<TFirst, TSecond>(TFirst first, TSecond second)
+        {
+            if (IsSuccessful) return AsyncResult<TValue, TFirst, TSecond>.FromResult(_income.Value, first, second);
+
+            return IsCancellation
+                ? AsyncResult<TValue, TFirst, TSecond>.Cancel
+                : AsyncResult<TValue, TFirst, TSecond>.FromException(_exception.Value);
+        }
+
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UniTask<TMatch> MatchAsync<TMatch>
         (
             Func<TValue, CancellationToken, UniTask<TMatch>> success,
             Func<CancellationToken, UniTask<TMatch>> cancellation,
-            Func<Exception, CancellationToken, UniTask<TMatch>> failure,
+            Func<Exception, CancellationToken, UniTask<TMatch>> error,
             CancellationToken token = default
         ) {
             if (IsSuccessful)
             {
-                return success.Invoke(Income.Value, token);
+                return success.Invoke(_income.Value, token);
             }
             else if (IsCancellation)
             {
@@ -94,22 +123,22 @@ namespace MagicSwords.Features.Generic.Functional
             }
             else
             {
-                return failure.Invoke(Error.Value, token);
+                return error.Invoke(_exception.Value, token);
             }
         }
 
         [BurstCompile]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UniTask<TMap> MapAsync<TMap>
+        public TMatch Match<TMatch>
         (
-            Func<TValue, CancellationToken, UniTask<TMap>> success,
-            Func<CancellationToken, UniTask<TMap>> cancellation,
-            Func<Exception, CancellationToken, UniTask<TMap>> failure,
+            Func<TValue, CancellationToken, TMatch> success,
+            Func<CancellationToken, TMatch> cancellation,
+            Func<Exception, CancellationToken, TMatch> error,
             CancellationToken token = default
         ) {
             if (IsSuccessful)
             {
-                return success.Invoke(Income.Value, token);
+                return success.Invoke(_income.Value, token);
             }
             else if (IsCancellation)
             {
@@ -117,22 +146,50 @@ namespace MagicSwords.Features.Generic.Functional
             }
             else
             {
-                return failure.Invoke(Error.Value, token);
+                return error.Invoke(_exception.Value, token);
             }
         }
 
         [BurstCompile]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public async UniTask<AsyncResult> RunAsync<TAnother>
+        public AsyncResult Run
+        (
+            Func<TValue, CancellationToken, AsyncResult> run,
+            CancellationToken cancellation = default
+        ) {
+            if (IsSuccessful) return run.Invoke(_income.Value, cancellation);
+
+            return IsCancellation
+                ? AsyncResult.Cancel
+                : AsyncResult.FromException(_exception.Value);
+        }
+
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public AsyncResult<TAnother> Run<TAnother>
+        (
+            Func<TValue, CancellationToken, AsyncResult<TAnother>> run,
+            CancellationToken cancellation = default
+        ) {
+            if (IsSuccessful) return run.Invoke(_income.Value, cancellation);
+
+            return IsCancellation
+                ? AsyncResult<TAnother>.Cancel
+                : AsyncResult<TAnother>.FromException(_exception.Value);
+        }
+
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public async UniTask<AsyncResult> RunAsync
         (
             Func<TValue, CancellationToken, UniTask<AsyncResult>> run,
             CancellationToken cancellation = default
         ) {
-            if (IsSuccessful) return await run.Invoke(Income.Value, cancellation);
+            if (IsSuccessful) return await run.Invoke(_income.Value, cancellation);
 
             return IsCancellation
                 ? AsyncResult.Cancel
-                : new AsyncResult(Error.Value);
+                : AsyncResult.FromException(_exception.Value);
         }
 
         [BurstCompile]
@@ -142,81 +199,70 @@ namespace MagicSwords.Features.Generic.Functional
             Func<TValue, CancellationToken, UniTask<AsyncResult<TAnother>>> run,
             CancellationToken cancellation = default
         ) {
-            if (IsSuccessful) return await run.Invoke(Income.Value, cancellation);
+            if (IsSuccessful) return await run.Invoke(_income.Value, cancellation);
 
             return IsCancellation
                 ? AsyncResult<TAnother>.Cancel
-                : new AsyncResult<TAnother>(Error.Value);
-        }
-
-        [BurstCompile]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public AsyncResult<TValue, TAnother> Attach<TAnother>(TAnother scope)
-        {
-            if (IsSuccessful) return new AsyncResult<TValue, TAnother>(Income.Value, scope);
-
-            return IsCancellation
-                ? AsyncResult<TValue, TAnother>.Cancel
-                : new AsyncResult<TValue, TAnother>(Error.Value);
-        }
-
-        [BurstCompile]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public AsyncResult<TValue, TFirst, TSecond> Attach<TFirst, TSecond>(TFirst first, TSecond second)
-        {
-            if (IsSuccessful) return new AsyncResult<TValue, TFirst, TSecond>(Income.Value, first, second);
-
-            return IsCancellation
-                ? AsyncResult<TValue, TFirst, TSecond>.Cancel
-                : new AsyncResult<TValue, TFirst, TSecond>(Error.Value);
+                : AsyncResult<TAnother>.FromException(_exception.Value);
         }
     }
 
     [BurstCompile]
     public readonly struct AsyncResult<TFirst, TSecond>
     {
-        internal readonly (Exception Value, bool Provided) Error;
-        internal readonly (Cancellation Value, bool Provided) Cancellation;
-        internal readonly (TFirst First, TSecond Second, bool Provided) Income;
+        private readonly (TFirst First, TSecond Second, bool Provided) _income;
+        private readonly (CancellationToken Value, bool Provided) _cancellation;
+        private readonly (Exception Value, bool Provided) _exception;
 
-        internal AsyncResult(TFirst first, TSecond second)
+        private AsyncResult(TFirst first, TSecond second)
         {
-            Income = (first, second, true);
-            Error = default;
-            Cancellation = default;
+            _income = (first, second, Provided: true);
+            _cancellation = default;
+            _exception = default;
         }
 
-        public AsyncResult(Exception error)
+        private AsyncResult(CancellationToken cancellation)
         {
-            Income = default;
-            Error = (error, Provided: true);
-            Cancellation = default;
+            _income = default;
+            _cancellation = (cancellation, Provided: true);
+            _exception = default;
         }
 
-        private AsyncResult(Cancellation cancellation)
+        private AsyncResult(Exception exception)
         {
-            Income = default;
-            Error = default;
-            Cancellation = (cancellation, Provided: true);
+            _income = default;
+            _cancellation = default;
+            _exception = (exception, Provided: true);
         }
 
-        public static AsyncResult<TFirst, TSecond>  FromResult(TFirst first, TSecond second) => new (first, second);
-        public static AsyncResult<TFirst, TSecond> Failure { get; } = new (Outcome.Unexpected.Error);
-        public static AsyncResult<TFirst, TSecond> Cancel { get; } = new (Canceled);
-
-        public bool IsSuccessful => Income is { Provided: true };
-        public bool IsFailure => Error is { Provided: true };
-        public bool IsCancellation => Cancellation is { Provided: true };
+        public static AsyncResult<TFirst, TSecond> Error { get; } = new (Unexpected.Error);
+        public static AsyncResult<TFirst, TSecond> Cancel { get; } = new (CancellationToken.None);
+        public static AsyncResult<TFirst, TSecond> Impossible { get; } = new (Unexpected.Impossible);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator AsyncResult<TFirst, TSecond> (ValueTuple<TFirst, TSecond> income) => new (income.Item1, income.Item2);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator AsyncResult<TFirst, TSecond> (Exception error) => new (error);
+        public static implicit operator AsyncResult<TFirst, TSecond> (CancellationToken cancellation) => new (cancellation);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator AsyncResult<TFirst, TSecond> (CancellationToken _) => Cancel;
+        public static implicit operator AsyncResult<TFirst, TSecond> (Exception exception) => new (exception);
 
-        public static AsyncResult<TFirst, TSecond> Produce(Func<(TFirst, TSecond)> from, CancellationToken cancellation = default)
-        {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static AsyncResult<TFirst, TSecond>  FromResult(TFirst first, TSecond second) => new (first, second);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static AsyncResult<TFirst, TSecond>  FromCancellation(CancellationToken cancellation) => cancellation;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static AsyncResult<TFirst, TSecond>  FromException(Exception error) => error;
+
+        private bool IsSuccessful => _income.Provided;
+        private bool IsCancellation => _cancellation.Provided;
+        private bool IsError => _exception.Provided;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static AsyncResult<TFirst, TSecond> Produce
+        (
+            Func<(TFirst, TSecond)> from,
+            CancellationToken cancellation = default
+        ) {
             if (cancellation.IsCancellationRequested) return Cancel;
 
             try
@@ -225,10 +271,11 @@ namespace MagicSwords.Features.Generic.Functional
             }
             catch (Exception exception)
             {
-                return new AsyncResult<TFirst, TSecond>(exception);
+                return FromException(exception);
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UniTask<AsyncResult<TFirst, TSecond>> ProduceAsync
         (
             Func<CancellationToken, UniTask<AsyncResult<TFirst, TSecond>>> from,
@@ -241,72 +288,53 @@ namespace MagicSwords.Features.Generic.Functional
 
         [BurstCompile]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UniTask<TMatch> MatchAsync<TMatch>
-        (
-            Func<TFirst, TSecond, CancellationToken, UniTask<TMatch>> success,
-            Func<CancellationToken, UniTask<TMatch>> cancellation,
-            Func<Exception, CancellationToken, UniTask<TMatch>> failure,
-            CancellationToken token = default
-        ) {
-            if (IsSuccessful)
-            {
-                return success.Invoke(Income.First, Income.Second, token);
-            }
-            else if (IsCancellation)
-            {
-                return cancellation.Invoke(token);
-            }
-            else
-            {
-                return failure.Invoke(Error.Value, token);
-            }
-        }
-
-        [BurstCompile]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UniTask<TMap> MapAsync<TMap>
-        (
-            Func<TFirst, TSecond, CancellationToken, UniTask<TMap>> success,
-            Func<CancellationToken, UniTask<TMap>> cancellation,
-            Func<Exception, CancellationToken, UniTask<TMap>> failure,
-            CancellationToken token = default
-        ) {
-            if (IsSuccessful)
-            {
-                return success.Invoke(Income.First, Income.Second, token);
-            }
-            else if (IsCancellation)
-            {
-                return cancellation.Invoke(token);
-            }
-            else
-            {
-                return failure.Invoke(Error.Value, token);
-            }
-        }
-
-        [BurstCompile]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public AsyncResult<TAnother> Run<TAnother>(Func<TFirst, TSecond, AsyncResult<TAnother>> run)
+        public AsyncResult<TFirst, TSecond, TThird> Attach<TThird>(TThird additional)
         {
-            if (IsSuccessful) return run.Invoke(Income.First, Income.Second);
-            if (IsCancellation) return AsyncResult<TAnother>.Cancel;
+            if (IsSuccessful) return AsyncResult<TFirst, TSecond, TThird>.FromResult(_income.First, _income.Second, additional);
 
-            return new AsyncResult<TAnother>(Error.Value);
+            return IsCancellation
+                ? AsyncResult<TFirst, TSecond, TThird>.Cancel
+                : AsyncResult<TFirst, TSecond, TThird>.FromException(_exception.Value);
         }
 
         [BurstCompile]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public async UniTask<AsyncResult> RunAsync<TAnother>
+        public AsyncResult Run
+        (
+            Func<TFirst, TSecond, CancellationToken, AsyncResult> run,
+            CancellationToken cancellation = default
+        ) {
+            if (cancellation.IsCancellationRequested) return AsyncResult.Cancel;
+            if (IsSuccessful) return run.Invoke(_income.First, _income.Second, cancellation);
+
+            return AsyncResult.FromException(_exception.Value);
+        }
+
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public AsyncResult<TAnother> Run<TAnother>
+        (
+            Func<TFirst, TSecond, CancellationToken, AsyncResult<TAnother>> run,
+            CancellationToken cancellation = default
+        ) {
+            if (cancellation.IsCancellationRequested) return AsyncResult<TAnother>.Cancel;
+            if (IsSuccessful) return run.Invoke(_income.First, _income.Second, cancellation);
+
+            return AsyncResult<TAnother>.FromException(_exception.Value);
+        }
+
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public async UniTask<AsyncResult> RunAsync
         (
             Func<TFirst, TSecond, CancellationToken, UniTask<AsyncResult>> run,
             CancellationToken cancellation = default
         ) {
-            if (IsSuccessful) return await run.Invoke(Income.First, Income.Second, cancellation);
+            if (IsSuccessful) return await run.Invoke(_income.First, _income.Second, cancellation);
 
             return IsCancellation
                 ? AsyncResult.Cancel
-                : new AsyncResult(Error.Value);
+                : AsyncResult.FromException(_exception.Value);
         }
 
         [BurstCompile]
@@ -316,67 +344,102 @@ namespace MagicSwords.Features.Generic.Functional
             Func<TFirst, TSecond, CancellationToken, UniTask<AsyncResult<TAnother>>> run,
             CancellationToken cancellation = default
         ) {
-            if (IsSuccessful) return await run.Invoke(Income.First, Income.Second, cancellation);
+            if (IsSuccessful) return await run.Invoke(_income.First, _income.Second, cancellation);
 
             return IsCancellation
                 ? AsyncResult<TAnother>.Cancel
-                : new AsyncResult<TAnother>(Error.Value);
+                : AsyncResult<TAnother>.FromException(_exception.Value);
         }
 
         [BurstCompile]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public AsyncResult<TFirst, TSecond, TThird> Attach<TThird>(TThird additional)
-        {
-            if (IsSuccessful) return new AsyncResult<TFirst, TSecond, TThird>(Income.First, Income.Second, additional);
+        public async UniTask<AsyncResult<TAnother1, TAnother2>> RunAsync<TAnother1, TAnother2>
+        (
+            Func<TFirst, TSecond, CancellationToken, UniTask<AsyncResult<TAnother1, TAnother2>>> run,
+            CancellationToken cancellation = default
+        ) {
+            if (IsSuccessful) return await run.Invoke(_income.First, _income.Second, cancellation);
 
             return IsCancellation
-                ? AsyncResult<TFirst, TSecond, TThird>.Cancel
-                : new AsyncResult<TFirst, TSecond, TThird>(Error.Value);
+                ? AsyncResult<TAnother1, TAnother2>.Cancel
+                : AsyncResult<TAnother1, TAnother2>.FromException(_exception.Value);
+        }
+
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public UniTask<TMatch> MatchAsync<TMatch>
+        (
+            Func<TFirst, TSecond, CancellationToken, UniTask<TMatch>> success,
+            Func<CancellationToken, UniTask<TMatch>> cancellation,
+            Func<Exception, CancellationToken, UniTask<TMatch>> error,
+            CancellationToken token = default
+        ) {
+            if (IsSuccessful)
+            {
+                return success.Invoke(_income.First, _income.Second, token);
+            }
+            else if (IsCancellation)
+            {
+                return cancellation.Invoke(token);
+            }
+            else
+            {
+                return error.Invoke(_exception.Value, token);
+            }
         }
     }
 
     [BurstCompile]
     public readonly struct AsyncResult<TFirst, TSecond, TThird>
     {
-        internal readonly (Exception Value, bool Provided) Error;
-        internal readonly (Cancellation Value, bool Provided) Cancellation;
-        internal readonly (TFirst First, TSecond Second, TThird Third, bool Provided) Income;
+        private readonly (TFirst First, TSecond Second, TThird Third, bool Provided) _income;
+        private readonly (CancellationToken Value, bool Provided) _cancellation;
+        private readonly (Exception Value, bool Provided) _error;
 
-        internal AsyncResult(TFirst first, TSecond second, TThird third)
+        private AsyncResult(TFirst first, TSecond second, TThird third)
         {
-            Income = (first, second, third, true);
-            Error = default;
-            Cancellation = default;
+            _income = (first, second, third, true);
+            _cancellation = default;
+            _error = default;
         }
 
-        public AsyncResult(Exception error)
+        private AsyncResult(CancellationToken cancellation)
         {
-            Income = default;
-            Error = (error, Provided: true);
-            Cancellation = default;
+            _income = default;
+            _cancellation = (cancellation, Provided: true);
+            _error = default;
         }
 
-        private AsyncResult(Cancellation cancellation)
+        private AsyncResult(Exception exception)
         {
-            Income = default;
-            Error = default;
-            Cancellation = (cancellation, Provided: true);
+            _income = default;
+            _cancellation = default;
+            _error = (exception, Provided: true);
         }
 
-        public static AsyncResult<TFirst, TSecond, TThird> Failure { get; } = new (Outcome.Unexpected.Error);
-        public static AsyncResult<TFirst, TSecond, TThird> Cancel { get; } = new (Canceled);
-
-        public bool IsSuccessful => Income is { Provided: true };
-        public bool IsFailure => Error is { Provided: true };
-        public bool IsCancellation => Cancellation is { Provided: true };
+        public static AsyncResult<TFirst, TSecond, TThird> Cancel { get; } = new (CancellationToken.None);
+        public static AsyncResult<TFirst, TSecond, TThird> Error { get; } = new (Unexpected.Error);
+        public static AsyncResult<TFirst, TSecond, TThird> Impossible { get; } = new (Unexpected.Impossible);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator AsyncResult<TFirst, TSecond, TThird> (ValueTuple<TFirst, TSecond, TThird> income) => new (income.Item1, income.Item2, income.Item3);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator AsyncResult<TFirst, TSecond, TThird> (Exception error) => new (error);
+        public static implicit operator AsyncResult<TFirst, TSecond, TThird> (CancellationToken cancellation) => new (cancellation);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator AsyncResult<TFirst, TSecond, TThird> (CancellationToken _) => Cancel;
+        public static implicit operator AsyncResult<TFirst, TSecond, TThird> (Exception error) => new (error);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static AsyncResult<TFirst, TSecond, TThird>  FromResult(TFirst first, TSecond second, TThird third) => new (first, second, third);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static AsyncResult<TFirst, TSecond, TThird>  FromCancellation(CancellationToken cancellation) => cancellation;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static AsyncResult<TFirst, TSecond, TThird>  FromException(Exception error) => error;
+
+        private bool IsSuccessful => _income.Provided;
+        private bool IsFailure => _error.Provided;
+        private bool IsCancellation => _cancellation.Provided;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static AsyncResult<TFirst, TSecond, TThird> Produce
         (
             Func<(TFirst, TSecond, TThird)> from,
@@ -390,10 +453,11 @@ namespace MagicSwords.Features.Generic.Functional
             }
             catch (Exception exception)
             {
-                return new AsyncResult<TFirst, TSecond, TThird>(exception);
+                return FromException(exception);
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UniTask<AsyncResult<TFirst, TSecond, TThird>> ProduceAsync
         (
             Func<CancellationToken, UniTask<AsyncResult<TFirst, TSecond, TThird>>> from,
@@ -406,62 +470,16 @@ namespace MagicSwords.Features.Generic.Functional
 
         [BurstCompile]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UniTask<TMatch> MatchAsync<TMatch>
-        (
-            Func<TFirst, TSecond, TThird, CancellationToken, UniTask<TMatch>> success,
-            Func<CancellationToken, UniTask<TMatch>> cancellation,
-            Func<Exception, CancellationToken, UniTask<TMatch>> failure,
-            CancellationToken token = default
-        ) {
-            if (IsSuccessful)
-            {
-                return success.Invoke(Income.First, Income.Second, Income.Third, token);
-            }
-            else if (IsCancellation)
-            {
-                return cancellation.Invoke(token);
-            }
-            else
-            {
-                return failure.Invoke(Error.Value, token);
-            }
-        }
-
-        [BurstCompile]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UniTask<TMap> MapAsync<TMap>
-        (
-            Func<TFirst, TSecond, TThird, CancellationToken, UniTask<TMap>> success,
-            Func<CancellationToken, UniTask<TMap>> cancellation,
-            Func<Exception, CancellationToken, UniTask<TMap>> failure,
-            CancellationToken token = default
-        ) {
-            if (IsSuccessful)
-            {
-                return success.Invoke(Income.First, Income.Second, Income.Third, token);
-            }
-            else if (IsCancellation)
-            {
-                return cancellation.Invoke(token);
-            }
-            else
-            {
-                return failure.Invoke(Error.Value, token);
-            }
-        }
-
-        [BurstCompile]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public async UniTask<AsyncResult> RunAsync<TAnother>
+        public async UniTask<AsyncResult> RunAsync
         (
             Func<TFirst, TSecond, TThird, CancellationToken, UniTask<AsyncResult>> run,
             CancellationToken cancellation = default
         ) {
-            if (IsSuccessful) return await run.Invoke(Income.First, Income.Second, Income.Third, cancellation);
+            if (IsSuccessful) return await run.Invoke(_income.First, _income.Second, _income.Third, cancellation);
 
             return IsCancellation
                 ? AsyncResult.Cancel
-                : new AsyncResult(Error.Value);
+                : AsyncResult.FromException(_error.Value);
         }
 
         [BurstCompile]
@@ -471,11 +489,11 @@ namespace MagicSwords.Features.Generic.Functional
             Func<TFirst, TSecond, TThird, CancellationToken, UniTask<AsyncResult<TAnother>>> run,
             CancellationToken cancellation = default
         ) {
-            if (IsSuccessful) return await run.Invoke(Income.First, Income.Second, Income.Third, cancellation);
+            if (IsSuccessful) return await run.Invoke(_income.First, _income.Second, _income.Third, cancellation);
 
             return IsCancellation
                 ? AsyncResult<TAnother>.Cancel
-                : new AsyncResult<TAnother>(Error.Value);
+                : AsyncResult<TAnother>.FromException(_error.Value);
         }
 
         [BurstCompile]
@@ -485,11 +503,11 @@ namespace MagicSwords.Features.Generic.Functional
             Func<TFirst, TSecond, TThird, CancellationToken, UniTask<AsyncResult<TAnother, TAnotherOne>>> run,
             CancellationToken cancellation = default
         ) {
-            if (IsSuccessful) return await run.Invoke(Income.First, Income.Second, Income.Third, cancellation);
+            if (IsSuccessful) return await run.Invoke(_income.First, _income.Second, _income.Third, cancellation);
 
             return IsCancellation
                 ? AsyncResult<TAnother, TAnotherOne>.Cancel
-                : new AsyncResult<TAnother, TAnotherOne>(Error.Value);
+                : AsyncResult<TAnother, TAnotherOne>.FromException(_error.Value);
         }
 
         [BurstCompile]
@@ -499,11 +517,34 @@ namespace MagicSwords.Features.Generic.Functional
             Func<TFirst, TSecond, TThird, CancellationToken, UniTask<AsyncResult<TAnother, TAnotherOne, TYetAnother>>> run,
             CancellationToken cancellation = default
         ) {
-            if (IsSuccessful) return await run.Invoke(Income.First, Income.Second, Income.Third, cancellation);
+            if (IsSuccessful) return await run.Invoke(_income.First, _income.Second, _income.Third, cancellation);
 
             return IsCancellation
                 ? AsyncResult<TAnother, TAnotherOne, TYetAnother>.Cancel
-                : new AsyncResult<TAnother, TAnotherOne, TYetAnother>(Error.Value);
+                : AsyncResult<TAnother, TAnotherOne, TYetAnother>.FromException(_error.Value);
+        }
+
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public UniTask<TMatch> MatchAsync<TMatch>
+        (
+            Func<TFirst, TSecond, TThird, CancellationToken, UniTask<TMatch>> success,
+            Func<CancellationToken, UniTask<TMatch>> cancellation,
+            Func<Exception, CancellationToken, UniTask<TMatch>> error,
+            CancellationToken token = default
+        ) {
+            if (IsSuccessful)
+            {
+                return success.Invoke(_income.First, _income.Second, _income.Third, token);
+            }
+            else if (IsCancellation)
+            {
+                return cancellation.Invoke(token);
+            }
+            else
+            {
+                return error.Invoke(_error.Value, token);
+            }
         }
     }
 
@@ -511,119 +552,17 @@ namespace MagicSwords.Features.Generic.Functional
     {
         [BurstCompile]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static async UniTask<TMap> MapAsync<TValue, TMap>
+        public static async UniTask<AsyncResult<TValue, TAnother>> AttachAsync<TValue, TAnother>
         (
             this UniTask<AsyncResult<TValue>> candidate,
-            Func<TValue, CancellationToken, UniTask<TMap>> success,
-            Func<CancellationToken, UniTask<TMap>> cancellation,
-            Func<Exception, CancellationToken, UniTask<TMap>> failure,
-            CancellationToken token = default
-        ) {
-            var result = await candidate;
-
-            if (result.IsSuccessful)
-            {
-                return await success.Invoke(result.Income.Value, token);
-            }
-            else if (result.IsCancellation)
-            {
-                return await cancellation.Invoke(token);
-            }
-            else
-            {
-                return await failure.Invoke(result.Error.Value, token);
-            }
-        }
-
-        [BurstCompile]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static async UniTask<AsyncResult<TResulted>> RunAsync<TValue, TResulted>
-        (
-            this UniTask<AsyncResult<TValue>> candidate,
-            Func<TValue, CancellationToken, UniTask<AsyncResult<TResulted>>> run,
+            TAnother another,
             CancellationToken cancellation = default
         ) {
-            var result = await candidate;
+            var result = cancellation.IsCancellationRequested is false
+                ? await candidate
+                : AsyncResult<TValue>.Cancel;
 
-            if (result.IsSuccessful) return await run.Invoke(result.Income.Value, cancellation);
-
-            return result.IsCancellation
-                ? AsyncResult<TResulted>.Cancel
-                : new AsyncResult<TResulted>(result.Error.Value);
-        }
-
-        [BurstCompile]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static async UniTask<AsyncResult<TResulted>> RunAsync<TFirst, TSecond, TResulted>
-        (
-            this UniTask<AsyncResult<TFirst, TSecond>> candidate,
-            Func<TFirst, TSecond, CancellationToken, UniTask<AsyncResult<TResulted>>> run,
-            CancellationToken cancellation = default
-        ) {
-            var result = await candidate;
-
-            if (result.IsSuccessful) return await run.Invoke(result.Income.First, result.Income.Second, cancellation);
-
-            return result.IsCancellation
-                ? AsyncResult<TResulted>.Cancel
-                : new AsyncResult<TResulted>(result.Error.Value);
-        }
-
-        [BurstCompile]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static async UniTask<AsyncResult<TResulted1, TResulted2>> RunAsync<TFirst, TSecond, TResulted1, TResulted2>
-        (
-            this UniTask<AsyncResult<TFirst, TSecond>> candidate,
-            Func<TFirst, TSecond, CancellationToken, UniTask<AsyncResult<TResulted1, TResulted2>>> run,
-            CancellationToken cancellation = default
-        ) {
-            var result = await candidate;
-
-            if (result.IsSuccessful) return await run.Invoke(result.Income.First, result.Income.Second, cancellation);
-
-            return result.IsCancellation
-                ? AsyncResult<TResulted1, TResulted2>.Cancel
-                : new AsyncResult<TResulted1, TResulted2>(result.Error.Value);
-        }
-
-        [BurstCompile]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static async UniTask<AsyncResult<TResulted>> RunAsync<TFirst, TSecond, TThird, TResulted>
-        (
-            this UniTask<AsyncResult<TFirst, TSecond, TThird>> candidate,
-            Func<TFirst, TSecond, TThird, CancellationToken, UniTask<AsyncResult<TResulted>>> run,
-            CancellationToken cancellation = default
-        ) {
-            var result = await candidate;
-
-            if (result.IsSuccessful) return await run.Invoke(result.Income.First, result.Income.Second, result.Income.Third, cancellation);
-
-            return result.IsCancellation
-                ? AsyncResult<TResulted>.Cancel
-                : new AsyncResult<TResulted>(result.Error.Value);
-        }
-
-        [BurstCompile]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static async UniTask<AsyncResult<TValue, TFirst>> AttachAsync<TValue, TFirst>
-        (
-            this UniTask<AsyncResult<TValue>> candidate,
-            TFirst first,
-            CancellationToken cancellation = default
-        ) {
-            if (cancellation.IsCancellationRequested)
-                return AsyncResult<TValue, TFirst>.Cancel;
-
-            var result = await candidate;
-
-            if (result.IsSuccessful) return new AsyncResult<TValue, TFirst>
-            (
-                result.Income.Value, first
-            );
-
-            return result.IsCancellation
-                ? AsyncResult<TValue, TFirst>.Cancel
-                : new AsyncResult<TValue, TFirst>(result.Error.Value);
+            return result.Attach(another);
         }
 
         [BurstCompile]
@@ -635,42 +574,86 @@ namespace MagicSwords.Features.Generic.Functional
             TSecond second,
             CancellationToken cancellation = default
         ) {
-            if (cancellation.IsCancellationRequested)
-                return AsyncResult<TValue, TFirst, TSecond>.Cancel;
+            var result = cancellation.IsCancellationRequested is false
+                ? await candidate
+                : AsyncResult<TValue>.Cancel;
 
-            var result = await candidate;
-
-            if (result.IsSuccessful) return new AsyncResult<TValue, TFirst, TSecond>
-            (
-                result.Income.Value, first, second
-            );
-
-            return result.IsCancellation
-                ? AsyncResult<TValue, TFirst, TSecond>.Cancel
-                : new AsyncResult<TValue, TFirst, TSecond>(result.Error.Value);
+            return result.Attach(first, second);
         }
 
         [BurstCompile]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static async UniTask<AsyncResult<TValue1, TValue2, TAnother>> AttachAsync<TValue1, TValue2, TAnother>
+        public static async UniTask<AsyncResult<TFirst, TSecond, TAnother>> AttachAsync<TFirst, TSecond, TAnother>
         (
-            this UniTask<AsyncResult<TValue1, TValue2>> candidate,
+            this UniTask<AsyncResult<TFirst, TSecond>> candidate,
             TAnother another,
             CancellationToken cancellation = default
         ) {
-            if (cancellation.IsCancellationRequested)
-                return AsyncResult<TValue1, TValue2, TAnother>.Cancel;
+            var result = cancellation.IsCancellationRequested is false
+                ? await candidate
+                : AsyncResult<TFirst, TSecond>.Cancel;
 
-            var result = await candidate;
+            return result.Attach(another);
+        }
 
-            if (result.IsSuccessful) return new AsyncResult<TValue1, TValue2, TAnother>
-            (
-                result.Income.First, result.Income.Second, another
-            );
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static async UniTask<AsyncResult<TResulted>> RunAsync<TValue, TResulted>
+        (
+            this UniTask<AsyncResult<TValue>> candidate,
+            Func<TValue, CancellationToken, UniTask<AsyncResult<TResulted>>> run,
+            CancellationToken cancellation = default
+        ) {
+            var result = cancellation.IsCancellationRequested is false
+                ? await candidate
+                : AsyncResult<TValue>.Cancel;
 
-            return result.IsCancellation
-                ? AsyncResult<TValue1, TValue2, TAnother>.Cancel
-                : new AsyncResult<TValue1, TValue2, TAnother>(result.Error.Value);
+            return await result.RunAsync(run, cancellation);
+        }
+
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static async UniTask<AsyncResult<TResulted>> RunAsync<TFirst, TSecond, TResulted>
+        (
+            this UniTask<AsyncResult<TFirst, TSecond>> candidate,
+            Func<TFirst, TSecond, CancellationToken, UniTask<AsyncResult<TResulted>>> run,
+            CancellationToken cancellation = default
+        ) {
+            var result = cancellation.IsCancellationRequested is false
+                ? await candidate
+                : AsyncResult<TFirst, TSecond>.Cancel;
+
+            return await result.RunAsync(run, cancellation);
+        }
+
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static async UniTask<AsyncResult<TResulted>> RunAsync<TFirst, TSecond, TThird, TResulted>
+        (
+            this UniTask<AsyncResult<TFirst, TSecond, TThird>> candidate,
+            Func<TFirst, TSecond, TThird, CancellationToken, UniTask<AsyncResult<TResulted>>> run,
+            CancellationToken cancellation = default
+        ) {
+            var result = cancellation.IsCancellationRequested is false
+                ? await candidate
+                : AsyncResult<TFirst, TSecond, TThird>.Cancel;
+
+            return await result.RunAsync(run, cancellation);
+        }
+
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static async UniTask<AsyncResult<TResulted1, TResulted2>> RunAsync<TFirst, TSecond, TResulted1, TResulted2>
+        (
+            this UniTask<AsyncResult<TFirst, TSecond>> candidate,
+            Func<TFirst, TSecond, CancellationToken, UniTask<AsyncResult<TResulted1, TResulted2>>> run,
+            CancellationToken cancellation = default
+        ) {
+            var result = cancellation.IsCancellationRequested is false
+                ? await candidate
+                : AsyncResult<TFirst, TSecond>.Cancel;
+
+            return await result.RunAsync(run, cancellation);
         }
     }
 }

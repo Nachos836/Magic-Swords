@@ -4,12 +4,12 @@ namespace MagicSwords.Features.Generic.Functional.Outcome
 {
     public static class Expected
     {
-        private static readonly Lazy<Success> LazySuccess = new (() => new Success());
-        private static readonly Lazy<Unit> LazyUnit = new (() => new Unit());
+        private static readonly Lazy<Success> LazySuccess = new (static () => new Success());
+        private static readonly Lazy<Unit> LazyUnit = new (static () => new Unit());
 
-        private static readonly Lazy<Abortion> LazyAborted = new (() => new Abortion());
-        private static readonly Lazy<Failure> LazyFailed= new (() => new Failure());
-        private static readonly Lazy<Cancellation> LazyCancel = new (() => new Cancellation());
+        private static readonly Lazy<Abortion> LazyAborted = new (static () => new Abortion());
+        private static readonly Lazy<Failure> LazyFailed= new (static () => new Failure());
+        private static readonly Lazy<Cancellation> LazyCancel = new (static () => new Cancellation());
 
         public static Success Success { get; } = LazySuccess.Value;
         public static Unit Unit { get; } = LazyUnit.Value;

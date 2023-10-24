@@ -6,92 +6,78 @@ using Unity.Burst;
 
 namespace MagicSwords.Features.Generic.Functional
 {
-    using static Outcome.Expected;
-    using static Outcome.Unexpected;
+    using Outcome;
 
     [BurstCompile]
     public readonly struct AsyncResult
     {
-        private readonly (Exception Value, bool Provided) _error;
-        private readonly (Cancellation Value, bool Provided) _cancellation;
+        private readonly (CancellationToken Value, bool Provided) _cancellation;
+        private readonly (Exception Value, bool Provided) _exception;
 
         private AsyncResult(bool success = true)
         {
             IsSuccessful = success;
-            _error = default;
+
             _cancellation = default;
+            _exception = default;
         }
 
-        public AsyncResult(Exception error)
+        private AsyncResult(CancellationToken cancellation)
         {
             IsSuccessful = false;
-            _error = (error, Provided: true);
-            _cancellation = default;
-        }
 
-        private AsyncResult(Cancellation cancellation)
-        {
-            IsSuccessful = false;
-            _error = default;
             _cancellation = (cancellation, Provided: true);
+            _exception = default;
+        }
+
+        private AsyncResult(Exception exception)
+        {
+            IsSuccessful = false;
+
+            _cancellation = default;
+            _exception = (exception, Provided: true);
         }
 
         public static AsyncResult Success { get; } = new (success: true);
-        public static AsyncResult Failure { get; } = new (Error);
-        public static AsyncResult Cancel { get; } = new (Canceled);
+        public static AsyncResult Cancel { get; } = new (CancellationToken.None);
+        public static AsyncResult Error { get; } = new (Unexpected.Error);
+        public static AsyncResult Impossible { get; } = new (Unexpected.Impossible);
 
         public bool IsSuccessful { get; }
-        public bool IsFailure => _error is { Provided: true };
-        public bool IsCancellation => _cancellation is { Provided: true };
+        public bool IsCancellation => _cancellation.Provided;
+        public bool IsError => _exception.Provided;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator AsyncResult (CancellationToken cancellation) => new (cancellation);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator AsyncResult (Exception error) => new (error);
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator AsyncResult (CancellationToken _) => Cancel;
+        public static AsyncResult FromCancellation(CancellationToken cancellation) => cancellation;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static AsyncResult FromException(Exception exception) => exception;
 
         [BurstCompile]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UniTask<TMatch> MatchAsync<TMatch>
-        (
-            Func<CancellationToken, UniTask<TMatch>> success,
-            Func<CancellationToken, UniTask<TMatch>> cancellation,
-            Func<Exception, CancellationToken, UniTask<TMatch>> failure,
-            CancellationToken token = default
-        ) {
-            if (IsSuccessful)
-            {
-                return success.Invoke(token);
-            }
-            else if (IsCancellation)
-            {
-                return cancellation.Invoke(token);
-            }
-            else
-            {
-                return failure.Invoke(_error.Value, token);
-            }
-        }
+        public AsyncResult Combine(AsyncResult another)
+        {
+            var success = IsSuccessful & another.IsSuccessful;
+            var cancellation = IsCancellation | another.IsCancellation;
 
-        [BurstCompile]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UniTask MatchAsync
-        (
-            Func<CancellationToken, UniTask> success,
-            Func<CancellationToken, UniTask> cancellation,
-            Func<Exception, CancellationToken, UniTask> failure,
-            CancellationToken token = default
-        ) {
-            if (IsSuccessful)
+            if (success)
             {
-                return success.Invoke(token);
+                return Success;
             }
-            else if (IsCancellation)
+            else if (cancellation)
             {
-                return cancellation.Invoke(token);
+                return Cancel;
             }
             else
             {
-                return failure.Invoke(_error.Value, token);
+                if (IsError) return this;
+                if (another.IsError) return another;
+
+                return Impossible;
             }
         }
 
@@ -106,22 +92,70 @@ namespace MagicSwords.Features.Generic.Functional
 
         [BurstCompile]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public AsyncResult Combine(AsyncResult another)
-        {
-            var success = IsSuccessful & another.IsSuccessful;
-            var cancellation = IsCancellation & another.IsCancellation;
-
-            if (success)
+        public UniTask<TMatch> MatchAsync<TMatch>
+        (
+            Func<CancellationToken, UniTask<TMatch>> success,
+            Func<CancellationToken, UniTask<TMatch>> cancellation,
+            Func<Exception, CancellationToken, UniTask<TMatch>> error,
+            CancellationToken token = default
+        ) {
+            if (IsSuccessful)
             {
-                return Success;
+                return success.Invoke(token);
             }
-            else if (cancellation)
+            else if (IsCancellation)
             {
-                return Cancel;
+                return cancellation.Invoke(token);
             }
             else
             {
-                return Failure;
+                return error.Invoke(_exception.Value, token);
+            }
+        }
+
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public UniTask MatchAsync
+        (
+            Func<CancellationToken, UniTask> success,
+            Func<CancellationToken, UniTask> cancellation,
+            Func<Exception, CancellationToken, UniTask> error,
+            CancellationToken token = default
+        ) {
+            if (IsSuccessful)
+            {
+                return success.Invoke(token);
+            }
+            else if (IsCancellation)
+            {
+                return cancellation.Invoke(token);
+            }
+            else
+            {
+                return error.Invoke(_exception.Value, token);
+            }
+        }
+
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Match
+        (
+            Action<CancellationToken> success,
+            Action<CancellationToken> cancellation,
+            Action<Exception, CancellationToken> error,
+            CancellationToken token = default
+        ) {
+            if (IsSuccessful)
+            {
+                success.Invoke(token);
+            }
+            else if (IsCancellation)
+            {
+                cancellation.Invoke(token);
+            }
+            else
+            {
+                error.Invoke(_exception.Value, token);
             }
         }
     }

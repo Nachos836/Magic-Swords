@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Unity.Burst;
@@ -13,25 +12,19 @@ namespace MagicSwords.Features.Generic.Functional
         private readonly (TFirst Value, bool Provided) _first;
         private readonly (TSecond Value, bool Provided) _second;
 
-        public OptionalOneOf(TFirst value)
+        private OptionalOneOf(TFirst value)
         {
             _first = (value, Provided: true);
             _second = default;
         }
 
-        public OptionalOneOf(TSecond value)
+        private OptionalOneOf(TSecond value)
         {
             _first = default;
             _second = (value, Provided: true);
         }
 
-        private OptionalOneOf(NoneOf noneOf = default)
-        {
-            _first = default;
-            _second = default;
-        }
-
-        public static OptionalOneOf<TFirst, TSecond> None { get; } = new (noneOf: default);
+        public static OptionalOneOf<TFirst, TSecond> None { get; } = new ();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator OptionalOneOf<TFirst, TSecond> (TFirst value) => new (value);
@@ -39,13 +32,18 @@ namespace MagicSwords.Features.Generic.Functional
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator OptionalOneOf<TFirst, TSecond> (TSecond value) => new (value);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static OptionalOneOf<TFirst, TSecond> From(TFirst value) => value;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static OptionalOneOf<TFirst, TSecond> From(TSecond value) => value;
+
         [BurstCompile]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TMatch Match<TMatch>
         (
             Func<TFirst, TMatch> whenFirst,
             Func<TSecond, TMatch> whenSecond,
-            Func<TMatch> none
+            Func<TMatch> whenNone
         ) {
             if (_first is { Provided: true } first)
             {
@@ -57,7 +55,7 @@ namespace MagicSwords.Features.Generic.Functional
             }
             else
             {
-                return none.Invoke();
+                return whenNone.Invoke();
             }
         }
 
@@ -67,7 +65,7 @@ namespace MagicSwords.Features.Generic.Functional
         (
             Action<TFirst> whenFirst,
             Action<TSecond> whenSecond,
-            Action none
+            Action whenNone
         ) {
             if (_first is { Provided: true } first)
             {
@@ -79,7 +77,7 @@ namespace MagicSwords.Features.Generic.Functional
             }
             else
             {
-                none.Invoke();
+                whenNone.Invoke();
             }
         }
 
@@ -89,7 +87,7 @@ namespace MagicSwords.Features.Generic.Functional
         (
             Func<TFirst, CancellationToken, UniTask<TMatch>> whenFirst,
             Func<TSecond, CancellationToken, UniTask<TMatch>> whenSecond,
-            Func<CancellationToken, UniTask<TMatch>> none,
+            Func<CancellationToken, UniTask<TMatch>> whenNone,
             CancellationToken cancellation = default
         ) {
             if (_first is { Provided: true } first)
@@ -102,7 +100,7 @@ namespace MagicSwords.Features.Generic.Functional
             }
             else
             {
-                return none.Invoke(cancellation);
+                return whenNone.Invoke(cancellation);
             }
         }
 
@@ -112,7 +110,7 @@ namespace MagicSwords.Features.Generic.Functional
         (
             Func<TFirst, CancellationToken, UniTask> whenFirst,
             Func<TSecond, CancellationToken, UniTask> whenSecond,
-            Func<CancellationToken, UniTask> none,
+            Func<CancellationToken, UniTask> whenNone,
             CancellationToken cancellation = default
         ) {
             if (_first is { Provided: true } first)
@@ -125,12 +123,8 @@ namespace MagicSwords.Features.Generic.Functional
             }
             else
             {
-                return none.Invoke(cancellation);
+                return whenNone.Invoke(cancellation);
             }
         }
-
-        [BurstCompile]
-        [StructLayout(LayoutKind.Sequential, Size = 1)]
-        private readonly ref struct NoneOf { }
     }
 }

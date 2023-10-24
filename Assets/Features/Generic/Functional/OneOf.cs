@@ -12,13 +12,13 @@ namespace MagicSwords.Features.Generic.Functional
         private readonly (TFirst Value, bool Provided) _first;
         private readonly (TSecond Value, bool Provided) _second;
 
-        public OneOf(TFirst value)
+        private OneOf(TFirst value)
         {
             _first = (value, Provided: true);
             _second = default;
         }
 
-        public OneOf(TSecond value)
+        private OneOf(TSecond value)
         {
             _first = default;
             _second = (value, Provided: true);
@@ -29,6 +29,11 @@ namespace MagicSwords.Features.Generic.Functional
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator OneOf<TFirst, TSecond> (TSecond value) => new (value);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static OneOf<TFirst, TSecond> From(TFirst value) => new (value);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static OneOf<TFirst, TSecond> From(TSecond value) => new (value);
 
         [BurstCompile]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -93,21 +98,21 @@ namespace MagicSwords.Features.Generic.Functional
         private readonly (TSecond Value, bool Provided) _second;
         private readonly (TThird Value, bool Provided) _third;
 
-        public OneOf(TFirst value)
+        private OneOf(TFirst value)
         {
             _first = (value, Provided: true);
             _second = default;
             _third = default;
         }
 
-        public OneOf(TSecond value)
+        private OneOf(TSecond value)
         {
             _first = default;
             _second = (value, Provided: true);
             _third = default;
         }
 
-        public OneOf(TThird value)
+        private OneOf(TThird value)
         {
             _first = default;
             _second = default;
@@ -123,8 +128,11 @@ namespace MagicSwords.Features.Generic.Functional
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator OneOf<TFirst, TSecond, TThird> (TThird value) => new (value);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static OneOf<TFirst, TSecond, TThird> From(TFirst value) => new(value);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static OneOf<TFirst, TSecond, TThird> From(TSecond value) => new(value);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static OneOf<TFirst, TSecond, TThird> From(TThird value) => new(value);
 
         [BurstCompile]
