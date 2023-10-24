@@ -5,14 +5,8 @@ using Cysharp.Threading.Tasks;
 namespace MagicSwords.Features.Text.Players.SequencePlayer.Stages
 {
     using Generic.Sequencer;
+    using Generic.Functional;
     using Payload;
-
-    using Option = Generic.Functional.OneOf
-    <
-        Generic.Sequencer.IStage,
-        Generic.Sequencer.Stage.Canceled,
-        Generic.Sequencer.Stage.Errored
-    >;
 
     internal sealed class Delay : IStage, IStage.IProcess
     {
@@ -34,14 +28,14 @@ namespace MagicSwords.Features.Text.Players.SequencePlayer.Stages
             _amount = amount;
         }
 
-        async UniTask<Option> IStage.IProcess.ProcessAsync(CancellationToken cancellation)
+        async UniTask<AsyncResult<IStage>> IStage.IProcess.ProcessAsync(CancellationToken cancellation)
         {
-            if (cancellation.IsCancellationRequested) return Stage.Cancel;
+            if (cancellation.IsCancellationRequested) return AsyncResult<IStage>.Cancel;
 
             if (await UniTask.Delay(_amount, ignoreTimeScale: false, _yieldTarget, cancellation)
-                .SuppressCancellationThrow()) return Stage.Cancel;
+                .SuppressCancellationThrow()) return AsyncResult<IStage>.Cancel;
 
-            return Option.From(_resolveNext.Invoke(_message));
+            return AsyncResult<IStage>.FromResult(_resolveNext.Invoke(_message));
         }
     }
 }

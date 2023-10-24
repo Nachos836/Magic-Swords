@@ -6,15 +6,9 @@ using TMPro;
 namespace MagicSwords.Features.Text.Players.SequencePlayer.Stages
 {
     using Generic.Sequencer;
+    using Generic.Functional;
     using Input;
     using Payload;
-
-    using Option = Generic.Functional.OneOf
-    <
-        Generic.Sequencer.IStage,
-        Generic.Sequencer.Stage.Canceled,
-        Generic.Sequencer.Stage.Errored
-    >;
 
     internal sealed class Skip : IStage, IStage.IProcess
     {
@@ -39,9 +33,9 @@ namespace MagicSwords.Features.Text.Players.SequencePlayer.Stages
             _text = text;
         }
 
-        async UniTask<Option> IStage.IProcess.ProcessAsync(CancellationToken cancellation)
+        async UniTask<AsyncResult<IStage>> IStage.IProcess.ProcessAsync(CancellationToken cancellation)
         {
-            if (cancellation.IsCancellationRequested) return Stage.Cancel;
+            if (cancellation.IsCancellationRequested) return AsyncResult<IStage>.Cancel;
 
             _text.text = _message.Part;
             var skipPerformed = false;
@@ -49,9 +43,9 @@ namespace MagicSwords.Features.Text.Players.SequencePlayer.Stages
             using var _ = _readingSkipInput.Subscribe(started: PerformSkip);
 
             if (await UniTask.WaitUntil(WasSkipped, _yieldTarget, cancellation)
-                .SuppressCancellationThrow()) return Stage.Cancel;
+                .SuppressCancellationThrow()) return AsyncResult<IStage>.Cancel;
 
-            return Option.From(_resolveNext.Invoke(_message));
+            return AsyncResult<IStage>.FromResult(_resolveNext.Invoke(_message));
 
             void PerformSkip(StartedContext _) => skipPerformed = true;
             bool WasSkipped() => skipPerformed;

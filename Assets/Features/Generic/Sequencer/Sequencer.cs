@@ -4,7 +4,6 @@ using Cysharp.Threading.Tasks;
 namespace MagicSwords.Features.Generic.Sequencer
 {
     using Functional;
-    using Functional.Outcome;
 
     public sealed class Sequencer
     {
@@ -12,37 +11,36 @@ namespace MagicSwords.Features.Generic.Sequencer
 
         public Sequencer(IStage firstState) => _firstState = firstState;
 
-        public async UniTask<Result<Success, Expected.Cancellation>> StartAsync(CancellationToken cancellation = default)
+        public async UniTask<AsyncResult> StartAsync(CancellationToken cancellation = default)
         {
             var current = _firstState;
 
             while (current is not Stage.Ended)
             {
-                if (cancellation.IsCancellationRequested) return Expected.Canceled;
-                if (current is not IStage.IProcess candidate) return Unexpected.Error;
+                if (cancellation.IsCancellationRequested) return AsyncResult.Cancel;
+                if (current is not IStage.IProcess candidate) return AsyncResult.Impossible;
 
                 var outcome = await candidate.ProcessAsync(cancellation);
-                var option = await outcome.MatchAsync
+                var goingForNextStage = outcome.Run((next, tokens) =>
+                {
+                    if (tokens.IsCancellationRequested) return AsyncResult.Cancel;
+
+                    current = next;
+
+                    return AsyncResult.Success;
+
+                }, cancellation).IsSuccessful;
+
+                if (goingForNextStage is false) return outcome.Match
                 (
-                    (next, token) => token.IsCancellationRequested
-                        ? new UniTask<IStage>(Stage.Cancel)
-                        : new UniTask<IStage>(current = next),
-                    static (cancelled, _) => new UniTask<IStage>(cancelled),
-                    static (error, _) => new UniTask<IStage>(error),
+                    success: static (_, _) => AsyncResult.Impossible,
+                    cancellation: static _ => AsyncResult.Cancel,
+                    error: static (exception, _) => AsyncResult.FromException(exception),
                     cancellation
                 );
-
-                if (cancellation.IsCancellationRequested) return Expected.Canceled;
-
-                switch (option)
-                {
-                    case Stage.Ended: return Expected.Success;
-                    case Stage.Canceled: return Expected.Canceled;
-                    case Stage.Errored: return Unexpected.Failed;
-                }
             }
 
-            return Expected.Success;
+            return AsyncResult.Success;
         }
     }
 }

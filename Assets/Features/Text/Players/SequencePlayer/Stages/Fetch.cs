@@ -5,14 +5,8 @@ using Cysharp.Threading.Tasks;
 namespace MagicSwords.Features.Text.Players.SequencePlayer.Stages
 {
     using Generic.Sequencer;
+    using Generic.Functional;
     using Payload;
-
-    using Option = Generic.Functional.OneOf
-    <
-        Generic.Sequencer.IStage,
-        Generic.Sequencer.Stage.Canceled,
-        Generic.Sequencer.Stage.Errored
-    >;
 
     internal sealed class Fetch : IStage, IStage.IProcess
     {
@@ -25,18 +19,23 @@ namespace MagicSwords.Features.Text.Players.SequencePlayer.Stages
             _fetcher = fetcher;
         }
 
-        UniTask<Option> IStage.IProcess.ProcessAsync(CancellationToken cancellation)
+        UniTask<AsyncResult<IStage>> IStage.IProcess.ProcessAsync(CancellationToken cancellation)
         {
-            if (cancellation.IsCancellationRequested) return new UniTask<Option>(Option.From(Stage.Cancel));
+            if (cancellation.IsCancellationRequested) return UniTask.FromResult(AsyncResult<IStage>.Cancel);
 
-            return new UniTask<Option>(Option.From(_fetcher.Next.Match
+            return UniTask.FromResult
             (
-                something: message => cancellation.IsCancellationRequested
-                    ? Stage.Cancel
-                    : _resolveNext.Invoke(message),
-                nothing: static () => Stage.End,
-                failure: static _ => Stage.Error
-            )));
+                _fetcher.Next.Attach(_resolveNext).Run
+                (
+                    whenSome: static (message, resolver, token) => token.IsCancellationRequested
+                        ? AsyncResult<IStage>.Cancel
+                        : AsyncResult<IStage>.FromResult(resolver.Invoke(message)),
+                    whenNone: static token => token.IsCancellationRequested
+                        ? AsyncResult<IStage>.Cancel
+                        : AsyncResult<IStage>.FromResult(Stage.End),
+                    cancellation
+                )
+            );
         }
     }
 }

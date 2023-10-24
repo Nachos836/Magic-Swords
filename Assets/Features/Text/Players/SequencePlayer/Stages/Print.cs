@@ -9,15 +9,9 @@ using static Cysharp.Threading.Tasks.Linq.UniTaskAsyncEnumerable;
 namespace MagicSwords.Features.Text.Players.SequencePlayer.Stages
 {
     using Generic.Sequencer;
+    using Generic.Functional;
     using Input;
     using Payload;
-
-    using Option = Generic.Functional.OneOf
-    <
-        Generic.Sequencer.IStage,
-        Generic.Sequencer.Stage.Canceled,
-        Generic.Sequencer.Stage.Errored
-    >;
 
     internal sealed class Print : IStage, IStage.IProcess
     {
@@ -48,7 +42,7 @@ namespace MagicSwords.Features.Text.Players.SequencePlayer.Stages
             _delay = delay;
         }
 
-        async UniTask<Option> IStage.IProcess.ProcessAsync(CancellationToken cancellation)
+        async UniTask<AsyncResult<IStage>> IStage.IProcess.ProcessAsync(CancellationToken cancellation)
         {
             using var displaying = CreateLinkedTokenSource(cancellation);
             cancellation = displaying.Token;
@@ -62,7 +56,7 @@ namespace MagicSwords.Features.Text.Players.SequencePlayer.Stages
 
                 for (var i = 0; i < message.Length; i++)
                 {
-                    if (cancellation.IsCancellationRequested) return Option.From(Stage.Cancel);
+                    if (cancellation.IsCancellationRequested) return AsyncResult<IStage>.Cancel;
 
                     _field.text = message[..i];
 
@@ -74,20 +68,20 @@ namespace MagicSwords.Features.Text.Players.SequencePlayer.Stages
 
                     if (wasCanceled)
                     {
-                        return Option.From(Stage.Cancel);
+                        return AsyncResult<IStage>.Cancel;
                     }
                     else if (finishedIndex is 0)
                     {
                         displaying.Cancel();
 
-                        return Option.From(_resolveSkip.Invoke(_message));
+                        return AsyncResult<IStage>.FromResult(_resolveSkip.Invoke(_message));
                     }
                 }
 
                 displaying.Cancel();
             }
 
-            return Option.From(_resolveNext.Invoke(_message));
+            return AsyncResult<IStage>.FromResult(_resolveNext.Invoke(_message));
 
             bool WasSkipped() => skipPerformed;
 

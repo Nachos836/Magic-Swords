@@ -34,24 +34,10 @@ namespace MagicSwords.Features.Text.Players.SequencePlayer
             var outcome = await _sequencer.StartAsync(cancellation);
             outcome.Match
             (
-                success: _ =>
-                {
-                    _logger.LogInformation("Успешно завершено!");
-
-                    return 1;
-                },
-                expected: _ =>
-                {
-                    _logger.LogWarning("Выполнение было отменено!");
-
-                    return 2;
-                },
-                unexpected: exception =>
-                {
-                    _logger.LogException(exception);
-
-                    return 3;
-                }
+                success: _ => _logger.LogInformation("Успешно завершено!"),
+                cancellation: _ => _logger.LogWarning("Выполнение было отменено!"),
+                error: (exception, _) => _logger.LogException(exception),
+                cancellation
             );
         }
     }
