@@ -1,6 +1,5 @@
 ﻿using System.Threading;
 using Cysharp.Threading.Tasks;
-using JetBrains.Annotations;
 using TMPro;
 
 using static Cysharp.Threading.Tasks.Linq.UniTaskAsyncEnumerable;
@@ -10,34 +9,37 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Playing
     using Animating;
     using Jobs;
     using TimeProvider;
+    using Generic.Functional;
 
-    internal readonly struct Player
+    internal sealed class Player
     {
         private readonly TMP_Text _field;
+        private readonly IText _text;
         private readonly ICurrentTimeProvider _currentTime;
         private readonly PlayerLoopTiming _yieldPoint;
 
         public Player
         (
             TMP_Text field,
+            IText text,
             ICurrentTimeProvider currentTime,
             PlayerLoopTiming yieldPoint = PlayerLoopTiming.Update
         ) {
             _field = field;
+            _text = text;
             _currentTime = currentTime;
             _yieldPoint = yieldPoint;
         }
 
-        public async UniTask PlayAsync
-        (
-            string text,
-            Tween[] tweens,
-            CancellationToken cancellation = default
-        ) {
+        public async UniTask<AsyncResult> PlayAsync(CancellationToken cancellation = default)
+        {
             long renderFlag = default;
 
+            var preset = await _text.ProvidePresetAsync(cancellation);
+
             _field.renderMode = TextRenderFlags.DontRender;
-            _field.text = text;
+            _field.text = preset.PlainText;
+            var tweens = preset.Tweens;
 
             await foreach (var _ in EveryUpdate(_yieldPoint).TakeUntilCanceled(cancellation))
             {
@@ -61,12 +63,14 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Playing
                     await showing.ExecuteAsync(cancellation);
                 }
             }
+
+            return AsyncResult.Success;
         }
 
         private static IUniTaskAsyncEnumerable<PreparationJob> PrepareTextPiecesAsync
         (
             Tween[] tweens,
-            [NotNull] TMP_TextInfo textInfo,
+            TMP_TextInfo textInfo,
             ICurrentTimeProvider currentTime,
             CancellationToken cancellation = default
         ) {
@@ -85,7 +89,7 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Playing
 
         private static IUniTaskAsyncEnumerable<ShowingJob> ShowTextPiecesAsync
         (
-            [NotNull] TMP_TextInfo textInfo,
+            TMP_TextInfo textInfo,
             TMP_Text field,
             CancellationToken cancellation = default
         ) {

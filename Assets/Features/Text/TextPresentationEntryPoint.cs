@@ -1,23 +1,22 @@
 ﻿using System.Threading;
 using Cysharp.Threading.Tasks;
-using MessagePipe;
 using VContainer.Unity;
 
 namespace MagicSwords.Features.Text
 {
-    using Generic.Functional;
     using Logger;
+    using AnimatedRichText.Playing;
 
     internal sealed class TextPresentationEntryPoint : IAsyncStartable
     {
         private readonly PlayerLoopTiming _initiatingPoint;
-        private readonly IBufferedAsyncSubscriber<IPresentJob> _textTargets;
+        private readonly Player _player;
         private readonly ILogger _logger;
 
-        public TextPresentationEntryPoint(PlayerLoopTiming initiatingPoint, IBufferedAsyncSubscriber<IPresentJob> textTargets, ILogger logger)
+        public TextPresentationEntryPoint(PlayerLoopTiming initiatingPoint, Player player, ILogger logger)
         {
             _initiatingPoint = initiatingPoint;
-            _textTargets = textTargets;
+            _player = player;
             _logger = logger;
         }
 
@@ -25,34 +24,12 @@ namespace MagicSwords.Features.Text
         {
             await UniTask.Yield(_initiatingPoint, cancellation);
 
-            PresentationRoutineAsync(_textTargets, cancellation)
-                .Forget();
-        }
-
-        private async UniTaskVoid PresentationRoutineAsync(IBufferedAsyncSubscriber<IPresentJob> textTargets, CancellationToken cancellation = default)
-        {
-            var result = AsyncResult.Success;
-            var presentationDone = false;
-
-            using var _ = await textTargets.SubscribeAsync(async (job, token) =>
-            {
-                result = result.Combine(await job.PresentAsync(token));
-                presentationDone = true;
-
-            }, cancellation);
-
-            await UniTask.WaitUntil(() => presentationDone, _initiatingPoint, cancellation);
-
-            await result.MatchAsync
+            var result = await _player.PlayAsync(cancellation);
+            result.Match
             (
-                success: static _ => UniTask.CompletedTask,
-                cancellation: static _ => UniTask.CompletedTask,
-                failure: (exception, _) =>
-                {
-                    _logger.LogException(exception);
-
-                    return UniTask.CompletedTask;
-                },
+                success: _ => _logger.LogInformation("Мы закончили с выводом текста!"),
+                cancellation: _ => _logger.LogInformation("Мы отменили вывод текста!"),
+                error: (exception, _) => _logger.LogException(exception),
                 cancellation
             );
         }

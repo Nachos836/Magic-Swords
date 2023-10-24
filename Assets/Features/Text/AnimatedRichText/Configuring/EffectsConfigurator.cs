@@ -2,20 +2,21 @@
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
-using MagicSwords.Features.Text.AnimatedRichText.Animating;
-using MagicSwords.Features.Text.AnimatedRichText.Configuring.Registry;
-using MagicSwords.Features.Text.AnimatedRichText.Parsing;
 using UnityEngine;
 
 namespace MagicSwords.Features.Text.AnimatedRichText.Configuring
 {
+    using Animating;
+    using Registry;
+    using Parsing;
+
     [Serializable]
     internal sealed class EffectsConfigurator
     {
         private readonly IEnumerable<Token> _blocks;
         private readonly EffectConfigsRegistry _effectConfigsRegistry;
 
-        [SerializeField] private AnimationConfiguration[] _configurations;
+        [SerializeField] private AnimationConfiguration[]? _configurations;
 
         public EffectsConfigurator(IEnumerable<Token> blocks, EffectConfigsRegistry effectConfigsRegistry)
         {
@@ -31,12 +32,11 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Configuring
                 block.Text.ToString(),
                 block.Tags.Select(scope =>
                 {
-                    if (_effectConfigsRegistry.TryPickEffect(scope, out var effect) is false)
-                    {
-                        throw new Exception();
-                    }
-
-                    return effect;
+                    return _effectConfigsRegistry.PickEffect(scope).Match
+                    (
+                        some: static effect => effect,
+                        none: static () => throw new Exception()
+                    );
 
                 }).ToArray()
 

@@ -11,37 +11,56 @@ using UnityEngine;
 
 namespace MagicSwords.Features.Text.AnimatedRichText
 {
-    using Generic.Functional;
     using Animating;
     using Configuring;
     using Configuring.Registry;
     using Parsing;
-    using Playing;
 
     [CreateAssetMenu(menuName = "Novel Framework/Rich Text/Create Text")]
     [PreferBinarySerialization]
     public sealed class RichText : ScriptableObject, IText
     {
-        [field: Header("Configuration")]
-        [field: SerializeField]
-        [field: ResizableTextArea]
-        [field: OnValueChanged(nameof(ConfigAreNotRelevantAnymore))]
-        internal string Text { get; private set; }
+        [Header("Configuration")]
+        [SerializeField]
+        [ResizableTextArea]
+        [OnValueChanged(nameof(ConfigAreNotRelevantAnymore))]
+        private string _text = string.Empty;
 
         [SerializeField]
         [HideInInspector]
-        private IntermediateConfig[] _intermediateConfigs;
+        private IntermediateConfig[] _intermediateConfigs = Array.Empty<IntermediateConfig>();
 
         [SerializeField]
         [InspectorName("Config")]
         [HideIf(nameof(ConfigsAreNotExisted))]
-        private AnimationConfiguration[] _editableConfig;
+        private AnimationConfiguration[] _editableConfig = Array.Empty<AnimationConfiguration>();
 
-        AsyncLazy<AsyncResult> IText.PresentAsync(Player player, CancellationToken cancellation)
+        private AsyncLazy<Preset>? _lazyPreset;
+
+        private AsyncLazy<Preset> LazyPreset => _lazyPreset ??= GenerateResultedConfigAsync(_intermediateConfigs, Application.exitCancellationToken);
+
+        private void Awake()
         {
-            return GenerateResultedConfigAsync(_intermediateConfigs, player, cancellation)
-                .ContinueWith(preset => preset.PlayAsync(cancellation))
-                .ToAsyncLazy();
+            _lazyPreset = GenerateResultedConfigAsync(_intermediateConfigs, Application.exitCancellationToken);
+        }
+
+        private void OnEnable()
+        {
+            _lazyPreset ??= GenerateResultedConfigAsync(_intermediateConfigs, Application.exitCancellationToken);
+        }
+
+        AsyncLazy<Preset> IText.ProvidePresetAsync(CancellationToken cancellation)
+        {
+            if (cancellation.IsCancellationRequested)
+            {
+                LazyPreset.Task.AttachExternalCancellation(cancellation)
+                    .SuppressCancellationThrow();
+
+                return UniTask.Never<Preset>(cancellation)
+                    .ToAsyncLazy();
+            }
+
+            return LazyPreset;
         }
 
 #       if UNITY_EDITOR
@@ -49,7 +68,7 @@ namespace MagicSwords.Features.Text.AnimatedRichText
         [Button] [UsedImplicitly]
         private void Configure()
         {
-            _editableConfig = GenerateEditableConfig(Text);
+            _editableConfig = GenerateEditableConfig(_text);
 
             Save();
 
@@ -93,16 +112,15 @@ namespace MagicSwords.Features.Text.AnimatedRichText
             }).ToArray();
         }
 
-        private static UniTask<Preset> GenerateResultedConfigAsync
+        private static AsyncLazy<Preset> GenerateResultedConfigAsync
         (
             IEnumerable<IntermediateConfig> intermediateConfigs,
-            Player player,
             CancellationToken cancellation = default
         ) {
             return intermediateConfigs
                 .ToUniTaskAsyncEnumerable()
                 .TakeUntilCanceled(cancellation)
-                .Select(config => new Preset (
+                .Select(static config => new Preset (
                     config.PlainText,
                     Enumerable.Repeat
                     (
@@ -111,10 +129,10 @@ namespace MagicSwords.Features.Text.AnimatedRichText
                             .DefaultIfEmpty()
                             .Aggregate(static (first, second) => first + second),
                         config.PlainText.Length
-                    ).ToArray(),
-                    player
+                    ).ToArray()
                 ))
-                .AggregateAsync(static (first, second) => first.Append(second), cancellation);
+                .AggregateAsync(static (first, second) => first.Append(second), cancellation)
+                .ToAsyncLazy();
         }
 
 #       region UI Validation
@@ -140,35 +158,13 @@ namespace MagicSwords.Features.Text.AnimatedRichText
             [SerializeReference] public IEffect[] Effects;
         }
 
-        internal sealed class Preset
+        internal sealed record Preset(string PlainText, Tween[] Tweens)
         {
-            private readonly string _plainText;
-            private readonly Tween[] _tweens;
-            private readonly Player _player;
-
-            public Preset(string plainText, Tween[] tweens, Player player)
-            {
-                _plainText = plainText;
-                _tweens = tweens;
-                _player = player;
-            }
-
-            public Preset Append(Preset another)
-            {
-                return new Preset
-                (
-                    _plainText + another._plainText,
-                    _tweens.Append(another._tweens),
-                    _player
-                );
-            }
-
-            public async UniTask<AsyncResult> PlayAsync(CancellationToken cancellation = default)
-            {
-                await _player.PlayAsync(_plainText, _tweens, cancellation);
-
-                return AsyncResult.Success;
-            }
+            public Preset Append(Preset another) => new
+            (
+                PlainText + another.PlainText,
+                Tweens.Append(another.Tweens)
+            );
         }
     }
 

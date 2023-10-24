@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using JetBrains.Annotations;
 
 using static System.StringComparison;
 
@@ -19,14 +18,12 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Parsing
         private readonly Queue<ReadOnlyMemory<char>> _scope;
         private readonly ImmutableDictionary<string, string> _table;
 
-        public Parser(string input, [CanBeNull] IEnumerable<string> tags)
+        public Parser(string input, IEnumerable<string> tags)
         {
             _input = input.AsMemory();
             _tokens = new Stack<string>(_input.Length / 2);
             _scope = new Queue<ReadOnlyMemory<char>>(_input.Length / 2);
-            _table = ImmutableDictionary.CreateRange(tags is not null
-                ? tags.Select(static tag => new RawTag($"<{tag}>", $"</{tag}>"))
-                : Enumerable.Empty<RawTag>());
+            _table = ImmutableDictionary.CreateRange(tags.Select(static tag => new RawTag($"<{tag}>", $"</{tag}>")));
         }
 
         public IEnumerable<Token> Parse()

@@ -21,9 +21,6 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Animating.Wobble
             );
         }
 
-        object ICloneable.Clone()
-        {
-            return this with { };
-        }
+        object ICloneable.Clone() => this with { };
     }
 }

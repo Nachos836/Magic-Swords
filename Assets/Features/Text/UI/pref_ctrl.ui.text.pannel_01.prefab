@@ -147,7 +147,6 @@ GameObject:
   - component: {fileID: 4961060935649064521}
   - component: {fileID: 5518800202228124972}
   - component: {fileID: 4983341435345570803}
-  - component: {fileID: 5333030320415500075}
   m_Layer: 5
   m_Name: pref_ctrl.ui.text.pannel_01
   m_TagString: Untagged
@@ -257,16 +256,3 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &5333030320415500075
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2914310814760046094}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d53931a07ce44c5787a9ba2c9c7a3f5e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _field: {fileID: 3951213774960615169}
