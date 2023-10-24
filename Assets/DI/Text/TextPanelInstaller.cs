@@ -1,4 +1,4 @@
-﻿using MessagePipe;
+﻿using Cysharp.Threading.Tasks;
 using VContainer;
 using VContainer.Unity;
 
@@ -6,21 +6,27 @@ namespace MagicSwords.DI.Text
 {
     using Common;
     using Features.Text;
+    using Features.Text.AnimatedRichText.Playing;
 
     internal sealed class TextPanelInstaller : IInstaller
     {
-        private readonly MessagePipeOptions _messagePipeOptions;
+        private readonly IText _text;
+        private readonly PlayerLoopTiming _yieldPoint;
 
-        public TextPanelInstaller(MessagePipeOptions messagePipeOptions)
+        public TextPanelInstaller(IText text, PlayerLoopTiming yieldPoint)
         {
-            _messagePipeOptions = messagePipeOptions;
+            _text = text;
+            _yieldPoint = yieldPoint;
         }
 
         void IInstaller.Install(IContainerBuilder builder)
         {
             builder
-                .RegisterMessageBroker<IPresentJob>(_messagePipeOptions)
-                .AddUnityBasedTimeProvider();
+                .AddScopeEntry<TextPresentationEntryPoint>()
+                .AddUnityBasedTimeProvider()
+                .Register<Player>(Lifetime.Scoped)
+                    .WithParameter(_yieldPoint)
+                    .WithParameter(_text);
         }
     }
 }

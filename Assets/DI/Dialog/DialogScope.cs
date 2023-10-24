@@ -1,8 +1,8 @@
 ﻿using System;
+using System.Linq;
 using AnySerialize;
 using Cysharp.Threading.Tasks;
 using JetBrains.Annotations;
-using MessagePipe;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using VContainer;
@@ -14,12 +14,12 @@ namespace MagicSwords.DI.Dialog
     using Text;
     using Features.Dialog;
     using Features.Text.UI;
-    using Features.Text;
+    using Features.Text.AnimatedRichText;
 
     internal sealed class DialogScope : LifetimeScope
     {
         [SerializeField] private AssetReferenceGameObject _panelScope;
-        [SerializeField] private SequencedText _text;
+        [SerializeField] private RichText[] _replicas;
 
         [field: Header("Presentation Options:")]
 
@@ -34,13 +34,12 @@ namespace MagicSwords.DI.Dialog
                 .AddScopeEntry<DialogEntryPoint>()
                 .AddUIInput()
                 .AddReadingInput()
-                .Register(resolver => new TextUIPanel
+                .Register(_ => new TextUIPanel
                 (
                     _panelScope,
                     parent: this,
                     yieldPoint: PlayerLoopTiming.Initialization,
-                    resolver.Resolve<MessagePipeOptions>(),
-                    _text
+                    _replicas.First()
 
                 ), Lifetime.Scoped).As<ITextPanel>();
         }
