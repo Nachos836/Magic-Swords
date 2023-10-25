@@ -10,13 +10,13 @@ namespace MagicSwords.Features.Text
     internal sealed class TextPresentationEntryPoint : IAsyncStartable
     {
         private readonly PlayerLoopTiming _initiatingPoint;
-        private readonly Player _player;
+        private readonly ITextPlayer _textPlayer;
         private readonly ILogger _logger;
 
-        public TextPresentationEntryPoint(PlayerLoopTiming initiatingPoint, Player player, ILogger logger)
+        public TextPresentationEntryPoint(PlayerLoopTiming initiatingPoint, ITextPlayer textPlayer, ILogger logger)
         {
             _initiatingPoint = initiatingPoint;
-            _player = player;
+            _textPlayer = textPlayer;
             _logger = logger;
         }
 
@@ -24,7 +24,7 @@ namespace MagicSwords.Features.Text
         {
             await UniTask.Yield(_initiatingPoint, cancellation);
 
-            var result = await _player.PlayAsync(cancellation);
+            var result = await _textPlayer.PlayAsync(cancellation);
             result.Match
             (
                 success: _ => _logger.LogInformation("Мы закончили с выводом текста!"),

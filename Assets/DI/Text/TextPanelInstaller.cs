@@ -24,9 +24,10 @@ namespace MagicSwords.DI.Text
             builder
                 .AddScopeEntry<TextPresentationEntryPoint>()
                 .AddUnityBasedTimeProvider()
-                .Register<Player>(Lifetime.Scoped)
+                .Register<PlayerForSingleText>(Lifetime.Scoped)
                     .WithParameter(_yieldPoint)
-                    .WithParameter(_text);
+                    .WithParameter(_text)
+                    .As<ITextPlayer>();
         }
     }
 }

@@ -11,14 +11,14 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Playing
     using TimeProvider;
     using Generic.Functional;
 
-    internal sealed class Player
+    internal sealed class PlayerForSingleText : ITextPlayer
     {
         private readonly TMP_Text _field;
         private readonly IText _text;
         private readonly ICurrentTimeProvider _currentTime;
         private readonly PlayerLoopTiming _yieldPoint;
 
-        public Player
+        public PlayerForSingleText
         (
             TMP_Text field,
             IText text,
@@ -31,15 +31,14 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Playing
             _yieldPoint = yieldPoint;
         }
 
-        public async UniTask<AsyncResult> PlayAsync(CancellationToken cancellation = default)
+        async UniTask<AsyncResult> ITextPlayer.PlayAsync(CancellationToken cancellation)
         {
             long renderFlag = default;
 
-            var preset = await _text.ProvidePresetAsync(cancellation);
+            var (plainText, tweens) = await _text.ProvidePresetAsync(cancellation);
 
             _field.renderMode = TextRenderFlags.DontRender;
-            _field.text = preset.PlainText;
-            var tweens = preset.Tweens;
+            _field.text = plainText;
 
             await foreach (var _ in EveryUpdate(_yieldPoint).TakeUntilCanceled(cancellation))
             {
