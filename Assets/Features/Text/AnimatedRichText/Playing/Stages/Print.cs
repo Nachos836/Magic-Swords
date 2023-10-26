@@ -6,10 +6,10 @@ using TMPro;
 using static System.Threading.CancellationTokenSource;
 using static Cysharp.Threading.Tasks.Linq.UniTaskAsyncEnumerable;
 
-namespace MagicSwords.Features.Text.Players.SequencePlayer.Stages
+namespace MagicSwords.Features.Text.AnimatedRichText.Playing.Stages
 {
-    using Generic.Sequencer;
     using Generic.Functional;
+    using Generic.Sequencer;
     using Input;
     using Payload;
 
@@ -20,7 +20,7 @@ namespace MagicSwords.Features.Text.Players.SequencePlayer.Stages
         private readonly Func<Message, IStage> _resolveNext;
         private readonly Func<Message, IStage> _resolveSkip;
         private readonly Message _message;
-        private readonly TextMeshProUGUI _field;
+        private readonly TMP_Text _field;
         private readonly TimeSpan _delay;
 
         public Print
@@ -30,7 +30,7 @@ namespace MagicSwords.Features.Text.Players.SequencePlayer.Stages
             Func<Message, IStage> resolveNext,
             Func<Message, IStage> resolveSkip,
             Message message,
-            TextMeshProUGUI field,
+            TMP_Text field,
             TimeSpan delay
         ) {
             _readingSkipInput = readingSkipInput;
@@ -52,7 +52,7 @@ namespace MagicSwords.Features.Text.Players.SequencePlayer.Stages
 
             await foreach (var _ in EveryUpdate(_yieldTarget).TakeUntilCanceled(cancellation))
             {
-                var message = _message.Part;
+                var message = (await _message.Part.ProvidePresetAsync(cancellation)).PlainText;
 
                 for (var i = 0; i < message.Length; i++)
                 {

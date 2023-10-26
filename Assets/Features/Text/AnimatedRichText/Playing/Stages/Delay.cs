@@ -1,54 +1,41 @@
 ﻿using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using TMPro;
 
-namespace MagicSwords.Features.Text.Players.SequencePlayer.Stages
+namespace MagicSwords.Features.Text.AnimatedRichText.Playing.Stages
 {
-    using Generic.Sequencer;
     using Generic.Functional;
-    using Input;
+    using Generic.Sequencer;
     using Payload;
 
-    internal sealed class Skip : IStage, IStage.IProcess
+    internal sealed class Delay : IStage, IStage.IProcess
     {
-        private readonly IInputFor<ReadingSkip> _readingSkipInput;
         private readonly PlayerLoopTiming _yieldTarget;
         private readonly Func<Message, IStage> _resolveNext;
         private readonly Message _message;
-        private readonly TextMeshProUGUI _text;
+        private readonly TimeSpan _amount;
 
-        public Skip
+        public Delay
         (
-            IInputFor<ReadingSkip> readingSkipInput,
             PlayerLoopTiming yieldTarget,
             Func<Message, IStage> resolveNext,
             Message message,
-            TextMeshProUGUI text
+            TimeSpan amount
         ) {
-            _readingSkipInput = readingSkipInput;
             _yieldTarget = yieldTarget;
             _resolveNext = resolveNext;
             _message = message;
-            _text = text;
+            _amount = amount;
         }
 
         async UniTask<AsyncResult<IStage>> IStage.IProcess.ProcessAsync(CancellationToken cancellation)
         {
             if (cancellation.IsCancellationRequested) return AsyncResult<IStage>.Cancel;
 
-            _text.text = _message.Part;
-            var skipPerformed = false;
-
-            using var _ = _readingSkipInput.Subscribe(started: PerformSkip);
-
-            if (await UniTask.WaitUntil(WasSkipped, _yieldTarget, cancellation)
+            if (await UniTask.Delay(_amount, ignoreTimeScale: false, _yieldTarget, cancellation)
                 .SuppressCancellationThrow()) return AsyncResult<IStage>.Cancel;
 
             return AsyncResult<IStage>.FromResult(_resolveNext.Invoke(_message));
-
-            void PerformSkip(StartedContext _) => skipPerformed = true;
-            bool WasSkipped() => skipPerformed;
         }
     }
 }

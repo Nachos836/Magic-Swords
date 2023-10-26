@@ -56,7 +56,7 @@ namespace MagicSwords.DI.Dialog
                     _panelScope,
                     parent: this,
                     yieldPoint: PlayerLoopTiming.Initialization,
-                    _replicas.First()
+                    _preparedReplicas
 
                 ), Lifetime.Scoped).As<ITextPanel>();
         }

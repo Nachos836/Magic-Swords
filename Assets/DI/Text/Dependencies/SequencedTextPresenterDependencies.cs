@@ -3,24 +3,21 @@ using Cysharp.Threading.Tasks;
 using TMPro;
 using VContainer;
 
-namespace MagicSwords.DI.Dialog.Dependencies
+namespace MagicSwords.DI.Text.Dependencies
 {
+    using Features.Text;
     using Features.Input;
-    // using Features.Dialog.Stages;
-    // using Features.Dialog.Stages.Payload;
     using Features.Generic.Sequencer;
+    using Features.Text.AnimatedRichText.Playing.Stages;
+    using Features.Text.AnimatedRichText.Playing.Stages.Payload;
 
-    internal static class AnimatedTextPresenterDependencies
+    internal static class SequencedTextPresenterDependencies
     {
-        public static IContainerBuilder AddAnimatedTextPresenter
+        public static IContainerBuilder AddSequencedTextPresenter
         (
             this IContainerBuilder builder,
-            TextMeshProUGUI field,
-            TimeSpan symbolsDelay,
-            TimeSpan messagesDelay,
-            string[] monologue
+            IText[] monologue
         ) {
-            /*
             builder.Register(resolver =>
             {
                 var scope = resolver.CreateScope(container =>
@@ -32,6 +29,10 @@ namespace MagicSwords.DI.Dialog.Dependencies
                     Func<Message, Fetch> fetching = default;
                     Func<Message, Skip> skipping = default;
                     Func<Message, Delay> delaying = default;
+
+                    TMP_Text field = default;
+                    ISymbolsDelay symbolsDelay = default;
+                    IMessagesDelay messagesDelay = default;
 
                     container.Register(dependency =>
                     {
@@ -46,6 +47,8 @@ namespace MagicSwords.DI.Dialog.Dependencies
                         fetching ??= dependency.Resolve<Func<Message, Fetch>>();
                         skipping ??= dependency.Resolve<Func<Message, Skip>>();
                         readingSkipInput ??= dependency.Resolve<IInputFor<ReadingSkip>>();
+                        field ??= dependency.Resolve<TMP_Text>();
+                        symbolsDelay ??= dependency.Resolve<ISymbolsDelay>();
 
                         return printing ??= message => new Print
                         (
@@ -55,7 +58,7 @@ namespace MagicSwords.DI.Dialog.Dependencies
                             resolveSkip: skipping,
                             message,
                             field,
-                            symbolsDelay
+                            symbolsDelay.Value
                         );
 
                     }, Lifetime.Scoped);
@@ -63,6 +66,7 @@ namespace MagicSwords.DI.Dialog.Dependencies
                     container.Register(dependency =>
                     {
                         readingSkipInput ??= dependency.Resolve<IInputFor<ReadingSkip>>();
+                        field ??= dependency.Resolve<TMP_Text>();
 
                         return skipping ??= message => new Skip(readingSkipInput, yieldPoint, InstantPrint, message, field);
 
@@ -78,9 +82,11 @@ namespace MagicSwords.DI.Dialog.Dependencies
 
                     }, Lifetime.Scoped);
 
-                    container.Register(_ =>
+                    container.Register(dependency =>
                     {
-                        return delaying ??= message => new Delay(yieldPoint, printing, message, messagesDelay);
+                        messagesDelay ??= dependency.Resolve<IMessagesDelay>();
+
+                        return delaying ??= message => new Delay(yieldPoint, printing, message, messagesDelay.Value);
 
                     }, Lifetime.Scoped);
                 });
@@ -88,7 +94,6 @@ namespace MagicSwords.DI.Dialog.Dependencies
                 using (scope) return new Sequencer(firstState: scope.Resolve<Initial>());
 
             }, Lifetime.Scoped);
-            */
 
             return builder;
         }

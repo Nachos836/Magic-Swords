@@ -2,10 +2,10 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
 
-namespace MagicSwords.Features.Text.Players.SequencePlayer.Stages
+namespace MagicSwords.Features.Text.AnimatedRichText.Playing.Stages
 {
-    using Generic.Sequencer;
     using Generic.Functional;
+    using Generic.Sequencer;
     using Payload;
 
     internal sealed class Fetch : IStage, IStage.IProcess
@@ -27,12 +27,12 @@ namespace MagicSwords.Features.Text.Players.SequencePlayer.Stages
             (
                 _fetcher.Next.Attach(_resolveNext).Run
                 (
-                    whenSome: static (message, resolver, token) => token.IsCancellationRequested
-                        ? AsyncResult<IStage>.Cancel
-                        : AsyncResult<IStage>.FromResult(resolver.Invoke(message)),
-                    whenNone: static token => token.IsCancellationRequested
-                        ? AsyncResult<IStage>.Cancel
-                        : AsyncResult<IStage>.FromResult(Stage.End),
+                    whenSome: static (message, resolver, token) => token.IsCancellationRequested is false
+                        ? AsyncResult<IStage>.FromResult(resolver.Invoke(message))
+                        : AsyncResult<IStage>.Cancel,
+                    whenNone: static token => token.IsCancellationRequested is false
+                        ? AsyncResult<IStage>.FromResult(Stage.End)
+                        : AsyncResult<IStage>.Cancel,
                     cancellation
                 )
             );

@@ -15,19 +15,19 @@ namespace MagicSwords.DI.Text
         private readonly AssetReferenceGameObject _panelScopeAsset;
         private readonly LifetimeScope _parent;
         private readonly PlayerLoopTiming _yieldPoint;
-        private readonly IText _text;
+        private readonly IText[] _message;
 
         public TextUIPanel
         (
             AssetReferenceGameObject panelScopeAsset,
             LifetimeScope parent,
             PlayerLoopTiming yieldPoint,
-            IText text
+            IText[] message
         ) {
             _panelScopeAsset = panelScopeAsset;
             _parent = parent;
             _yieldPoint = yieldPoint;
-            _text = text;
+            _message = message;
         }
 
         UniTask<AsyncResult<IDisposable>> ITextPanel.LoadAsync(CancellationToken cancellation)
@@ -48,17 +48,17 @@ namespace MagicSwords.DI.Text
                         scopeGameObject.GetComponent<TextPanelScope>()
                     );
                 }, cancellation: cancellation)
-                .AttachAsync(_text, cancellation: cancellation)
+                .AttachAsync(_message, cancellation: cancellation)
                 .RunAsync(static (scope, text, token) =>
                 {
                     if (token.IsCancellationRequested)
                     {
-                        return UniTask.FromResult(AsyncResult<TextPanelInstaller, TextPanelScope>.Cancel);
+                        return UniTask.FromResult(AsyncResult<SequencedTextMessageInstaller, TextPanelScope>.Cancel);
                     }
 
                     return UniTask.FromResult
                     (
-                        AsyncResult<TextPanelInstaller>.FromResult(new TextPanelInstaller(text, PlayerLoopTiming.Update))
+                        AsyncResult<SequencedTextMessageInstaller>.FromResult(new SequencedTextMessageInstaller(text))
                             .Attach(scope)
                     );
                 }, cancellation)

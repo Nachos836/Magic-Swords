@@ -54,6 +54,7 @@ MonoBehaviour:
     m_SubObjectType: 
     m_EditorAssetChanged: 0
   _replicas:
+  - {fileID: 11400000, guid: 9325f7d2d435a234aaf7fbc27c05e30e, type: 2}
   - {fileID: 11400000, guid: 125c93a673a22bd4a91673a323bfa02c, type: 2}
   <SymbolsDelay>k__BackingField:
     _displayUnit: 0

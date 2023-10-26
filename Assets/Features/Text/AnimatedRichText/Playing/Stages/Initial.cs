@@ -2,18 +2,18 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
 
-namespace MagicSwords.Features.Text.Players.SequencePlayer.Stages
+namespace MagicSwords.Features.Text.AnimatedRichText.Playing.Stages
 {
-    using Generic.Sequencer;
     using Generic.Functional;
+    using Generic.Sequencer;
     using Payload;
 
     internal sealed class Initial : IStage, IStage.IProcess
     {
         private readonly Func<Message, IStage> _resolveNext;
-        private readonly string[] _monologue;
+        private readonly IText[] _monologue;
 
-        public Initial(Func<Message, IStage> resolveNext, string[] monologue)
+        public Initial(Func<Message, IStage> resolveNext, IText[] monologue)
         {
             _resolveNext = resolveNext;
             _monologue = monologue;
