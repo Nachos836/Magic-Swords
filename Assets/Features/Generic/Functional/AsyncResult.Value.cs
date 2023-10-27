@@ -643,6 +643,21 @@ namespace MagicSwords.Features.Generic.Functional
 
         [BurstCompile]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static async UniTask<AsyncResult<TResulted1, TResulted2>> RunAsync<TFirst, TSecond, TThird, TResulted1, TResulted2>
+        (
+            this UniTask<AsyncResult<TFirst, TSecond, TThird>> candidate,
+            Func<TFirst, TSecond, TThird, CancellationToken, UniTask<AsyncResult<TResulted1, TResulted2>>> run,
+            CancellationToken cancellation = default
+        ) {
+            var result = cancellation.IsCancellationRequested is false
+                ? await candidate
+                : AsyncResult<TFirst, TSecond, TThird>.Cancel;
+
+            return await result.RunAsync(run, cancellation);
+        }
+
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static async UniTask<AsyncResult<TResulted1, TResulted2>> RunAsync<TFirst, TSecond, TResulted1, TResulted2>
         (
             this UniTask<AsyncResult<TFirst, TSecond>> candidate,
