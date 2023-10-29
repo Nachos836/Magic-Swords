@@ -11,6 +11,14 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Animating.Wobble
 
         Tween IEffect.Tween => WobbleTween;
 
+        internal IEffect Configure(float strength, float amplitude)
+        {
+            _strength = strength;
+            _amplitude = amplitude;
+
+            return this;
+        }
+
         private Vector3 WobbleTween(Vector3 origin, float t)
         {
             return new Vector3

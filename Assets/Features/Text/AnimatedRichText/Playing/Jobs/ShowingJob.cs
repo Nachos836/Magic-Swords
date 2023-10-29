@@ -7,22 +7,24 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Playing.Jobs
     internal readonly struct ShowingJob
     {
         private readonly TMP_Text _field;
-        private readonly int _current;
+        private readonly int _meshIndex;
 
-        public ShowingJob(TMP_Text field, int current)
+        public ShowingJob(TMP_Text field, int meshIndex)
         {
             _field = field;
-            _current = current;
+            _meshIndex = meshIndex;
         }
 
         public UniTask ExecuteAsync(CancellationToken cancellation = default)
         {
             if (cancellation.IsCancellationRequested) return UniTask.CompletedTask;
 
-            var meshInfo = _field.textInfo.meshInfo[_current];
-            meshInfo.mesh.vertices = _field.textInfo.meshInfo[_current].vertices;
+            var meshInfo = _field.textInfo.meshInfo[_meshIndex];
+            meshInfo.mesh.vertices = meshInfo.vertices;
 
-            _field.UpdateGeometry(meshInfo.mesh, _current);
+            if (cancellation.IsCancellationRequested) return UniTask.CompletedTask;
+
+            _field.UpdateGeometry(meshInfo.mesh, _meshIndex);
 
             return UniTask.CompletedTask;
         }

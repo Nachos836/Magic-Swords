@@ -13,14 +13,14 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Playing.Jobs
         private readonly TMP_CharacterInfo _characterInfo;
         private readonly Vector3[] _vertices;
         private readonly Tween _tween;
-        private readonly ICurrentTimeProvider _currentTime;
+        private readonly IFixedCurrentTimeProvider _currentTime;
 
         public PreparationJob
         (
             TMP_CharacterInfo characterInfo,
             Vector3[] vertices,
             Tween tween,
-            ICurrentTimeProvider currentTime
+            IFixedCurrentTimeProvider currentTime
         ) {
             _characterInfo = characterInfo;
             _vertices = vertices;
@@ -28,10 +28,10 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Playing.Jobs
             _currentTime = currentTime;
         }
 
-        public UniTask<Vector3[]> ExecuteAsync(CancellationToken cancellation)
+        public UniTask ExecuteAsync(CancellationToken cancellation)
         {
-            if (cancellation.IsCancellationRequested) return UniTask.FromResult(_vertices);
-            if (_characterInfo.isVisible is false) return UniTask.FromResult(_vertices);
+            if (cancellation.IsCancellationRequested) return UniTask.CompletedTask;
+            if (_characterInfo.isVisible is false) return UniTask.CompletedTask;
 
             for (var vertex = 0; vertex < 4; ++vertex)
             {
@@ -40,7 +40,7 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Playing.Jobs
                 _vertices[current] += _tween.Invoke(origin, _currentTime.Value);
             }
 
-            return UniTask.FromResult(_vertices);
+            return UniTask.CompletedTask;
         }
     }
 }
