@@ -1,5 +1,6 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using JetBrains.Annotations;
 using UnityEngine;
 
 using static Cysharp.Threading.Tasks.DelayType;
@@ -17,6 +18,7 @@ namespace MagicSwords.Features.MainMenu.Shaders
         [SerializeField] private Material _material;
         [SerializeField] private RectTransform _startPosition;
 
+        [UsedImplicitly] // ReSharper disable once Unity.IncorrectMethodSignature
         private async UniTaskVoid Start()
         {
             var position = (_startPosition.anchorMax + _startPosition.anchorMin) / 2;
@@ -24,6 +26,8 @@ namespace MagicSwords.Features.MainMenu.Shaders
             _material.SetVector(RingSpawnPosition, position);
 
             await EffectLoop(destroyCancellationToken);
+
+            return;
 
             async UniTask EffectLoop(CancellationToken cancellation = default)
             {

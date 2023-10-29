@@ -14,7 +14,7 @@ namespace MagicSwords.Features.Dialog
         private readonly PlayerLoopTiming _initializationPoint;
         private readonly ITextPanel _panel;
 
-        private IDisposable _unLoader;
+        private IDisposable _unLoader = NothingToUnload.Instance;
 
         public DialogEntryPoint
         (
@@ -37,7 +37,12 @@ namespace MagicSwords.Features.Dialog
             var outcome = await _panel.LoadAsync(cancellation);
             _unLoader = await outcome.MatchAsync
             (
-                success: static (unLoader, _) => UniTask.FromResult(unLoader),
+                success: static (unLoader, token) =>
+                {
+                    if (token.IsCancellationRequested) return UniTask.FromResult(NothingToUnload.Instance);
+
+                    return UniTask.FromResult(unLoader);
+                },
                 cancellation: _ =>
                 {
                     _logger.LogWarning("Выполнение было отменено!");

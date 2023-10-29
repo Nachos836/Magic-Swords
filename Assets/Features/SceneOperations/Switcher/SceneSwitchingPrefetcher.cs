@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading;
+﻿using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.ResourceProviders;
@@ -10,19 +9,19 @@ namespace MagicSwords.Features.SceneOperations.Switcher
     internal readonly ref struct SceneSwitchingPrefetcher
     {
         private readonly AssetReference _target;
-        private readonly PlayerLoopTiming _yieldTarget;
+        private readonly PlayerLoopTiming _yieldPoint;
         private readonly int _priority;
         private readonly bool _instantLoad;
 
         public SceneSwitchingPrefetcher
         (
             AssetReference target,
-            PlayerLoopTiming yieldTarget,
+            PlayerLoopTiming yieldPoint,
             int priority,
             bool instantLoad = false
         ) {
             _target = target;
-            _yieldTarget = yieldTarget;
+            _yieldPoint = yieldPoint;
             _priority = priority;
             _instantLoad = instantLoad;
         }
@@ -31,37 +30,40 @@ namespace MagicSwords.Features.SceneOperations.Switcher
         {
             var target = _target;
             var priority = _priority;
-            var yieldTarget = _yieldTarget;
+            var yieldPoint = _yieldPoint;
 
             var prefetching = _instantLoad is false
-                ? LoadWithWorkaroundDelayAsync(yieldTarget, target, priority, cancellation)
+                ? LoadWithWorkaroundDelayAsync(target, yieldPoint, priority, cancellation)
                     .ToAsyncLazy()
-                : LoadAsync(yieldTarget, target, priority, cancellation)
+                : LoadAsync(target, yieldPoint, priority, cancellation)
                     .ToAsyncLazy();
 
-            return new Handler(prefetching, _yieldTarget);
+            return new Handler(prefetching, _yieldPoint);
 
-            static async UniTask<SceneInstance> LoadAsync(PlayerLoopTiming yieldTarget, AssetReference target, int priority, CancellationToken token = default)
-            {
+            static async UniTask<SceneInstance> LoadAsync
+            (
+                AssetReference target,
+                PlayerLoopTiming yieldPoint,
+                int priority,
+                CancellationToken token = default
+            ) {
                 return await target
                     .LoadSceneAsync(loadMode: LoadSceneMode.Single, activateOnLoad: true, priority)
-                    .ToUniTask(progress: null, timing: yieldTarget, cancellationToken: token);
+                    .ToUniTask(progress: null, timing: yieldPoint, cancellationToken: token);
             }
 
-            /*
-             * This workaround could be removed if versions of packages will be
-             * "com.unity.addressables": "1.8.5"
-             * "com.unity.scriptablebuildpipeline": "1.7.3"
-             * Thus compatibility and builds reliability are not guaranteed
-             */
-            [Obsolete("Workaround for https://issuetracker.unity3d.com/issues/loadsceneasync-allowsceneactivation-flag-is-ignored-in-awake")]
-            static async UniTask<SceneInstance> LoadWithWorkaroundDelayAsync(PlayerLoopTiming yieldTarget, AssetReference target, int priority, CancellationToken token = default)
-            {
-                await UniTask.Yield(yieldTarget, token);
+            static async UniTask<SceneInstance> LoadWithWorkaroundDelayAsync
+            (
+                AssetReference target,
+                PlayerLoopTiming yieldPoint,
+                int priority,
+                CancellationToken token = default
+            ) {
+                await UniTask.Yield(yieldPoint, token);
 
                 return await target
                     .LoadSceneAsync(loadMode: LoadSceneMode.Single, activateOnLoad: false, priority)
-                    .ToUniTask(progress: null, timing: yieldTarget, cancellationToken: token);
+                    .ToUniTask(progress: null, timing: yieldPoint, cancellationToken: token);
             }
         }
 

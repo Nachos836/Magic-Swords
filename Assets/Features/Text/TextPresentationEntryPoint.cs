@@ -25,11 +25,33 @@ namespace MagicSwords.Features.Text
             await UniTask.Yield(_initiatingPoint, cancellation);
 
             var result = await _textPlayer.PlayAsync(cancellation);
-            result.Match
+            await result.MatchAsync
             (
-                success: _ => _logger.LogInformation("Мы закончили с выводом текста!"),
-                cancellation: _ => _logger.LogInformation("Мы отменили вывод текста!"),
-                error: (exception, _) => _logger.LogException(exception),
+                success: async (animationDisposingHandler, token) =>
+                {
+                    await animationDisposingHandler.DisposeAsync(token);
+
+                    if (token.IsCancellationRequested is false)
+                    {
+                        _logger.LogInformation("Мы закончили с выводом текста!");
+                    }
+                    else
+                    {
+                        _logger.LogInformation("Мы отменили завершение текста!");
+                    }
+                },
+                cancellation: _ =>
+                {
+                    _logger.LogInformation("Мы отменили вывод текста!");
+
+                    return UniTask.CompletedTask;
+                },
+                error: (exception, _) =>
+                {
+                    _logger.LogException(exception);
+
+                    return UniTask.CompletedTask;
+                },
                 cancellation
             );
         }

@@ -59,7 +59,7 @@ namespace MagicSwords.DI.Common
             var prefetcher = new SceneLoadingPrefetcher
             (
                 target,
-                yieldTarget: Initialization,
+                yieldPoint: Initialization,
                 priority: 100,
                 instantLoad: loadInstantly
             );
@@ -74,7 +74,7 @@ namespace MagicSwords.DI.Common
             var prefetcher = new SceneLoadingPrefetcher
             (
                 target,
-                yieldTarget: Initialization,
+                yieldPoint: Initialization,
                 priority: 100,
                 instantLoad: loadInstantly
             );
@@ -93,7 +93,7 @@ namespace MagicSwords.DI.Common
             var prefetcher = new SceneLoadingPrefetcher
             (
                 target,
-                yieldTarget: Initialization,
+                yieldPoint: Initialization,
                 priority: 100,
                 instantLoad: loadInstantly
             );

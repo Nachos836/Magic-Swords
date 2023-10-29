@@ -10,19 +10,19 @@ namespace MagicSwords.Features.SceneOperations.Loader
     internal readonly ref struct SceneLoadingPrefetcher
     {
         private readonly AssetReference _target;
-        private readonly PlayerLoopTiming _yieldTarget;
+        private readonly PlayerLoopTiming _yieldPoint;
         private readonly int _priority;
         private readonly bool _instantLoad;
 
         public SceneLoadingPrefetcher
         (
             AssetReference target,
-            PlayerLoopTiming yieldTarget,
+            PlayerLoopTiming yieldPoint,
             int priority,
             bool instantLoad = false
         ) {
             _target = target;
-            _yieldTarget = yieldTarget;
+            _yieldPoint = yieldPoint;
             _priority = priority;
             _instantLoad = instantLoad;
         }
@@ -34,69 +34,71 @@ namespace MagicSwords.Features.SceneOperations.Loader
         ) {
             var target = _target;
             var priority = _priority;
-            var yieldTarget = _yieldTarget;
+            var yieldTarget = _yieldPoint;
 
             var dependenciesHandler = pathExtraDependencies.Invoke();
 
             var prefetching = (_instantLoad is false
-                ? LoadWithWorkaroundDelayAsync(yieldTarget, target, priority, cancellation)
-                : LoadAsync(yieldTarget, target, priority, cancellation))
+                ? LoadWithWorkaroundDelayAsync(target, yieldTarget, priority, cancellation)
+                : LoadAsync(target, yieldTarget, priority, cancellation))
                     .ContinueWith(instance =>
                     {
                         using (dependenciesHandler) return UniTask.FromResult(instance);
                     })
                     .ToAsyncLazy();
 
-            return new Handler(prefetching, _yieldTarget);
+            return new Handler(prefetching, _yieldPoint);
         }
 
         public Handler PrefetchAsync(CancellationToken cancellation = default)
         {
             var target = _target;
             var priority = _priority;
-            var yieldTarget = _yieldTarget;
+            var yieldPoint = _yieldPoint;
 
             var prefetching = _instantLoad is false
-                ? LoadWithWorkaroundDelayAsync(yieldTarget, target, priority, cancellation)
+                ? LoadWithWorkaroundDelayAsync(target, yieldPoint, priority, cancellation)
                     .ToAsyncLazy()
-                : LoadAsync(yieldTarget, target, priority, cancellation)
+                : LoadAsync(target, yieldPoint, priority, cancellation)
                     .ToAsyncLazy();
 
-            return new Handler(prefetching, _yieldTarget);
+            return new Handler(prefetching, _yieldPoint);
         }
 
         private static async UniTask<SceneInstance> LoadAsync
         (
-            PlayerLoopTiming yieldTarget,
             AssetReference target,
+            PlayerLoopTiming yieldPoint,
             int priority,
             CancellationToken token = default
         ) {
             return await target
                 .LoadSceneAsync(loadMode: LoadSceneMode.Additive, activateOnLoad: true, priority)
-                .ToUniTask(progress: null, timing: yieldTarget, cancellationToken: token);
+                .ToUniTask(progress: null, timing: yieldPoint, cancellationToken: token);
         }
 
-        /*
-         * This workaround could be removed if versions of packages will be
-         * "com.unity.addressables": "1.8.5"
-         * "com.unity.scriptablebuildpipeline": "1.7.3"
-         * Thus compatibility and builds reliability are not guaranteed
-         */
-        [Obsolete("Workaround for https://issuetracker.unity3d.com/issues/loadsceneasync-allowsceneactivation-flag-is-ignored-in-awake")]
+        /// <summary>
+        /// Workaround for https://issuetracker.unity3d.com/issues/loadsceneasync-allowsceneactivation-flag-is-ignored-in-awake
+        /// This workaround could be removed if versions of packages will be
+        /// <code>
+        /// "com.unity.addressables": "1.8.5"
+        /// "com.unity.scriptablebuildpipeline": "1.7.3"
+        /// </code>
+        /// Thus compatibility and builds reliability are not guaranteed
+        /// </summary>
         private static async UniTask<SceneInstance> LoadWithWorkaroundDelayAsync
         (
-            PlayerLoopTiming yieldTarget,
             AssetReference target,
+            PlayerLoopTiming yieldPoint,
             int priority,
             CancellationToken token = default
         ) {
-            await UniTask.Yield(yieldTarget, token)
+            await UniTask.Yield(yieldPoint, token)
                 .SuppressCancellationThrow();
 
             return await target
                 .LoadSceneAsync(loadMode: LoadSceneMode.Additive, activateOnLoad: false, priority)
-                .ToUniTask(progress: null, timing: yieldTarget, cancellationToken: token);
+                .ToUniTask(progress: null, timing: yieldPoint, cancellationToken: token);
         }
 
         internal readonly ref struct Handler
