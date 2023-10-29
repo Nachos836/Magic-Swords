@@ -106,6 +106,29 @@ namespace MagicSwords.Features.Generic.Functional
 
         [BurstCompile]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public UniTask MatchAsync
+        (
+            Func<TValue, CancellationToken, UniTask> success,
+            Func<CancellationToken, UniTask> cancellation,
+            Func<Exception, CancellationToken, UniTask> error,
+            CancellationToken token = default
+        ) {
+            if (IsSuccessful)
+            {
+                return success.Invoke(_income.Value, token);
+            }
+            else if (IsCancellation)
+            {
+                return cancellation.Invoke(token);
+            }
+            else
+            {
+                return error.Invoke(_exception.Value, token);
+            }
+        }
+
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UniTask<TMatch> MatchAsync<TMatch>
         (
             Func<TValue, CancellationToken, UniTask<TMatch>> success,
