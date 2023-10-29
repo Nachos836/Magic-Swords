@@ -17,11 +17,6 @@ MonoBehaviour:
     m_SerializedData: []
   m_GUID: 70046855616921847ac8231a61f69307
   m_SerializeEntries:
-  - m_GUID: 51306e0bd518abc4895d0c73ad6ad4fb
-    m_Address: Assets/Features/Text/UI/pref_ctrl.ui.text.pannel_01.prefab
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 3cd6fa004309adc4f98136428de162cb
     m_Address: Assets/DI/Text/pref_ctrl.scope.Text.Replica_01.prefab
     m_ReadOnly: 0
