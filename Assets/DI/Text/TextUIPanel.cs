@@ -48,17 +48,17 @@ namespace MagicSwords.DI.Text
                         scopeGameObject.GetComponent<TextPanelScope>()
                     );
                 }, cancellation: cancellation)
-                .AttachAsync(_message, cancellation: cancellation)
-                .RunAsync(static (scope, text, token) =>
+                .AttachAsync(_message, _yieldPoint, cancellation: cancellation)
+                .RunAsync(static (scope, text, yieldPoint, token) =>
                 {
                     if (token.IsCancellationRequested)
                     {
-                        return UniTask.FromResult(AsyncResult<SequencedTextMessageInstaller, TextPanelScope>.Cancel);
+                        return UniTask.FromResult(AsyncResult<SingleTextMessageInstaller, TextPanelScope>.Cancel);
                     }
 
                     return UniTask.FromResult
                     (
-                        AsyncResult<SequencedTextMessageInstaller>.FromResult(new SequencedTextMessageInstaller(text))
+                        AsyncResult<SingleTextMessageInstaller>.FromResult(new SingleTextMessageInstaller(text[0], yieldPoint))
                             .Attach(scope)
                     );
                 }, cancellation)
