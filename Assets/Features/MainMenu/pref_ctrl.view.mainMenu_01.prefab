@@ -154,7 +154,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 1
-  m_AdditionalShaderChannelsFlag: 1
+  m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 0
@@ -337,8 +337,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aeafbc810caa0ff49a4c67811172729b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _delay: 5
-  _duration: 0.75
+  <IterationDelay>k__BackingField:
+    _displayUnit: 2
+    _ticks: 30000000
+  <WaveDuration>k__BackingField:
+    _displayUnit: 2
+    _ticks: 10000000
   _material: {fileID: 2100000, guid: 1f3e021875f6fb741a3f8a00015f1b1e, type: 2}
   _startPosition: {fileID: 7747079271044839644}
 --- !u!1 &8796168091517791239
