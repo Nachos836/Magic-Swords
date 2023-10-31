@@ -10,22 +10,25 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
-  m_Name: UI Dynamic Elements
+  m_Name: Built In Data
   m_EditorClassIdentifier: 
-  m_GroupName: UI Dynamic Elements
+  m_GroupName: Built In Data
   m_Data:
     m_SerializedData: []
-  m_GUID: 70046855616921847ac8231a61f69307
+  m_GUID: b920a746beedd3c3d88dfc2cb697435e
   m_SerializeEntries:
-  - m_GUID: 3cd6fa004309adc4f98136428de162cb
-    m_Address: Assets/DI/Text/pref_ctrl.scope.Text.Replica_01.prefab
-    m_ReadOnly: 0
+  - m_GUID: Resources
+    m_Address: Resources
+    m_ReadOnly: 1
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  m_ReadOnly: 0
+  - m_GUID: EditorSceneList
+    m_Address: EditorSceneList
+    m_ReadOnly: 1
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 1
   m_Settings: {fileID: 11400000, guid: 69f36f625dff45344b20f3320930ab74, type: 2}
   m_SchemaSet:
     m_Schemas:
-    - {fileID: 11400000, guid: 343c76afe35f94849a2596c87dff3a6e, type: 2}
-    - {fileID: 11400000, guid: e408af29a95a6764e8399ee1da487df1, type: 2}
-    - {fileID: 11400000, guid: 95952745813a53f4092dcd5380964e0a, type: 2}
+    - {fileID: 11400000, guid: 055c8540f6610944c9458cf3c3e29b13, type: 2}
