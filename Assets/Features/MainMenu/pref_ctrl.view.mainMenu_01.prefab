@@ -27,7 +27,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2158257247995919855}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: -10}
   m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -58,7 +58,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1344c3c82d62a2a41a3576d8abb8e3ea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 2100000, guid: 208e308476964dc43a6fde637e6a465a, type: 2}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
@@ -145,9 +145,9 @@ Canvas:
   m_GameObject: {fileID: 7127643011329625025}
   m_Enabled: 1
   serializedVersion: 3
-  m_RenderMode: 0
+  m_RenderMode: 1
   m_Camera: {fileID: 0}
-  m_PlaneDistance: 100
+  m_PlaneDistance: 10
   m_PixelPerfect: 1
   m_ReceivesEvents: 1
   m_OverrideSorting: 0
@@ -155,8 +155,8 @@ Canvas:
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 1
   m_AdditionalShaderChannelsFlag: 25
-  m_UpdateRectTransformForStandalone: 0
-  m_SortingLayerID: 0
+  m_UpdateRectTransformForStandalone: 1
+  m_SortingLayerID: 1335585285
   m_SortingOrder: 0
   m_TargetDisplay: 0
 --- !u!114 &431338872834649979
@@ -337,12 +337,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aeafbc810caa0ff49a4c67811172729b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  <IterationDelay>k__BackingField:
-    _displayUnit: 2
-    _ticks: 30000000
   <WaveDuration>k__BackingField:
     _displayUnit: 2
     _ticks: 10000000
+  <IterationDelay>k__BackingField:
+    _displayUnit: 2
+    _ticks: 30000000
   _material: {fileID: 2100000, guid: 1f3e021875f6fb741a3f8a00015f1b1e, type: 2}
   _startPosition: {fileID: 7747079271044839644}
 --- !u!1 &8796168091517791239
