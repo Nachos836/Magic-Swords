@@ -9,7 +9,7 @@ namespace MagicSwords.Features.Text.UI
     internal sealed class SetHDRColor : MonoBehaviour
     {
         [ColorUsage(true,true)]
-        [SerializeField] private Color _color;
+        [SerializeField] private Color _color = Color.magenta;
 
         [Button] [UsedImplicitly]
         private void Apply()

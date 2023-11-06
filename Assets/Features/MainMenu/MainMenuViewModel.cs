@@ -12,7 +12,7 @@ namespace MagicSwords.Features.MainMenu
         [ObservableProperty] private bool _exitNeeded;
         [ObservableProperty] private bool _restartNeeded;
 
-        private MainMenuModel _model;
+        private MainMenuModel _model = default!;
 
         [Inject] internal void Construct(MainMenuModel model) => _model = model;
 

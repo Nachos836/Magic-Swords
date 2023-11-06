@@ -1,2 +1,3 @@
-﻿[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("MagicSwords.DI")]
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("MagicSwords.Feature.AnimatedRichText")]
+﻿using MagicSwords.Features.InternalConstants;
+
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(Constants.DIAssemblyPath)]

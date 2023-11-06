@@ -3,6 +3,7 @@ using System.Threading;
 using AnySerialize;
 using Cysharp.Threading.Tasks;
 using JetBrains.Annotations;
+using NaughtyAttributes;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.UI;
@@ -21,7 +22,7 @@ namespace MagicSwords.Features.MainMenu.Shaders
         private static readonly int DistanceFromCenter = Shader.PropertyToID("_DistanceFromCenter");
         private static readonly int RingSpawnPosition = Shader.PropertyToID("_RingSpawnPosition");
 
-        [SerializeField] [HideInInspector] private Graphic _graphic;
+        [SerializeField] [ReadOnly] private Graphic _graphic = default!;
         [UsedImplicitly] [AnySerialize] private TimeSpan WaveDuration { get; }
         [UsedImplicitly] [AnySerialize] private TimeSpan IterationDelay { get; }
         [SerializeField] private RectTransform _startPosition = new ();

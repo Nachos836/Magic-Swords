@@ -24,7 +24,7 @@ namespace MagicSwords.Features.Input.Actions.PlayerDriven
 
         private (bool Fetched, UIActions Value) _uiActions;
         private (bool Fetched, ReadingActions Value) _readingActions;
-        private CancellationTokenSource _produceInputUpdates;
+        private CancellationTokenSource _produceInputUpdates = default!;
 
         public PlayerInputWrapper(PlayerLoopTiming initializationPoint)
         {
@@ -81,7 +81,7 @@ namespace MagicSwords.Features.Input.Actions.PlayerDriven
 
         private static async UniTaskVoid AcquireInputJobAsync(PlayerLoopTiming timing, CancellationToken cancellation = default)
         {
-            await UniTask.WaitWhile(() =>
+            await UniTask.WaitWhile(static () =>
             {
                 InputSystem.Update();
 
