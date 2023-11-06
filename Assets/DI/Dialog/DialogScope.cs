@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Linq;
 using AnySerialize;
-using Cysharp.Threading.Tasks;
 using JetBrains.Annotations;
+using NaughtyAttributes;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using VContainer;
 using VContainer.Unity;
+
+using static Cysharp.Threading.Tasks.PlayerLoopTiming;
 
 namespace MagicSwords.DI.Dialog
 {
@@ -19,8 +21,9 @@ namespace MagicSwords.DI.Dialog
 
     internal sealed class DialogScope : LifetimeScope
     {
-        [SerializeField] private AssetReferenceGameObject _panelScope;
-        [SerializeField] private RichText[] _replicas;
+        [ValidateInput(Validation.OfAssetReferenceGameObject)]
+        [SerializeField] private AssetReferenceGameObject _panelScope = AssetReferenceGameObjectEmpty.Instance;
+        [SerializeField] private RichText[] _replicas = Array.Empty<RichText>();
 
         [field: Header("Presentation Options:")]
 
@@ -31,8 +34,8 @@ namespace MagicSwords.DI.Dialog
 
         protected override void Awake()
         {
-            _preparedReplicas = _replicas.Select(static piece => (ITextWithPrewarm) piece)
-                .Select(piece => piece.PrewarmLazyAsync(destroyCancellationToken))
+            _preparedReplicas = _replicas.Select(static piece => (ITextWithPreWarm) piece)
+                .Select(piece => piece.PreWarmLazyAsync(destroyCancellationToken))
                 .ToArray();
 
             _preparedReplicas = _preparedReplicas.Length is not 0
@@ -55,7 +58,8 @@ namespace MagicSwords.DI.Dialog
                 (
                     _panelScope,
                     parent: this,
-                    yieldPoint: PlayerLoopTiming.Initialization,
+                    loadPoint: Initialization,
+                    animationPoint: FixedUpdate,
                     _preparedReplicas
 
                 ), Lifetime.Scoped).As<ITextPanel>();

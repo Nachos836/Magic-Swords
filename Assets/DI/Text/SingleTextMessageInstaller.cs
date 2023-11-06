@@ -45,7 +45,7 @@ namespace MagicSwords.DI.Text
                 .AddUnityBasedTimeProvider()
                 .AddSequencedTextPresenter(_message)
                 .Register<PlayerForTextSequence>(Lifetime.Scoped)
-                .As<ITextPlayer>();
+                    .As<ITextPlayer>();
         }
     }
 }

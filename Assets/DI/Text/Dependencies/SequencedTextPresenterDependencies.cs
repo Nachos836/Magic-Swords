@@ -24,15 +24,15 @@ namespace MagicSwords.DI.Text.Dependencies
                 {
                     const PlayerLoopTiming yieldPoint = PlayerLoopTiming.Update;
 
-                    IInputFor<ReadingSkip> readingSkipInput = default;
-                    Func<Message, Print> printing = default;
-                    Func<Message, Fetch> fetching = default;
-                    Func<Message, Skip> skipping = default;
-                    Func<Message, Delay> delaying = default;
+                    IInputFor<ReadingSkip>? readingSkipInput = null;
+                    Func<Message, Print>? printing = null;
+                    Func<Message, Fetch>? fetching = null;
+                    Func<Message, Skip>? skipping = null;
+                    Func<Message, Delay>? delaying = null;
 
-                    TMP_Text field = default;
-                    ISymbolsDelay symbolsDelay = default;
-                    IMessagesDelay messagesDelay = default;
+                    TMP_Text? field = null;
+                    ISymbolsDelay? symbolsDelay = null;
+                    IMessagesDelay? messagesDelay = null;
 
                     container.Register(dependency =>
                     {
@@ -68,9 +68,16 @@ namespace MagicSwords.DI.Text.Dependencies
                         readingSkipInput ??= dependency.Resolve<IInputFor<ReadingSkip>>();
                         field ??= dependency.Resolve<TMP_Text>();
 
-                        return skipping ??= message => new Skip(readingSkipInput, yieldPoint, InstantPrint, message, field);
+                        return skipping ??= message => new Skip
+                        (
+                            readingSkipInput,
+                            yieldPoint,
+                            InstantPrint,
+                            message,
+                            field
+                        );
 
-                        IStage InstantPrint(Message message) => new Fetch(printing, new Message.Fetcher(message));
+                        IStage InstantPrint(Message message) => new Fetch(printing!, new Message.Fetcher(message));
 
                     }, Lifetime.Scoped);
 
@@ -86,7 +93,7 @@ namespace MagicSwords.DI.Text.Dependencies
                     {
                         messagesDelay ??= dependency.Resolve<IMessagesDelay>();
 
-                        return delaying ??= message => new Delay(yieldPoint, printing, message, messagesDelay.Value);
+                        return delaying ??= message => new Delay(yieldPoint, printing!, message, messagesDelay.Value);
 
                     }, Lifetime.Scoped);
                 });

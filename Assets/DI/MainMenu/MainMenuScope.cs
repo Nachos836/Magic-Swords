@@ -1,3 +1,4 @@
+using NaughtyAttributes;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using VContainer;
@@ -12,8 +13,10 @@ namespace MagicSwords.DI.MainMenu
 
     internal sealed class MainMenuScope : LifetimeScope
     {
-        [SerializeField] private MainMenuViewModel _mainMenuViewModel;
-        [SerializeField] private AssetReference _gameplayScene;
+        [ValidateInput(Validation.OfUnityObject)]
+        [SerializeField] private MainMenuViewModel? _mainMenuViewModel;
+        [ValidateInput(Validation.OfAssetReference)]
+        [SerializeField] private AssetReference _gameplayScene = AssetReferenceEmpty.Instance;
 
         protected override void Configure(IContainerBuilder builder)
         {
@@ -22,7 +25,7 @@ namespace MagicSwords.DI.MainMenu
             builder
                 .AddApplicationExitRoutine()
                 .AddMainMenuModel(_gameplayScene)
-                .AddMainMenuViewModel(_mainMenuViewModel)
+                .AddMainMenuViewModel(_mainMenuViewModel!)
                 .AddPlayerInput()
                 .AddUIInput();
         }
