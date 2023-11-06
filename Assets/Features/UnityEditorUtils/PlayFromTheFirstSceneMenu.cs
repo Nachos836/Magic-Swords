@@ -10,7 +10,7 @@ namespace MagicSwords.Features.UnityEditorUtils
         internal static bool PlayFromFirstScene
         {
             get => EditorPrefs.HasKey(PlayFromFirstMenuStr)
-                   && EditorPrefs.GetBool(PlayFromFirstMenuStr);
+                && EditorPrefs.GetBool(PlayFromFirstMenuStr);
 
             private set => EditorPrefs.SetBool(PlayFromFirstMenuStr, value);
         }
