@@ -343,7 +343,7 @@ MonoBehaviour:
   <IterationDelay>k__BackingField:
     _displayUnit: 2
     _ticks: 30000000
-  _material: {fileID: 2100000, guid: 1f3e021875f6fb741a3f8a00015f1b1e, type: 2}
+  _image: {fileID: 4982035225023582201}
   _startPosition: {fileID: 7747079271044839644}
 --- !u!1 &8796168091517791239
 GameObject:

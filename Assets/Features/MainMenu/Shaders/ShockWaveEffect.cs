@@ -5,76 +5,82 @@ using Cysharp.Threading.Tasks;
 using JetBrains.Annotations;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.UI;
 
 using static Cysharp.Threading.Tasks.DelayType;
 using static Cysharp.Threading.Tasks.PlayerLoopTiming;
 
 namespace MagicSwords.Features.MainMenu.Shaders
 {
+    using static Generic.ExtendDotNet.CancellationTokenSourceExtensions;
+
+    [RequireComponent(typeof(Graphic))]
     internal sealed class ShockWaveEffect : MonoBehaviour
     {
         private static readonly (double Start, double End) WaveFactor = (-0.1, 1.0);
         private static readonly int DistanceFromCenter = Shader.PropertyToID("_DistanceFromCenter");
         private static readonly int RingSpawnPosition = Shader.PropertyToID("_RingSpawnPosition");
 
+        [SerializeField] [HideInInspector] private Graphic _graphic;
         [UsedImplicitly] [AnySerialize] private TimeSpan WaveDuration { get; }
         [UsedImplicitly] [AnySerialize] private TimeSpan IterationDelay { get; }
-        [SerializeField] private Material _material;
-        [SerializeField] private RectTransform _startPosition;
+        [SerializeField] private RectTransform _startPosition = new ();
 
-        private Vector4 _savedRingSpawnPosition;
-        private float _savedDistanceFromCenter;
+        private CancellationTokenSource _processing = new ();
 
-        [UsedImplicitly] // ReSharper disable once Unity.IncorrectMethodSignature
-        private UniTaskVoid Awake()
+        private void OnValidate() => _graphic = GetComponent<Graphic>();
+
+        private void Awake()
         {
-            _savedRingSpawnPosition = _material.GetVector(RingSpawnPosition);
-            _savedDistanceFromCenter = _material.GetFloat(DistanceFromCenter);
+            _graphic.material = new Material(_graphic.material){ enableInstancing = true };
             var newRingSpawnPosition = (_startPosition.anchorMax + _startPosition.anchorMin) / 2;
 
-            _material.SetVector(RingSpawnPosition, newRingSpawnPosition);
+            _graphic.materialForRendering.SetVector(RingSpawnPosition, newRingSpawnPosition);
+        }
 
-            return EffectLoopAsync(destroyCancellationToken);
+        [UsedImplicitly] // ReSharper disable once Unity.IncorrectMethodSignature
+        private async UniTaskVoid OnEnable()
+        {
+            _processing.AddTo(destroyCancellationToken);
+            _processing = CreateLinkedTokenSource(destroyCancellationToken);
 
-            async UniTaskVoid EffectLoopAsync(CancellationToken cancellation = default)
+            while (_processing.IsCancellationRequested is not true)
             {
-                while (cancellation.IsCancellationRequested is false)
-                {
-                    await RoutineAsync(WaveFactor, cancellation);
+                await RoutineAsync(_graphic.materialForRendering, WaveFactor, WaveDuration, _processing.Token);
 
-                    await UniTask.Delay(IterationDelay, Realtime, FixedUpdate, cancellation)
+                await UniTask.Delay(IterationDelay, Realtime, FixedUpdate, _processing.Token)
+                    .SuppressCancellationThrow();
+            }
+
+            return;
+
+            static async UniTask RoutineAsync
+            (
+                Material material,
+                (double Start, double End) waveFactor,
+                TimeSpan waveDuration,
+                CancellationToken cancellation = default
+            ) {
+                if (cancellation.IsCancellationRequested) return;
+
+                material.SetFloat(DistanceFromCenter, (float) waveFactor.Start);
+
+                var elapsedTime = TimeSpan.Zero;
+
+                while (elapsedTime < waveDuration && cancellation.IsCancellationRequested is false)
+                {
+                    var normalizedTime = elapsedTime / waveDuration;
+                    var wave = (float) math.lerp(waveFactor.Start, waveFactor.End, normalizedTime);
+                    material.SetFloat(DistanceFromCenter, wave);
+
+                    await UniTask.Yield(FixedUpdate, cancellation)
                         .SuppressCancellationThrow();
-                }
 
-                return;
-
-                async UniTask RoutineAsync((double Start, double End) waveFactor, CancellationToken token = default)
-                {
-                    if (token.IsCancellationRequested) return;
-
-                    _material.SetFloat(DistanceFromCenter, (float) waveFactor.Start);
-
-                    var elapsedTime = TimeSpan.Zero;
-
-                    while (elapsedTime < WaveDuration && token.IsCancellationRequested is false)
-                    {
-                        var normalizedTime = elapsedTime / WaveDuration;
-                        var wave = (float) math.lerp(waveFactor.Start, waveFactor.End, normalizedTime);
-                        _material.SetFloat(DistanceFromCenter, wave);
-
-                        await UniTask.Yield(FixedUpdate, token)
-                            .SuppressCancellationThrow();
-
-                        elapsedTime += TimeSpan.FromSeconds(Time.fixedDeltaTime);
-                    }
+                    elapsedTime += TimeSpan.FromSeconds(Time.fixedDeltaTime);
                 }
             }
         }
 
-        private void OnDestroy()
-        {
-            _material.SetVector(RingSpawnPosition, _savedRingSpawnPosition);
-            _material.SetFloat(DistanceFromCenter, _savedDistanceFromCenter);
-        }
+        private void OnDisable() => _processing.Cancel();
     }
 }
