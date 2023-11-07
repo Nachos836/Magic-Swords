@@ -74,6 +74,7 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Playing
             await revealEnumerator.Current.ApplyAsync(cancellation);
 
             AsyncRichResult iteration;
+            var processedCount = 0;
             do
             {
                 iteration = await KeepProcessingAsync(revealEnumerator, idleEffectsEnumerator, cancellation);
@@ -82,6 +83,8 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Playing
 
                 await revealEnumerator.Current.ApplyAsync(cancellation);
                 idleEffectsEnumerator.Current.ApplyAsync(cancellation);
+
+                ++processedCount;
             }
             while (iteration.IsSuccessful);
 
@@ -97,7 +100,7 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Playing
                 DissolveAnimationsHandler.Build
                 (
                     dissolveEffectsStream,
-                    _field.textInfo.characterCount,
+                    processedCount,
                     _inputForSkip
                 )
             );
@@ -345,6 +348,7 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Playing
             if (_totalEffects is 0) return;
 
             var streamCandidate = await _disappearanceStream.TakeUntilCanceled(hardCancellation)
+                .Take(_totalEffects)
                 .Select(static (effect, current) => (effect, current))
                 .ToArrayAsync(hardCancellation)
                 .SuppressCancellationThrow();
