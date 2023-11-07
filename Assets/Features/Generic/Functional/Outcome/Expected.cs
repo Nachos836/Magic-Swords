@@ -7,35 +7,25 @@ namespace MagicSwords.Features.Generic.Functional.Outcome
         private static readonly Lazy<Success> LazySuccess = new (static () => new Success());
         private static readonly Lazy<Unit> LazyUnit = new (static () => new Unit());
 
-        private static readonly Lazy<Abortion> LazyAborted = new (static () => new Abortion());
-        private static readonly Lazy<Failure> LazyFailed= new (static () => new Failure());
-        private static readonly Lazy<Cancellation> LazyCancel = new (static () => new Cancellation());
+        private static readonly Lazy<Failure> LazyFailed= new (static () => new Failure(reason: "Execution Failed."));
 
         public static Success Success { get; } = LazySuccess.Value;
         public static Unit Unit { get; } = LazyUnit.Value;
 
-        public static Abortion Aborted { get; } = LazyAborted.Value;
         public static Failure Failed { get; } = LazyFailed.Value;
-        public static Cancellation Canceled { get; } = LazyCancel.Value;
 
-        public sealed class Abortion : IExpected
+        public readonly struct Failure
         {
-            string IExpected.Message => "Execution Aborted.";
-        }
+            private readonly Lazy<Exception> _exception;
+            public readonly string Message;
 
-        public sealed class Failure : IExpected
-        {
-            string IExpected.Message => "Execution Failed.";
-        }
+            public Failure(string reason)
+            {
+                Message = reason;
+                _exception = new Lazy<Exception>(() => new Exception(reason));
+            }
 
-        public sealed class Cancellation : IExpected
-        {
-            string IExpected.Message => "Execution Cancelled.";
+            public Exception ToException() => _exception.Value;
         }
-    }
-
-    public interface IExpected
-    {
-        string Message { get; }
     }
 }
