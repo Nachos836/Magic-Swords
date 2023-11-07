@@ -83,6 +83,17 @@ namespace MagicSwords.Features.Generic.Functional
 
         [BurstCompile]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public AsyncResult<TAnother> Attach<TAnother>(TAnother another)
+        {
+            if (IsSuccessful) return AsyncResult<TAnother>.FromResult(another);
+
+            return IsCancellation
+                ? AsyncResult<TAnother>.Cancel
+                : AsyncResult<TAnother>.FromException(_exception.Value);
+        }
+
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public AsyncResult Run(Action whenSuccessful)
         {
             if (IsSuccessful) whenSuccessful.Invoke();

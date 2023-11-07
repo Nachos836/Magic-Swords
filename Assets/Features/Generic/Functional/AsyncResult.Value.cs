@@ -84,9 +84,9 @@ namespace MagicSwords.Features.Generic.Functional
 
         [BurstCompile]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public AsyncResult<TValue, TAnother> Attach<TAnother>(TAnother scope)
+        public AsyncResult<TValue, TAnother> Attach<TAnother>(TAnother another)
         {
-            if (IsSuccessful) return AsyncResult<TValue, TAnother>.FromResult(_income.Value, scope);
+            if (IsSuccessful) return AsyncResult<TValue, TAnother>.FromResult(_income.Value, another);
 
             return IsCancellation
                 ? AsyncResult<TValue, TAnother>.Cancel
