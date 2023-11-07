@@ -24,6 +24,7 @@ namespace MagicSwords.DI.Root
             builder
                 .AddUnityBasedLogger(out var logger)
                 .AddApplicationEntry(logger)
+                .AddRefreshRateSetupFeature(framesPerSecond: 512f)
                 .AddMessagePipeFeature()
                 .AddSceneLoaderFeature(_default.MainMenuSceneReference, loadInstantly: true);
         }
