@@ -8,7 +8,7 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Playing
 
     internal interface ITextPlayer
     {
-        UniTask<AsyncResult<AnimationDisposingHandler>> PlayAsync(CancellationToken cancellation = default);
+        UniTask<AsyncResult<DissolveAnimationsHandler>> PlayAsync(CancellationToken cancellation = default);
     }
 
     internal interface ITextDisplayingListener

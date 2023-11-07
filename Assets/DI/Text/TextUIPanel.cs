@@ -14,26 +14,29 @@ namespace MagicSwords.DI.Text
     {
         private readonly AssetReferenceGameObject _panelScopeAsset;
         private readonly LifetimeScope _parent;
-        private readonly PlayerLoopTiming _yieldPoint;
+        private readonly PlayerLoopTiming _loadPoint;
+        private readonly PlayerLoopTiming _animationPoint;
         private readonly IText[] _message;
 
         public TextUIPanel
         (
             AssetReferenceGameObject panelScopeAsset,
             LifetimeScope parent,
-            PlayerLoopTiming yieldPoint,
+            PlayerLoopTiming loadPoint,
+            PlayerLoopTiming animationPoint,
             IText[] message
         ) {
             _panelScopeAsset = panelScopeAsset;
             _parent = parent;
-            _yieldPoint = yieldPoint;
+            _loadPoint = loadPoint;
+            _animationPoint = animationPoint;
             _message = message;
         }
 
         UniTask<AsyncResult<IDisposable>> ITextPanel.LoadAsync(CancellationToken cancellation)
         {
             return AsyncResult<AssetReferenceGameObject, PlayerLoopTiming>
-                .FromResult(_panelScopeAsset, _yieldPoint)
+                .FromResult(_panelScopeAsset, _loadPoint)
                 .RunAsync(static async (panelScopeAsset, yieldPoint, token) =>
                 {
                     return await panelScopeAsset.LoadAsync(yieldPoint, token);
@@ -48,7 +51,7 @@ namespace MagicSwords.DI.Text
                         scopeGameObject.GetComponent<TextPanelScope>()
                     );
                 }, cancellation: cancellation)
-                .AttachAsync(_message, _yieldPoint, cancellation: cancellation)
+                .AttachAsync(_message, _animationPoint, cancellation: cancellation)
                 .RunAsync(static (scope, text, yieldPoint, token) =>
                 {
                     if (token.IsCancellationRequested)
@@ -76,20 +79,9 @@ namespace MagicSwords.DI.Text
                 {
                     return UniTask.FromResult<AsyncResult<IDisposable>>
                     (
-                        token.IsCancellationRequested is false
-                            ? new UnloadHandler(scope)
-                            : token
+                        token.IsCancellationRequested is not true ? scope : token
                     );
                 }, cancellation: cancellation);
-        }
-
-        private sealed class UnloadHandler : IDisposable
-        {
-            private readonly LifetimeScope _scope;
-
-            public UnloadHandler(LifetimeScope scope) => _scope = scope;
-
-            void IDisposable.Dispose() => _scope.Dispose();
         }
     }
 }

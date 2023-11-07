@@ -18,7 +18,7 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Playing
             _sequencer = sequencer;
         }
 
-        async UniTask<AsyncResult<AnimationDisposingHandler>> ITextPlayer.PlayAsync(CancellationToken cancellation)
+        async UniTask<AsyncResult<DissolveAnimationsHandler>> ITextPlayer.PlayAsync(CancellationToken cancellation)
         {
             _logger.LogInformation("Вот начало секвенции диалога!");
 
@@ -31,7 +31,7 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Playing
                 cancellation
             );
 
-            return AsyncResult<AnimationDisposingHandler>.FromResult(AnimationDisposingHandler.None);
+            return AsyncResult<DissolveAnimationsHandler>.FromResult(DissolveAnimationsHandler.None);
         }
     }
 }

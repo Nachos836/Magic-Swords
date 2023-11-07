@@ -27,9 +27,9 @@ namespace MagicSwords.Features.Text
             var result = await _textPlayer.PlayAsync(cancellation);
             await result.MatchAsync
             (
-                success: async (animationDisposingHandler, token) =>
+                success: async (dissolveAnimationsHandler, token) =>
                 {
-                    await animationDisposingHandler.DisposeAsync(token);
+                    await dissolveAnimationsHandler.SoftCancellationAsync(token);
 
                     if (token.IsCancellationRequested is false)
                     {
@@ -37,12 +37,12 @@ namespace MagicSwords.Features.Text
                     }
                     else
                     {
-                        _logger.LogInformation("Мы отменили завершение текста!");
+                        _logger.LogWarning("Мы отменили завершение текста!");
                     }
                 },
                 cancellation: _ =>
                 {
-                    _logger.LogInformation("Мы отменили вывод текста!");
+                    _logger.LogWarning("Мы отменили вывод текста!");
 
                     return UniTask.CompletedTask;
                 },

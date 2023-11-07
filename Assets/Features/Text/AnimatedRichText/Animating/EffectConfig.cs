@@ -10,13 +10,13 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Animating
         [field: SerializeField]
         [field: ReadOnly]
         [field: ValidateInput(nameof(NameIsProvided), ValidationFails)]
-        public string? Name { get; protected set; }
+        public string Name { get; protected set; } = string.Empty;
 
         [field: SerializeReference]
         [field: Label("Default Effect Params")]
         [field: ReadOnly]
         [field: ValidateInput(nameof(EffectIsProvided), ValidationFails)]
-        public IEffect? Effect { get; protected set; }
+        public IEffect Effect { get; protected set; } = NoneEffect.Instance;
 
         protected abstract (string Name, IEffect Effect) ProvideConfiguration();
 
@@ -26,7 +26,7 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Animating
 #   region Configure Validation
 
         private const string ValidationFails = "You must Configure asset!";
-        private static bool EffectIsProvided(IEffect? effect) => effect is not null;
+        private static bool EffectIsProvided(IEffect effect) => effect is not NoneEffect;
         private static bool NameIsProvided(string name) => name is { Length:> 0 };
 
 #   endregion

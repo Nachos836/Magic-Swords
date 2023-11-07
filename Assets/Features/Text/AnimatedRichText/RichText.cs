@@ -16,14 +16,14 @@ namespace MagicSwords.Features.Text.AnimatedRichText
     using Configuring.Registry;
     using Parsing;
 
-    internal interface ITextWithPrewarm
+    internal interface ITextWithPreWarm
     {
-        IText PrewarmLazyAsync(CancellationToken cancellation = default);
+        IText PreWarmLazyAsync(CancellationToken cancellation = default);
     }
 
     [CreateAssetMenu(menuName = "Novel Framework/Rich Text/Create Text")]
     [PreferBinarySerialization]
-    internal sealed class RichText : ScriptableObject, IText, ITextWithPrewarm
+    internal sealed class RichText : ScriptableObject, IText, ITextWithPreWarm
     {
         [Header("Configuration")]
         [SerializeField]
@@ -44,9 +44,9 @@ namespace MagicSwords.Features.Text.AnimatedRichText
 
         private AsyncLazy<Preset> LazyPreset => _lazyPreset ??= GenerateResultedConfigAsync(_intermediateConfigs, Application.exitCancellationToken);
 
-        IText ITextWithPrewarm.PrewarmLazyAsync(CancellationToken cancellation)
+        IText ITextWithPreWarm.PreWarmLazyAsync(CancellationToken cancellation)
         {
-            _lazyPreset = GenerateResultedConfigAsync(_intermediateConfigs, Application.exitCancellationToken);
+            _lazyPreset = GenerateResultedConfigAsync(_intermediateConfigs, cancellation);
 
             return this;
         }
