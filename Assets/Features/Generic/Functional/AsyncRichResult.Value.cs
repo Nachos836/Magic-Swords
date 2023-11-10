@@ -9,16 +9,16 @@ namespace MagicSwords.Features.Generic.Functional
     using Outcome;
 
     [BurstCompile]
-    public readonly struct AsyncRichResult
+    public readonly struct AsyncRichResult<TValue>
     {
+        private readonly (TValue Value, bool Provided) _income;
         private readonly (CancellationToken Token, bool Provided) _cancellation;
         private readonly (Expected.Failure Value, bool Provided) _failure;
         private readonly (Exception Value, bool Provided) _exception;
 
-        private AsyncRichResult(bool success = true)
+        private AsyncRichResult(TValue value)
         {
-            IsSuccessful = success;
-
+            _income = (value, Provided: true);
             _cancellation = default;
             _failure = default;
             _exception = default;
@@ -26,8 +26,7 @@ namespace MagicSwords.Features.Generic.Functional
 
         private AsyncRichResult(CancellationToken cancellation)
         {
-            IsSuccessful = false;
-
+            _income = default;
             _cancellation = (cancellation, Provided: true);
             _failure = default;
             _exception = default;
@@ -35,8 +34,7 @@ namespace MagicSwords.Features.Generic.Functional
 
         private AsyncRichResult(Expected.Failure failure)
         {
-            IsSuccessful = false;
-
+            _income = default;
             _cancellation = default;
             _failure = (failure, Provided: true);
             _exception = default;
@@ -44,94 +42,67 @@ namespace MagicSwords.Features.Generic.Functional
 
         private AsyncRichResult(Exception exception)
         {
-            IsSuccessful = false;
-
+            _income = default;
             _cancellation = default;
             _failure = default;
             _exception = (exception, Provided: true);
         }
 
-        public static AsyncRichResult Success { get; } = new (success: true);
-        public static AsyncRichResult Cancel { get; } = new (CancellationToken.None);
-        public static AsyncRichResult Failure { get; } = new (Expected.Failed);
-        public static AsyncRichResult Error { get; } = new (Unexpected.Error);
-        public static AsyncRichResult Impossible { get; } = new (Unexpected.Impossible);
+        public static AsyncRichResult<TValue> Cancel { get; } = new (CancellationToken.None);
+        public static AsyncRichResult<TValue> Failure { get; } = new (Expected.Failed);
+        public static AsyncRichResult<TValue> Error { get; } = new (Unexpected.Error);
+        public static AsyncRichResult<TValue> Impossible { get; } = new (Unexpected.Impossible);
 
-        public bool IsSuccessful { get; }
+        public bool IsSuccessful => _income.Provided;
         public bool IsCancellation => _cancellation.Provided;
         public bool IsFailure => _failure.Provided;
         public bool IsError => _exception.Provided;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator AsyncRichResult (CancellationToken cancellation) => new (cancellation);
+        public static implicit operator AsyncRichResult<TValue> (TValue value) => new (value);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator AsyncRichResult (Expected.Failure failure) => new (failure);
+        public static implicit operator AsyncRichResult<TValue> (CancellationToken cancellation) => new (cancellation);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator AsyncRichResult (Exception error) => new (error);
+        public static implicit operator AsyncRichResult<TValue> (Expected.Failure failure) => new (failure);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator AsyncRichResult<TValue> (Exception error) => new (error);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static AsyncRichResult FromCancellation(CancellationToken cancellation) => cancellation;
+        public static AsyncRichResult<TValue> FromResult(TValue value) => value;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static AsyncRichResult FromFailure(Expected.Failure failure) => failure;
+        public static AsyncRichResult<TValue> FromCancellation(CancellationToken cancellation) => cancellation;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static AsyncRichResult FromException(Exception exception) => exception;
+        public static AsyncRichResult<TValue> FromFailure(Expected.Failure failure) => failure;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static AsyncRichResult<TValue> FromException(Exception exception) => exception;
 
         [BurstCompile]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public AsyncResult AsResult()
+        public AsyncResult<TValue> AsResult(Func<Expected.Failure, AsyncResult<TValue>> resolveError)
         {
             if (IsSuccessful)
             {
-                return AsyncResult.Success;
+                return AsyncResult<TValue>.FromResult(_income.Value);
             }
             else if (IsCancellation)
             {
-                return AsyncResult.FromCancellation(_cancellation.Token);
+                return AsyncResult<TValue>.FromCancellation(_cancellation.Token);
             }
-            else if (IsError)
+            else if (IsFailure)
             {
-                return AsyncResult.FromException(_exception.Value);
+                return resolveError(_failure.Value);
             }
             else
             {
-                return AsyncResult.FromException(_failure.Value.ToException());
+                return AsyncResult<TValue>.FromException(_exception.Value);
             }
         }
 
         [BurstCompile]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public AsyncRichResult Combine(AsyncRichResult another)
+        public AsyncRichResult<TValue> Run(Action<TValue> whenSuccessful)
         {
-            var success = IsSuccessful & another.IsSuccessful;
-            var cancellation = IsCancellation | another.IsCancellation;
-            var failure = IsFailure | another.IsFailure;
-
-            if (success)
-            {
-                return this;
-            }
-            else if (cancellation)
-            {
-                return IsCancellation ? this : another;
-            }
-            else if (failure)
-            {
-                return IsFailure ? this : another;
-            }
-            else
-            {
-                if (IsError) return this;
-                if (another.IsError) return another;
-
-                return Impossible;
-            }
-        }
-
-        [BurstCompile]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public AsyncRichResult Run(Action whenSuccessful)
-        {
-            if (IsSuccessful) whenSuccessful.Invoke();
+            if (IsSuccessful) whenSuccessful.Invoke(_income.Value);
 
             return this;
         }
@@ -140,7 +111,7 @@ namespace MagicSwords.Features.Generic.Functional
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UniTask<TMatch> MatchAsync<TMatch>
         (
-            Func<CancellationToken, UniTask<TMatch>> success,
+            Func<TValue, CancellationToken, UniTask<TMatch>> success,
             Func<CancellationToken, UniTask<TMatch>> cancellation,
             Func<Expected.Failure, CancellationToken, UniTask<TMatch>> failure,
             Func<Exception, CancellationToken, UniTask<TMatch>> error,
@@ -148,7 +119,7 @@ namespace MagicSwords.Features.Generic.Functional
         ) {
             if (IsSuccessful)
             {
-                return success.Invoke(token);
+                return success.Invoke(_income.Value, token);
             }
             else if (IsCancellation)
             {
@@ -168,7 +139,7 @@ namespace MagicSwords.Features.Generic.Functional
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UniTask MatchAsync
         (
-            Func<CancellationToken, UniTask> success,
+            Func<TValue, CancellationToken, UniTask> success,
             Func<CancellationToken, UniTask> cancellation,
             Func<Expected.Failure, CancellationToken, UniTask> failure,
             Func<Exception, CancellationToken, UniTask> error,
@@ -176,7 +147,7 @@ namespace MagicSwords.Features.Generic.Functional
         ) {
             if (IsSuccessful)
             {
-                return success.Invoke(token);
+                return success.Invoke(_income.Value, token);
             }
             else if (IsCancellation)
             {
@@ -196,7 +167,7 @@ namespace MagicSwords.Features.Generic.Functional
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Match
         (
-            Action<CancellationToken> success,
+            Action<TValue, CancellationToken> success,
             Action<CancellationToken> cancellation,
             Action<Expected.Failure, CancellationToken> failure,
             Action<Exception, CancellationToken> error,
@@ -204,7 +175,7 @@ namespace MagicSwords.Features.Generic.Functional
         ) {
             if (IsSuccessful)
             {
-                success.Invoke(token);
+                success.Invoke(_income.Value, token);
             }
             else if (IsCancellation)
             {
