@@ -70,7 +70,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.burst": {
-      "version": "1.8.9",
+      "version": "1.8.10",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -224,6 +224,13 @@
       "dependencies": {
         "org.nuget.system.runtime.compilerservices.unsafe": "6.0.0"
       },
+      "url": "https://package.openupm.com"
+    },
+    "com.zbase.foundation.polymorphic-structs": {
+      "version": "1.1.1",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {},
       "url": "https://package.openupm.com"
     },
     "jp.hadashikick.vcontainer": {

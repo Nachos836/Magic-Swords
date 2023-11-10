@@ -41,6 +41,7 @@ MonoBehaviour:
     - com.quabug.any-serialize
     - com.quabug.one-shot-injection
     - com.zbase.foundation.mvvm
+    - com.zbase.foundation.polymorphic-structs
     - jp.hadashikick.vcontainer
     - org.nuget.system.buffers
     - org.nuget.system.collections.immutable
@@ -55,6 +56,6 @@ MonoBehaviour:
   m_RegistryInfoDraft:
     m_Modified: 0
     m_ErrorMessage: 
-    m_UserModificationsInstanceId: -830
-    m_OriginalInstanceId: -834
+    m_UserModificationsInstanceId: -834
+    m_OriginalInstanceId: -838
   m_LoadAssets: 0
