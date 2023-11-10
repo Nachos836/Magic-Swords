@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -22,8 +23,6 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Playing
 
     internal sealed class PlayerForSingleText : ITextPlayer
     {
-        private static readonly UniTask<(bool IsCanceled, bool Result)>[] IterationTasks = new UniTask<(bool IsCanceled, bool Result)>[2];
-
         private readonly TMP_Text _field;
         private readonly IText _text;
         private readonly IFixedCurrentTimeProvider _currentTime;
@@ -51,103 +50,150 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Playing
             var preset = await _text.ProvidePresetAsync(cancellation);
             var text = preset.PlainText;
             var effect = new Animating.Wobble.WobbleEffect()
-                .Configure(0.01f, 0.5f);
-
-            var interruption = new UniTaskCompletionSource();
-
-            using var _ = _inputForSkip.Subscribe(started: _ => interruption.TrySetResult());
+                .Configure(strength: 0.01f, amplitude: 0.5f);
+            var interruptionTimeout = TimeSpan.FromSeconds(2);
 
             await BootstrapAsync(_field, text, cancellation);
 
             var revealEffectsStream = BuildRevealStreamAsync(_field, delay, _yieldPoint, cancellation);
             var idleEffectsStream = BuildIdleStreamAsync(_field, _currentTime, effect, delay, _yieldPoint, cancellation);
-            var dissolveEffectsStream = BuildDissolveStreamAsync(_field, delay, _yieldPoint, cancellation);
 
-            var revealEnumerator = revealEffectsStream.TakeUntilCanceled(cancellation)
-                .TakeUntil(interruption.Task)
+            await using var revealEnumerator = revealEffectsStream.TakeUntilCanceled(cancellation)
                 .GetAsyncEnumerator(cancellation);
-            var idleEffectsEnumerator = idleEffectsStream.TakeUntilCanceled(cancellation)
-                .TakeUntil(interruption.Task)
+            await using var idleEffectsEnumerator = idleEffectsStream.TakeUntilCanceled(cancellation)
                 .GetAsyncEnumerator(cancellation);
-
-            await revealEnumerator.MoveNextAsync();
-            await revealEnumerator.Current.ApplyAsync(cancellation);
 
             AsyncRichResult iteration;
-            var processedCount = 0;
+            var totalSymbols = _field.textInfo.characterInfo.Length;
             do
             {
-                iteration = await KeepProcessingAsync(revealEnumerator, idleEffectsEnumerator, cancellation);
+                var (iterationIndex, nextOneIterated, allHasIterated) = await UniTask.WhenAny
+                (
+                    task1: ProcessNextAsync(revealEnumerator, idleEffectsEnumerator, cancellation),
+                    task2: ProcessAllAtOnceAsync(revealEnumerator, idleEffectsEnumerator, _inputForSkip, totalSymbols, cancellation)
+                );
+
+                iteration = iterationIndex is 0
+                    ? await nextOneIterated.RunAsync(async token => await ApplyNextEffectsAsync(revealEnumerator, idleEffectsEnumerator, token), cancellation)
+                    : allHasIterated;
+
                 if (iteration.IsCancellation) return AsyncResult<DissolveAnimationsHandler>.Cancel;
                 if (iteration.IsError) return iteration.AsResult().Attach(DissolveAnimationsHandler.None);
 
-                await revealEnumerator.Current.ApplyAsync(cancellation);
-                idleEffectsEnumerator.Current.ApplyAsync(cancellation);
+                continue;
 
-                ++processedCount;
+                static async UniTask ApplyNextEffectsAsync
+                (
+                    IUniTaskAsyncEnumerator<IRevealAsyncEffect> revealEnumerator,
+                    IUniTaskAsyncEnumerator<IIdleAsyncEffect> idleEffectsEnumerator,
+                    CancellationToken token = default
+                ) {
+                    await revealEnumerator.Current.ApplyAsync(token);
+                    idleEffectsEnumerator.Current.ApplyAsync(token);
+                }
             }
             while (iteration.IsSuccessful);
 
-            await idleEffectsEnumerator.DisposeAsync()
-                .AttachExternalCancellation(cancellation)
-                .SuppressCancellationThrow();
-            await revealEnumerator.DisposeAsync()
-                .AttachExternalCancellation(cancellation)
-                .SuppressCancellationThrow();
-
-            return AsyncResult<DissolveAnimationsHandler>.FromResult
+            var (interruptionIndex, actionInterrupted, timeoutInterrupted) = await UniTask.WhenAny
             (
-                DissolveAnimationsHandler.Build
-                (
-                    dissolveEffectsStream,
-                    processedCount,
-                    _inputForSkip
-                )
+                task1: InputActionInterruptionAsync(_inputForSkip, idleEffectsEnumerator, _yieldPoint, cancellation),
+                task2: TimeoutInterruptionAsync(interruptionTimeout, _yieldPoint, cancellation)
             );
+            var interruption = interruptionIndex is 0 ? actionInterrupted : timeoutInterrupted;
 
-            static async UniTask<AsyncRichResult> KeepProcessingAsync
+            return interruption.Attach(DissolveAnimationsHandler.Build
             (
-                IUniTaskAsyncEnumerator<IRevealAsyncEffect> appearanceEnumerator,
+                BuildDissolveStreamAsync(_field, delay, _yieldPoint, cancellation),
+                _field.textInfo.characterInfo.Length,
+                _inputForSkip
+            ));
+
+            static async UniTask<AsyncResult> InputActionInterruptionAsync
+            (
+                IInputFor<ReadingSkip> inputForSkip,
+                IUniTaskAsyncEnumerator<IIdleAsyncEffect> idleEffectsEnumerator,
+                PlayerLoopTiming yieldPoint,
+                CancellationToken token = default
+            ) {
+                var inputActionInterrupted = false;
+                using var _ = inputForSkip.Subscribe(started: _ => inputActionInterrupted = true);
+
+                while (inputActionInterrupted is not true)
+                {
+                    if (token.IsCancellationRequested) return AsyncResult.Cancel;
+
+                    if (await idleEffectsEnumerator.MoveNextAsync())
+                    {
+                        idleEffectsEnumerator.Current.ApplyAsync(token);
+                    }
+
+                    if (await UniTask.Yield(yieldPoint, token)
+                        .SuppressCancellationThrow()) return AsyncResult.Cancel;
+                }
+
+                return AsyncResult.Success;
+            }
+
+            static async UniTask<AsyncResult> TimeoutInterruptionAsync
+            (
+                TimeSpan interruptionTimeout,
+                PlayerLoopTiming yieldPoint,
+                CancellationToken token = default
+            ) {
+                if (await UniTask.Delay(interruptionTimeout, DelayType.UnscaledDeltaTime, yieldPoint, token, cancelImmediately: true)
+                    .SuppressCancellationThrow()) return AsyncResult.Cancel;
+
+                return AsyncResult.Success;
+            }
+
+            static async UniTask<AsyncRichResult> ProcessNextAsync
+            (
+                IUniTaskAsyncEnumerator<IRevealAsyncEffect> revealEnumerator,
                 IUniTaskAsyncEnumerator<IIdleAsyncEffect> idleEffectsEnumerator,
                 CancellationToken token = default
             ) {
-                try
-                {
-                    IterationTasks[0] = appearanceEnumerator.MoveNextAsync()
-                        .AttachExternalCancellation(token)
-                        .SuppressCancellationThrow();
-                    IterationTasks[1] = idleEffectsEnumerator.MoveNextAsync()
-                        .AttachExternalCancellation(token)
-                        .SuppressCancellationThrow();
-                }
-                catch (Exception exception)
-                {
-                    return AsyncRichResult.FromException(exception);
-                }
+                if (token.IsCancellationRequested) return AsyncRichResult.Cancel;
 
-                var iteration = await UniTask.WhenAll(IterationTasks)
+                var (reveal, idle) = await (revealEnumerator.MoveNextAsync(), idleEffectsEnumerator.MoveNextAsync());
+
+                return reveal & idle ? AsyncRichResult.Success : AsyncRichResult.Failure;
+            }
+
+            static async UniTask<AsyncRichResult> ProcessAllAtOnceAsync
+            (
+                IUniTaskAsyncEnumerator<IRevealAsyncEffect> revealEnumerator,
+                IUniTaskAsyncEnumerator<IIdleAsyncEffect> idleEffectsEnumerator,
+                IInputFor<ReadingSkip> inputForSkip,
+                int totalCapacity,
+                CancellationToken token = default
+            ) {
+                var interruption = new UniTaskCompletionSource<AsyncRichResult>();
+                using var _ = inputForSkip.Subscribe
+                (
+                    started: _ => interruption.TrySetResult(AsyncRichResult.Failure)
+                );
+
+                if ((await interruption.Task.AttachExternalCancellation(token)
+                    .SuppressCancellationThrow()).IsCanceled) return AsyncRichResult.Cancel;
+
+                var effectsTasks = new List<UniTask>(totalCapacity);
+                do
+                {
+                    if (token.IsCancellationRequested) return AsyncRichResult.Cancel;
+
+                    var (reveal, idle) = await (revealEnumerator.MoveNextAsync(), idleEffectsEnumerator.MoveNextAsync());
+                    if ((reveal & idle) is false) break;
+
+                    effectsTasks.Add(revealEnumerator.Current.ApplyAsync(token));
+                    idleEffectsEnumerator.Current.ApplyAsync(token);
+
+                } while (true);
+
+                await UniTask.WhenAll(effectsTasks)
                     .AttachExternalCancellation(token)
                     .SuppressCancellationThrow();
 
-                if (iteration.IsCanceled) return AsyncRichResult.Cancel;
-
-                var combine = iteration.Result.Aggregate(static (first, second) =>
-                {
-                    return (first.IsCanceled & second.IsCanceled, first.Result | second.Result);
-                });
-
-                if (combine.IsCanceled)
-                {
-                    return AsyncRichResult.Cancel;
-                }
-                else if (combine.Result)
-                {
-                    return AsyncRichResult.Success;
-                }
-                else
-                {
-                    return AsyncRichResult.Failure;
-                }
+                return token.IsCancellationRequested ? AsyncRichResult.Cancel : AsyncRichResult.Failure;
             }
 
             static UniTask BootstrapAsync(TMP_Text field, string text, CancellationToken cancellation = default)
@@ -162,41 +208,6 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Playing
 
                 return UniTask.CompletedTask;
             }
-        }
-
-        async UniTask<AsyncResult<DissolveAnimationsHandler>> PlayAsync(CancellationToken cancellation)
-        {
-            long renderFlag = default;
-
-            var (plainText, tweens) = await _text.ProvidePresetAsync(cancellation);
-
-            _field.renderMode = TextRenderFlags.DontRender;
-            _field.text = plainText;
-
-            await foreach (var _ in EveryUpdate(_yieldPoint).TakeUntilCanceled(cancellation))
-            {
-                _field.ForceMeshUpdate(ignoreActiveState: true, forceTextReparsing: true);
-                var textInfo = _field.textInfo;
-
-                await foreach (var preparation in PrepareTextPiecesAsync(tweens, textInfo, _currentTime, cancellation))
-                {
-                    await preparation.ExecuteAsync(cancellation);
-                }
-
-                if (Interlocked.Read(ref renderFlag) is 0)
-                {
-                    Interlocked.Add(ref renderFlag, 1);
-
-                    _field.renderMode = TextRenderFlags.Render;
-                }
-
-                await foreach (var showing in ShowTextPiecesAsync(textInfo, _field, cancellation))
-                {
-                    await showing.ExecuteAsync(cancellation);
-                }
-            }
-
-            return AsyncResult<DissolveAnimationsHandler>.FromResult(DissolveAnimationsHandler.None);
         }
 
         private static IUniTaskAsyncEnumerable<IRevealAsyncEffect> BuildRevealStreamAsync
@@ -240,6 +251,11 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Playing
                         return new WobbleEffect(field, timeProvider, effectPreset, delay, yieldPoint, current);
                     });
 
+                if (token.IsCancellationRequested is not true)
+                {
+                    await writer.YieldAsync(NoneIdleEffectAsync.Instance);
+                }
+
                 await foreach (var effect in effects.WithCancellation(token))
                 {
                     if (token.IsCancellationRequested) return;
@@ -254,7 +270,7 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Playing
             });
         }
 
-        private IUniTaskAsyncEnumerable<IDissolveAsyncEffect> BuildDissolveStreamAsync
+        private static IUniTaskAsyncEnumerable<IDissolveAsyncEffect> BuildDissolveStreamAsync
         (
             TMP_Text field,
             TimeSpan delay,
@@ -265,38 +281,6 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Playing
                 .TakeUntilCanceled(cancellation)
                 .Select(static (income, current) => (IDissolveAsyncEffect) new FadeOutEffect(income.field, income.delay, income.yieldPoint, current));
         }
-
-        private static IUniTaskAsyncEnumerable<PreparationJob> PrepareTextPiecesAsync
-        (
-            Tween[] tweens,
-            TMP_TextInfo textInfo,
-            IFixedCurrentTimeProvider currentTime,
-            CancellationToken cancellation = default
-        ) {
-            return textInfo.characterInfo
-                .ToUniTaskAsyncEnumerable()
-                .TakeUntilCanceled(cancellation)
-                .TakeWhile(static character => character is not { character: '\0' })
-                .Select((characterInfo, index) => new PreparationJob
-                (
-                    characterInfo,
-                    textInfo.meshInfo[characterInfo.materialReferenceIndex].vertices,
-                    tweens[index],
-                    currentTime
-                ));
-        }
-
-        private static IUniTaskAsyncEnumerable<ShowingJob> ShowTextPiecesAsync
-        (
-            TMP_TextInfo textInfo,
-            TMP_Text field,
-            CancellationToken cancellation = default
-        ) {
-            return textInfo.meshInfo
-                .ToUniTaskAsyncEnumerable()
-                .TakeUntilCanceled(cancellation)
-                .Select((_, current) => new ShowingJob(field, current));
-        }
     }
 
     [InjectIgnore]
@@ -306,6 +290,14 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Playing
         private readonly int _totalEffects;
         private readonly IInputFor<ReadingSkip> _inputForSkip;
         private readonly UniTaskCompletionSource _idleEffectsLifetime;
+
+        public static DissolveAnimationsHandler None { get; } = new
+        (
+            disappearanceStream: Empty<IDissolveAsyncEffect>(),
+            totalEffects: 0,
+            inputForSkip: default!,
+            idleEffectsLifetime: new UniTaskCompletionSource()
+        );
 
         private DissolveAnimationsHandler
         (
@@ -319,14 +311,6 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Playing
             _inputForSkip = inputForSkip;
             _idleEffectsLifetime = idleEffectsLifetime;
         }
-
-        public static DissolveAnimationsHandler None { get; } = new
-        (
-            disappearanceStream: Empty<IDissolveAsyncEffect>(),
-            totalEffects: 0,
-            inputForSkip: default!,
-            idleEffectsLifetime: new UniTaskCompletionSource()
-        );
 
         public static DissolveAnimationsHandler Build
         (
@@ -372,7 +356,7 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Playing
                 }
             }
 
-            if (_idleEffectsLifetime.Task.Status is Succeeded) await UniTask.WhenAll
+            if (_idleEffectsLifetime.UnsafeGetStatus() is Succeeded) await UniTask.WhenAll
             (
                 streamCandidate.Result.TakeLast(count: _totalEffects - lastEffectIndex)
                     .Select(tuple => tuple.effect.ApplyAsync(hardCancellation))
@@ -398,6 +382,7 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Playing
     {
         UniTaskVoid ApplyAsync(CancellationToken cancellation = default);
 
+        [InjectIgnore]
         internal sealed class ApplyStrategyAlongside : IIdleAsyncEffect
         {
             private readonly IIdleAsyncEffect _first;
@@ -485,10 +470,10 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Playing
             {
                 await preparationJob.ExecuteAsync(cancellation);
 
-                await UniTask.Delay(_delay, DelayType.UnscaledDeltaTime, _yieldPoint, cancellation)
-                    .SuppressCancellationThrow();
-
                 await showingJob.ExecuteAsync(cancellation);
+
+                await UniTask.Delay(_delay, DelayType.UnscaledDeltaTime, _yieldPoint, cancellation, cancelImmediately: true)
+                    .SuppressCancellationThrow();
             }
         }
     }
@@ -504,12 +489,6 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Playing
 
             return default;
         }
-    }
-
-    [InjectIgnore]
-    internal sealed class NoneEffect : IRevealAsyncEffect
-    {
-        UniTask IRevealAsyncEffect.ApplyAsync(CancellationToken _) => UniTask.CompletedTask;
     }
 
     [InjectIgnore]
@@ -535,18 +514,16 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Playing
 
             var vertexIndex = _field.textInfo.characterInfo[_current].vertexIndex;
 
-            var c1 = new Color32((byte)Random.Range(0, 255), (byte)Random.Range(0, 255), (byte)Random.Range(0, 255), 255);
+            var c1 = new Color32((byte) Random.Range(0, 255), (byte) Random.Range(0, 255), (byte) Random.Range(0, 255), 255);
             newVertexColors[vertexIndex + 0] = c1;
             newVertexColors[vertexIndex + 1] = c1;
             newVertexColors[vertexIndex + 2] = c1;
             newVertexColors[vertexIndex + 3] = c1;
 
-            _field.textInfo.meshInfo[meshIndex].colors32 = newVertexColors;
-
-            if (await UniTask.Delay(_delay, DelayType.UnscaledDeltaTime, _yieldPoint, cancellation)
-                .SuppressCancellationThrow()) return;
-
             _field.UpdateVertexData(TMP_VertexDataUpdateFlags.Colors32);
+
+            await UniTask.Delay(_delay, DelayType.UnscaledDeltaTime, _yieldPoint, cancellation, cancelImmediately: true)
+                .SuppressCancellationThrow();
         }
     }
 
@@ -579,12 +556,10 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Playing
             newVertexColors[vertexIndex + 2] = c1;
             newVertexColors[vertexIndex + 3] = c1;
 
-            _field.textInfo.meshInfo[meshIndex].colors32 = newVertexColors;
-
-            if (await UniTask.Delay(_delay, DelayType.UnscaledDeltaTime, _yieldPoint, cancellation)
-                .SuppressCancellationThrow()) return;
-
             _field.UpdateVertexData(TMP_VertexDataUpdateFlags.Colors32);
+
+            await UniTask.Delay(_delay, DelayType.UnscaledDeltaTime, _yieldPoint, cancellation, cancelImmediately: true)
+                .SuppressCancellationThrow();
         }
     }
 }
