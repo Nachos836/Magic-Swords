@@ -78,6 +78,13 @@
       },
       "url": "https://packages.unity.com"
     },
+    "com.unity.editorcoroutines": {
+      "version": "1.0.0",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
     "com.unity.ext.nunit": {
       "version": "1.0.6",
       "depth": 1,
@@ -108,6 +115,15 @@
       "depth": 1,
       "source": "registry",
       "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.memoryprofiler": {
+      "version": "1.1.0",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.editorcoroutines": "1.0.0"
+      },
       "url": "https://packages.unity.com"
     },
     "com.unity.nuget.mono-cecil": {
@@ -308,15 +324,6 @@
       "source": "builtin",
       "dependencies": {
         "com.unity.modules.physics": "1.0.0"
-      }
-    },
-    "com.unity.modules.director": {
-      "version": "1.0.0",
-      "depth": 0,
-      "source": "builtin",
-      "dependencies": {
-        "com.unity.modules.audio": "1.0.0",
-        "com.unity.modules.animation": "1.0.0"
       }
     },
     "com.unity.modules.imageconversion": {
