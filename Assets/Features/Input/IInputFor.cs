@@ -7,6 +7,7 @@ namespace MagicSwords.Features.Input
     public interface IInputFor<TInputAcquire> where TInputAcquire : unmanaged, IInputAcquire
     {
         IDisposable Subscribe(Action<StartedContext> started);
+        IDisposable Subscribe<T>(T target, Action<T, StartedContext> started);
         IDisposable Subscribe(Action<PerformedContext> performed);
         IDisposable Subscribe(Action<CanceledContext> canceled);
 

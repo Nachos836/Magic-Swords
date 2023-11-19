@@ -61,6 +61,12 @@ namespace MagicSwords.Features.Input.Actions
                 .Subscribe();
         }
 
+        IDisposable IInputFor<UISubmission>.Subscribe<T>(T target, Action<T, StartedContext> started)
+        {
+            return new StartedSubscription<T>(target, _submit, started)
+                .Subscribe();
+        }
+
         IDisposable IInputFor<UISubmission>.Subscribe(Action<PerformedContext> performed)
         {
             return new PerformedSubscription(_submit, performed)

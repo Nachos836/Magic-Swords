@@ -47,6 +47,12 @@ namespace MagicSwords.Features.Input.Actions
                 .Subscribe();
         }
 
+        IDisposable IInputFor<ReadingSkip>.Subscribe<T>(T target, Action<T, StartedContext> started)
+        {
+            return new StartedSubscription<T>(target, _skip, started)
+                .Subscribe();
+        }
+
         IDisposable IInputFor<ReadingSkip>.Subscribe(Action<PerformedContext> performed)
         {
             return new PerformedSubscription(_skip, performed)
