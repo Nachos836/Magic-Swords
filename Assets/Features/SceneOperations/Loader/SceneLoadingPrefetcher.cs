@@ -29,14 +29,14 @@ namespace MagicSwords.Features.SceneOperations.Loader
 
         public Handler PrefetchAsync
         (
-            Func<IDisposable> pathExtraDependencies,
+            Func<IDisposable> passExtraDependencies,
             CancellationToken cancellation = default
         ) {
             var target = _target;
             var priority = _priority;
             var yieldPoint = _yieldPoint;
 
-            using (pathExtraDependencies.Invoke())
+            using (passExtraDependencies.Invoke())
             {
                 var prefetching = _instantLoad is false
                     ? LoadWithWorkaroundDelayAsync(target, yieldPoint, priority, cancellation)

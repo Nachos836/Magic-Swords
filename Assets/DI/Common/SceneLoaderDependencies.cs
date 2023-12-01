@@ -22,9 +22,14 @@ namespace MagicSwords.DI.Common
         (
             this IContainerBuilder builder,
             AssetReference target,
-            bool loadInstantly
+            bool loadInstantly,
+            CancellationToken cancellation = default
         ) {
-            builder.Register(_ => AddSceneLoadingJob(target, loadInstantly), Lifetime.Scoped);
+            builder.Register
+            (
+                implementationConfiguration: _ => AddAsyncSceneLoadingJob(target, loadInstantly, cancellation),
+                Lifetime.Scoped
+            );
 
             return builder;
         }
@@ -34,9 +39,14 @@ namespace MagicSwords.DI.Common
             this IContainerBuilder builder,
             AssetReference target,
             IInstaller arguments,
-            bool loadInstantly
+            bool loadInstantly,
+            CancellationToken cancellation = default
         ) {
-            builder.Register(_ => AddSceneLoadingJob(target, arguments, loadInstantly), Lifetime.Scoped);
+            builder.Register
+            (
+                implementationConfiguration: _ => AddAsyncSceneLoadingJob(target, arguments, loadInstantly, cancellation),
+                Lifetime.Scoped
+            );
 
             return builder;
         }
@@ -47,15 +57,24 @@ namespace MagicSwords.DI.Common
             LifetimeScope parent,
             AssetReference target,
             IInstaller arguments,
-            bool loadInstantly
+            bool loadInstantly,
+            CancellationToken cancellation = default
         ) {
-            builder.Register(_ => AddSceneLoadingJob(parent, target, arguments, loadInstantly), Lifetime.Scoped);
+            builder.Register
+            (
+                implementationConfiguration: _ => AddAsyncSceneLoadingJob(parent, target, arguments, loadInstantly, cancellation),
+                Lifetime.Scoped
+            );
 
             return builder;
         }
 
-        public static LoadingJob AddSceneLoadingJob(AssetReference target, bool loadInstantly)
-        {
+        public static LoadingJob AddAsyncSceneLoadingJob
+        (
+            AssetReference target,
+            bool loadInstantly,
+            CancellationToken cancellation = default
+        ) {
             var prefetcher = new SceneLoadingPrefetcher
             (
                 target,
@@ -64,13 +83,18 @@ namespace MagicSwords.DI.Common
                 instantLoad: loadInstantly
             );
 
-            var handler = prefetcher.PrefetchAsync(Application.exitCancellationToken);
+            var handler = prefetcher.PrefetchAsync(cancellation);
 
             return Operations.CreateLoadingJob(handler);
         }
 
-        public static LoadingJob AddSceneLoadingJob(AssetReference target, IInstaller arguments, bool loadInstantly)
-        {
+        public static LoadingJob AddAsyncSceneLoadingJob
+        (
+            AssetReference target,
+            IInstaller arguments,
+            bool loadInstantly,
+            CancellationToken cancellation = default
+        ) {
             var prefetcher = new SceneLoadingPrefetcher
             (
                 target,
@@ -81,15 +105,21 @@ namespace MagicSwords.DI.Common
 
             var handler = prefetcher.PrefetchAsync
             (
-                pathExtraDependencies: () => LifetimeScope.Enqueue(arguments),
-                Application.exitCancellationToken
+                passExtraDependencies: () => LifetimeScope.Enqueue(arguments),
+                cancellation
             );
 
             return Operations.CreateLoadingJob(handler);
         }
 
-        public static LoadingJob AddSceneLoadingJob(LifetimeScope parent, AssetReference target, IInstaller arguments, bool loadInstantly)
-        {
+        public static LoadingJob AddAsyncSceneLoadingJob
+        (
+            LifetimeScope parent,
+            AssetReference target,
+            IInstaller arguments,
+            bool loadInstantly,
+            CancellationToken cancellation = default
+        ) {
             var prefetcher = new SceneLoadingPrefetcher
             (
                 target,
@@ -100,20 +130,38 @@ namespace MagicSwords.DI.Common
 
             var handler = prefetcher.PrefetchAsync
             (
-                pathExtraDependencies: () =>
+                passExtraDependencies: () => new ScopeOperations
+                (
+                    LifetimeScope.EnqueueParent(parent),
+                    LifetimeScope.Enqueue(arguments)
+                ),
+                cancellation
+            );
+
+            return Operations.CreateLoadingJob(handler);
+        }
+
+        private sealed class ScopeOperations : IDisposable
+        {
+            private readonly LifetimeScope.ParentOverrideScope _parentOverrideScope;
+            private readonly LifetimeScope.ExtraInstallationScope _extraInstallation;
+
+            public ScopeOperations
+            (
+                LifetimeScope.ParentOverrideScope parentOverrideScope,
+                LifetimeScope.ExtraInstallationScope extraInstallation
+            ) {
+                _parentOverrideScope = parentOverrideScope;
+                _extraInstallation = extraInstallation;
+            }
+
+            void IDisposable.Dispose()
+            {
+                using (_extraInstallation)
                 {
-                    var scopeOperations = DisposableBag.Create
-                    (
-                        LifetimeScope.EnqueueParent(parent),
-                        LifetimeScope.Enqueue(arguments)
-                    );
-
-                    return scopeOperations;
-                },
-                Application.exitCancellationToken
-            );
-
-            return Operations.CreateLoadingJob(handler);
+                    _parentOverrideScope.Dispose();
+                }
+            }
         }
     }
 }
