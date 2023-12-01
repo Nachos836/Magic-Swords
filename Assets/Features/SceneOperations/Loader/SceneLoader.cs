@@ -29,9 +29,9 @@ namespace MagicSwords.Features.SceneOperations.Loader
                     .ToUniTask(timing: yieldTarget, cancellationToken: cancellation)
                     .SuppressCancellationThrow();
 
-                return activatingWasCanceled
-                    ? AsyncResult.Cancel
-                    : AsyncResult.Success;
+                return activatingWasCanceled is not true
+                    ? AsyncResult.Success
+                    : AsyncResult.Cancel;
             }
             catch (Exception unexpected)
             {
@@ -54,7 +54,7 @@ namespace MagicSwords.Features.SceneOperations.Loader
                     .ToUniTask(timing: yieldTarget, cancellationToken: cancellation)
                     .SuppressCancellationThrow();
 
-                return wasCanceled
+                return wasCanceled is not true
                     ? AsyncResult.Success
                     : AsyncResult.Cancel;
             }

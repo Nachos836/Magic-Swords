@@ -34,20 +34,18 @@ namespace MagicSwords.Features.SceneOperations.Loader
         ) {
             var target = _target;
             var priority = _priority;
-            var yieldTarget = _yieldPoint;
+            var yieldPoint = _yieldPoint;
 
-            var dependenciesHandler = pathExtraDependencies.Invoke();
+            using (pathExtraDependencies.Invoke())
+            {
+                var prefetching = _instantLoad is false
+                    ? LoadWithWorkaroundDelayAsync(target, yieldPoint, priority, cancellation)
+                        .ToAsyncLazy()
+                    : LoadAsync(target, yieldPoint, priority, cancellation)
+                        .ToAsyncLazy();
 
-            var prefetching = (_instantLoad is false
-                ? LoadWithWorkaroundDelayAsync(target, yieldTarget, priority, cancellation)
-                : LoadAsync(target, yieldTarget, priority, cancellation))
-                    .ContinueWith(instance =>
-                    {
-                        using (dependenciesHandler) return UniTask.FromResult(instance);
-                    })
-                    .ToAsyncLazy();
-
-            return new Handler(prefetching, _yieldPoint);
+                return new Handler(prefetching, _yieldPoint);
+            }
         }
 
         public Handler PrefetchAsync(CancellationToken cancellation = default)
