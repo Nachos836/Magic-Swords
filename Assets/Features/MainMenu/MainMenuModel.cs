@@ -6,20 +6,24 @@ using ZBase.Foundation.Mvvm.ComponentModel;
 namespace MagicSwords.Features.MainMenu
 {
     using Generic.Functional;
+    using Logger;
     using ApplicationExit;
 
     internal sealed class MainMenuModel
     {
         private readonly Func<CancellationToken, UniTask<AsyncResult>> _sceneLoader;
         private readonly IApplicationExitRoutine _exitRoutine;
+        private readonly ILogger _logger;
 
         public MainMenuModel
         (
             Func<CancellationToken, UniTask<AsyncResult>> sceneLoader,
-            IApplicationExitRoutine exitRoutine
+            IApplicationExitRoutine exitRoutine,
+            ILogger logger
         ) {
             _sceneLoader = sceneLoader;
             _exitRoutine = exitRoutine;
+            _logger = logger;
         }
 
         public void ApplicationExitHandler(in PropertyChangeEventArgs args)
@@ -31,24 +35,25 @@ namespace MagicSwords.Features.MainMenu
         {
         }
 
-        public void StartGameHandler(in PropertyChangeEventArgs args)
+        public void StartGameHandler(in PropertyChangeEventArgs _, CancellationToken cancellation)
         {
-            InnerHandlerAsync(_sceneLoader, _exitRoutine.CancellationToken).Forget();
+            InnerHandlerAsync(_sceneLoader, _logger, cancellation).Forget();
 
             return;
 
             static async UniTaskVoid InnerHandlerAsync
             (
                 Func<CancellationToken, UniTask<AsyncResult>> loadingJob,
+                ILogger logger,
                 CancellationToken cancellation = default
             ) {
                 var result = await loadingJob.Invoke(cancellation);
 
-                await result.MatchAsync
+                result.Match
                 (
-                    success: _ => UniTask.FromResult(AsyncResult.Success),
-                    cancellation: _ => UniTask.FromResult(AsyncResult.Cancel),
-                    error: (_, _) => UniTask.FromResult(AsyncResult.Error),
+                    success: _ => logger.LogInformation("Игра началась!"),
+                    cancellation: _ => logger.LogWarning("Начало игры было отмененоё"),
+                    error: (exception, _) => logger.LogException(exception),
                     cancellation
                 );
             }

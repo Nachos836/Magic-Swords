@@ -20,14 +20,19 @@ namespace MagicSwords.Features.MainMenu
         {
             _onChangedExitNeeded += _model.ApplicationExitHandler;
             _onChangedRestartNeeded += _model.ApplicationRestartHandler;
-            _onChangedGameStarted += _model.StartGameHandler;
+            _onChangedGameStarted += OnChangedGameStarted;
         }
 
         private void OnDisable()
         {
             _onChangedExitNeeded -= _model.ApplicationExitHandler;
             _onChangedRestartNeeded -= _model.ApplicationRestartHandler;
-            _onChangedGameStarted -= _model.StartGameHandler;
+            _onChangedGameStarted -= OnChangedGameStarted;
+        }
+
+        private void OnChangedGameStarted(in PropertyChangeEventArgs args)
+        {
+            _model.StartGameHandler(args, destroyCancellationToken);
         }
 
         [RelayCommand] private void OnGameStarted() => GameStarted = !GameStarted;

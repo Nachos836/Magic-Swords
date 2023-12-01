@@ -26,7 +26,7 @@ namespace MagicSwords.DI.Root
                 .AddApplicationEntry(logger)
                 .AddRefreshRateSetupFeature(framesPerSecond: 512f)
                 .AddMessagePipeFeature()
-                .AddSceneLoaderFeature(_default.MainMenuSceneReference, loadInstantly: true);
+                .AddSceneLoaderFeature(_default.MainMenuSceneReference, loadInstantly: true, destroyCancellationToken);
         }
     }
 }

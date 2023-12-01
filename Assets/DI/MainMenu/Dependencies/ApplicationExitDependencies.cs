@@ -3,21 +3,12 @@
 namespace MagicSwords.DI.MainMenu.Dependencies
 {
     using Features.ApplicationExit;
-    using Features.ApplicationExit.Routines;
 
     internal static class ApplicationExitDependencies
     {
         public static IContainerBuilder AddApplicationExitRoutine(this IContainerBuilder builder)
         {
-            builder.Register<IApplicationExitRoutine>(static _ =>
-            {
-#           if UNITY_EDITOR
-                return new PlaymodeExitRoutine();
-#           else
-                return new RuntimeExitRoutine();
-#           endif
-
-            }, Lifetime.Scoped);
+            builder.Register<IApplicationExitRoutine, ApplicationExitRoutine>(Lifetime.Scoped);
 
             return builder;
         }

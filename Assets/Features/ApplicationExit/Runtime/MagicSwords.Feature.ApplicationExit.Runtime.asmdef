@@ -1,0 +1,16 @@
+{
+    "name": "MagicSwords.Feature.ApplicationExit.Runtime",
+    "rootNamespace": "MagicSwords",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [
+        "Editor"
+    ],
+    "allowUnsafeCode": true,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
