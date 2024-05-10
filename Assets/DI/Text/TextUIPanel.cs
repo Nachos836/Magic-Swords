@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Collections.Immutable;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine.AddressableAssets;
@@ -16,7 +16,7 @@ namespace MagicSwords.DI.Text
         private readonly LifetimeScope _parent;
         private readonly PlayerLoopTiming _loadPoint;
         private readonly PlayerLoopTiming _animationPoint;
-        private readonly IText[] _message;
+        private readonly ImmutableArray<IText> _message;
 
         public TextUIPanel
         (
@@ -24,7 +24,7 @@ namespace MagicSwords.DI.Text
             LifetimeScope parent,
             PlayerLoopTiming loadPoint,
             PlayerLoopTiming animationPoint,
-            IText[] message
+            ImmutableArray<IText> message
         ) {
             _panelScopeAsset = panelScopeAsset;
             _parent = parent;
@@ -33,13 +33,13 @@ namespace MagicSwords.DI.Text
             _message = message;
         }
 
-        UniTask<AsyncResult<IDisposable>> ITextPanel.LoadAsync(CancellationToken cancellation)
+        UniTask<AsyncResult<ScopeActivator>> ITextPanel.LoadAsync(CancellationToken cancellation)
         {
             return AsyncResult<AssetReferenceGameObject, PlayerLoopTiming>
                 .FromResult(_panelScopeAsset, _loadPoint)
                 .RunAsync(static async (panelScopeAsset, yieldPoint, token) =>
                 {
-                    return await panelScopeAsset.LoadAsync(yieldPoint, token);
+                    return await panelScopeAsset.LoadLazyAsync(yieldPoint, token);
 
                 }, cancellation)
                 .RunAsync(static (scopeGameObject, token) =>
@@ -77,9 +77,11 @@ namespace MagicSwords.DI.Text
                 }, cancellation)
                 .RunAsync(static (scope, token) =>
                 {
-                    return UniTask.FromResult<AsyncResult<IDisposable>>
+                    return UniTask.FromResult<AsyncResult<ScopeActivator>>
                     (
-                        token.IsCancellationRequested is not true ? scope : token
+                        token.IsCancellationRequested is not true
+                            ? new ScopeActivator(scope.gameObject, scope)
+                            : token
                     );
                 }, cancellation: cancellation);
         }

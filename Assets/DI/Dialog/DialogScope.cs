@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Immutable;
 using System.Linq;
 using AnySerialize;
 using JetBrains.Annotations;
@@ -30,18 +31,18 @@ namespace MagicSwords.DI.Dialog
         [AnySerialize] [UsedImplicitly] private TimeSpan SymbolsDelay { get; }
         [AnySerialize] [UsedImplicitly] private TimeSpan MessagesDelay { get; }
 
-        private IText[] _preparedReplicas = Array.Empty<IText>();
+        private ImmutableArray<IText> _preparedReplicas = ImmutableArray<IText>.Empty;
 
         protected override void Awake()
         {
             _preparedReplicas = _replicas.Select(static piece => (ITextWithPreWarm) piece)
                 .Select(piece => piece.PreWarmLazyAsync(destroyCancellationToken))
-                .ToArray();
+                .ToImmutableArray();
 
             _preparedReplicas = _preparedReplicas.Length is not 0
                 ? _preparedReplicas
                 : _replicas.Cast<IText>()
-                    .ToArray();
+                    .ToImmutableArray();
 
             base.Awake();
         }
@@ -62,7 +63,8 @@ namespace MagicSwords.DI.Dialog
                     animationPoint: FixedUpdate,
                     _preparedReplicas
 
-                ), Lifetime.Scoped).As<ITextPanel>();
+                ), Lifetime.Scoped)
+                    .As<ITextPanel>();
         }
     }
 }

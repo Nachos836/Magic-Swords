@@ -5,9 +5,9 @@ namespace MagicSwords.DI.Root.Dependencies
 {
     internal static class MessagePipeDependencies
     {
-        public static IContainerBuilder AddMessagePipeFeature(this IContainerBuilder builder)
+        public static IContainerBuilder AddMessagePipeFeature(this IContainerBuilder builder, out MessagePipeOptions options)
         {
-            builder.RegisterMessagePipe(configure: static pipeOptions =>
+            options = builder.RegisterMessagePipe(configure: static pipeOptions =>
             {
 #               if DEBUG
                 // EnableCaptureStackTrace slows performance
@@ -16,8 +16,8 @@ namespace MagicSwords.DI.Root.Dependencies
                 pipeOptions.HandlingSubscribeDisposedPolicy = HandlingSubscribeDisposedPolicy.Throw;
 #               endif
 
-                pipeOptions.InstanceLifetime = InstanceLifetime.Scoped;
-                pipeOptions.RequestHandlerLifetime = InstanceLifetime.Scoped;
+                pipeOptions.InstanceLifetime = InstanceLifetime.Singleton;
+                pipeOptions.RequestHandlerLifetime = InstanceLifetime.Singleton;
             });
 
             builder.RegisterBuildCallback(static resolver => GlobalMessagePipe.SetProvider(resolver.AsServiceProvider()));

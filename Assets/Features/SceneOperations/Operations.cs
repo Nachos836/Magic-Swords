@@ -9,16 +9,18 @@ namespace MagicSwords.Features.SceneOperations
     using Loader;
     using Switcher;
 
+    public delegate UniTask<AsyncResult<AsyncLazy>> LoadingJob(CancellationToken cancellation = default);
+
     internal static class Operations
     {
-        public static Func<CancellationToken, UniTask<AsyncResult>> CreateLoadingJob
+        public static LoadingJob CreateLoadingJob
         (
             SceneLoadingPrefetcher.Handler handler
         ) {
             var continuation = handler.Continuation;
             var yieldTarget = handler.YieldContext;
 
-            return token => SceneLoader.PrefetchedLoadingJob(continuation, yieldTarget, token);
+            return token => SceneAsyncRoutines.PrefetchedLoadingJob(continuation, yieldTarget, token);
         }
 
         public static Func<CancellationToken, UniTask<AsyncResult>> CreateLoadingJob
@@ -26,7 +28,7 @@ namespace MagicSwords.Features.SceneOperations
             AssetReference target,
             PlayerLoopTiming yieldTarget
         ) {
-            return token => SceneLoader.RegularLoadingJob(target, yieldTarget, token);
+            return token => SceneAsyncRoutines.RegularLoadingJob(target, yieldTarget, token);
         }
 
         public static Func<CancellationToken, UniTask<AsyncResult>> CreateSwitchingJob(SceneSwitchingPrefetcher.Handler handler)

@@ -24,7 +24,7 @@ namespace MagicSwords.DI.MainMenu
 
             builder
                 .AddApplicationExitRoutine()
-                .AddMainMenuModel(_gameplayScene, destroyCancellationToken)
+                .AddMainMenuModel(_gameplayScene, cancellation: destroyCancellationToken)
                 .AddMainMenuViewModel(_mainMenuViewModel!)
                 .AddPlayerInput()
                 .AddUIInput();

@@ -1,3 +1,5 @@
+using MagicSwords.Features.SceneOperations;
+using MessagePipe;
 using NaughtyAttributes;
 using UnityEngine;
 using VContainer;
@@ -25,8 +27,9 @@ namespace MagicSwords.DI.Root
                 .AddUnityBasedLogger(out var logger)
                 .AddApplicationEntry(logger)
                 .AddRefreshRateSetupFeature(framesPerSecond: 512f)
-                .AddMessagePipeFeature()
-                .AddSceneLoaderFeature(_default.MainMenuSceneReference, loadInstantly: true, destroyCancellationToken);
+                .AddMessagePipeFeature(out var options)
+                .AddSceneLoaderFeature(_default.MainMenuSceneReference, loadInstantly: true, destroyCancellationToken)
+                .RegisterMessageBroker<LoadingJob>(options);
         }
     }
 }

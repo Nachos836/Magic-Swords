@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using MagicSwords.Features.SceneOperations;
 using ZBase.Foundation.Mvvm.ComponentModel;
 
 namespace MagicSwords.Features.MainMenu
@@ -11,18 +12,18 @@ namespace MagicSwords.Features.MainMenu
 
     internal sealed class MainMenuModel
     {
-        private readonly Func<CancellationToken, UniTask<AsyncResult>> _sceneLoader;
         private readonly IApplicationExitRoutine _exitRoutine;
+        private readonly LoadingJob _sceneLoader;
         private readonly ILogger _logger;
 
         public MainMenuModel
         (
-            Func<CancellationToken, UniTask<AsyncResult>> sceneLoader,
             IApplicationExitRoutine exitRoutine,
+            LoadingJob sceneLoader,
             ILogger logger
         ) {
-            _sceneLoader = sceneLoader;
             _exitRoutine = exitRoutine;
+            _sceneLoader = sceneLoader;
             _logger = logger;
         }
 
@@ -43,17 +44,39 @@ namespace MagicSwords.Features.MainMenu
 
             static async UniTaskVoid InnerHandlerAsync
             (
-                Func<CancellationToken, UniTask<AsyncResult>> loadingJob,
+                LoadingJob sceneLoader,
                 ILogger logger,
                 CancellationToken cancellation = default
             ) {
-                var result = await loadingJob.Invoke(cancellation);
+                var result = await sceneLoader.Invoke(cancellation);
 
-                result.Match
+                await result.MatchAsync
                 (
-                    success: _ => logger.LogInformation("Игра началась!"),
-                    cancellation: _ => logger.LogWarning("Начало игры было отмененоё"),
-                    error: (exception, _) => logger.LogException(exception),
+                    success: async (sceneHandler, token) =>
+                    {
+                        if (token.IsCancellationRequested) return;
+
+                        logger.LogInformation("Игра началась!");
+
+                        // await UniTask.Delay(TimeSpan.FromSeconds(3), DelayType.Realtime, PlayerLoopTiming.Update, token, cancelImmediately: true)
+                        //     .SuppressCancellationThrow();
+                        //
+                        // await sceneHandler;
+
+                        logger.LogInformation("Сцена с игрой выгружена!");
+                    },
+                    cancellation: _ =>
+                    {
+                        logger.LogWarning("Начало игры было отмененоё");
+
+                        return UniTask.CompletedTask;
+                    },
+                    error: (exception, _) =>
+                    {
+                        logger.LogException(exception);
+
+                        return UniTask.CompletedTask;
+                    },
                     cancellation
                 );
             }

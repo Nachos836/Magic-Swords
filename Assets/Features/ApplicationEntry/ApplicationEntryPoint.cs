@@ -1,28 +1,32 @@
 ﻿using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using MessagePipe;
 using VContainer.Unity;
 
 namespace MagicSwords.Features.ApplicationEntry
 {
-    using Generic.Functional;
     using Logger;
+    using SceneOperations;
 
     internal sealed class ApplicationEntryPoint : IAsyncStartable, IDisposable
     {
-        private readonly Func<CancellationToken, UniTask<AsyncResult>> _sceneLoader;
+        private readonly LoadingJob _menuLoader;
         private readonly PlayerLoopTiming _initializationPoint;
+        private readonly IBufferedAsyncPublisher<LoadingJob> _mainMenuUnLoader;
         private readonly ILogger _logger;
 
         public ApplicationEntryPoint
         (
-            Func<CancellationToken, UniTask<AsyncResult>> sceneLoader,
+            LoadingJob menuLoader,
             PlayerLoopTiming initializationPoint,
-            ILogger logger
+            ILogger logger,
+            IBufferedAsyncPublisher<LoadingJob> mainMenuUnLoader
         ) {
-            _sceneLoader = sceneLoader;
+            _menuLoader = menuLoader;
             _initializationPoint = initializationPoint;
             _logger = logger;
+            _mainMenuUnLoader = mainMenuUnLoader;
         }
 
         async UniTask IAsyncStartable.StartAsync(CancellationToken cancellation)
@@ -32,14 +36,17 @@ namespace MagicSwords.Features.ApplicationEntry
 
             _logger.LogInformation("Ура, мы начали проект!!!");
 
-            var loading = await _sceneLoader.Invoke(cancellation);
+            var loading = await _menuLoader.Invoke(cancellation);
             await loading.MatchAsync
             (
-                success: _ =>
+                success: async (sceneHandler, token) =>
                 {
+                    if (token.IsCancellationRequested) return;
+
                     _logger.LogInformation("Мы загрузились!!");
 
-                    return UniTask.CompletedTask;
+                    await _mainMenuUnLoader.PublishAsync(default!, token)
+                        .SuppressCancellationThrow();
                 },
                 cancellation: _ =>
                 {

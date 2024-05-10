@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using Unity.Burst;
 
@@ -46,6 +47,40 @@ namespace MagicSwords.Features.Generic.Functional
         public static implicit operator AsyncResult<TValue> (CancellationToken cancellation) => new (cancellation);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator AsyncResult<TValue> (Exception exception) => new (exception);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static AsyncResult<TValue> Wrap(Func<TValue> unsafeCode)
+        {
+            try
+            {
+                return unsafeCode.Invoke();
+            }
+            catch (Exception exception) when (exception is OperationCanceledException or TaskCanceledException)
+            {
+                return Cancel;
+            }
+            catch (Exception exception)
+            {
+                return exception;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static async UniTask<AsyncResult<TValue>> WrapAsync(Func<CancellationToken, UniTask<TValue>> unsafeCode, CancellationToken cancellation = default)
+        {
+            try
+            {
+                return await unsafeCode.Invoke(cancellation);
+            }
+            catch (Exception exception) when (exception is OperationCanceledException or TaskCanceledException)
+            {
+                return Cancel;
+            }
+            catch (Exception exception)
+            {
+                return exception;
+            }
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static AsyncResult<TValue> FromResult(TValue value) => value;

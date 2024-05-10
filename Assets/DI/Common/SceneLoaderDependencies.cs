@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Threading;
-using Cysharp.Threading.Tasks;
-using MessagePipe;
-using UnityEngine;
 using UnityEngine.AddressableAssets;
 using VContainer;
 using VContainer.Unity;
@@ -13,8 +10,6 @@ namespace MagicSwords.DI.Common
 {
     using Features.SceneOperations;
     using Features.SceneOperations.Loader;
-
-    using LoadingJob = Func<CancellationToken, UniTask<Features.Generic.Functional.AsyncResult>>;
 
     internal static class SceneLoaderDependencies
     {

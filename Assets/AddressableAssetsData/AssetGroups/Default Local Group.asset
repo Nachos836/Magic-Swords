@@ -15,20 +15,20 @@ MonoBehaviour:
   m_GroupName: Default Local Group
   m_Data:
     m_SerializedData: []
-  m_GUID: 3a3dca4fd95eb144aa15d631ec61e87c
+  m_GUID: b1ea1610a4e443e43a7bbd3564f4ada6
   m_SerializeEntries:
-  - m_GUID: 3df0ec48d6388c9429215cb5bdcd9bc7
-    m_Address: Assets/Features/MainMenu/scn_scope.mainMenu_01.unity
+  - m_GUID: fa8cfcda8daf6e04698e4e7a89e240cb
+    m_Address: Assets/Features
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 283c6464ad13d9f4c8a17dbddb6b9ccb
-    m_Address: Assets/Features/Dialog/scn_scope.dialog_01.unity
+  - m_GUID: 709f11a7f3c4041caa4ef136ea32d874
+    m_Address: Assets/Settings
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 3cd6fa004309adc4f98136428de162cb
-    m_Address: Assets/DI/Text/pref_ctrl.scope.Text.Replica_01.prefab
+  - m_GUID: a190421edaa73c3458fc82fe52c318fe
+    m_Address: Assets/DI
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

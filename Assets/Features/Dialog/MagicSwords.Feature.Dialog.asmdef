@@ -3,8 +3,10 @@
     "rootNamespace": "MagicSwords",
     "references": [
         "GUID:b0214a6008ed146ff8f122a6a9c2f6cc",
+        "GUID:08b38f39e2d9e594389b7a4cf4c2c338",
         "GUID:d971d2c0ddc949c5a73560db7ef2240a",
         "GUID:029a200e5e100b6409cd09400ec533a9",
+        "GUID:813278abd41bbbd4c81556716e32b716",
         "GUID:dca501fc55854e588956c6a23da7c4cc",
         "GUID:a74e0d534a2d4c62b104bbfd42abd6f6",
         "GUID:47d15c5a19434a50b059501194e4a6ff",

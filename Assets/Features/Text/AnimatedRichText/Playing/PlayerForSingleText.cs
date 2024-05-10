@@ -69,7 +69,8 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Playing
         private readonly IText _text;
         private readonly IFixedCurrentTimeProvider _currentTime;
         private readonly IFixedDeltaTimeProvider _deltaTime;
-        private readonly PlayerLoopTiming _yieldPoint;
+        private readonly PlayerLoopTiming _presentationPoint;
+        private readonly PlayerLoopTiming _initializationPoint;
         private readonly IInputFor<ReadingSkip> _inputForSkip;
 
         public PlayerForSingleText
@@ -78,20 +79,22 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Playing
             IText text,
             IFixedCurrentTimeProvider currentTime,
             IFixedDeltaTimeProvider deltaTime,
-            PlayerLoopTiming yieldPoint,
+            PlayerLoopTiming presentationPoint,
+            PlayerLoopTiming initializationPoint,
             IInputFor<ReadingSkip> inputForSkip
         ) {
             _field = field;
             _text = text;
             _currentTime = currentTime;
-            _yieldPoint = yieldPoint;
-            _inputForSkip = inputForSkip;
             _deltaTime = deltaTime;
+            _presentationPoint = presentationPoint;
+            _initializationPoint = initializationPoint;
+            _inputForSkip = inputForSkip;
         }
 
         async UniTask<AsyncResult<DissolveAnimationsHandler>> ITextPlayer.PlayAsync(CancellationToken cancellation)
         {
-            await UniTask.Yield(Initialization, cancellation, cancelImmediately: true)
+            await UniTask.Yield(_initializationPoint, cancellation, cancelImmediately: true)
                 .SuppressCancellationThrow();
 
             var duration = TimeSpan.FromTicks(1);
@@ -118,14 +121,14 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Playing
             cancellation.RegisterWithoutCaptureExecutionContext(() => idleLasting.Dispose());
 
             var idleEffects = new Queue<IdleAsyncEffect>((uint)_field.textInfo.characterInfo.Length);
-            IdleEffectsLoopAsync(idleEffects, _currentTime, _yieldPoint, idleLasting.Token)
+            IdleEffectsLoopAsync(idleEffects, _currentTime, _presentationPoint, idleLasting.Token)
                 .Forget();
 
-            await using var _ = FieldUpdateHandler.BuildAsync(_field, _yieldPoint, idleLasting.Token);
+            await using var _ = FieldUpdateHandler.BuildAsync(_field, _presentationPoint, idleLasting.Token);
 
             if (await preparationEnumerator.MoveNextAsync()) await preparationEnumerator.Current.Execute(cancellation);
 
-            await UniTask.Yield(_yieldPoint, cancellation, cancelImmediately: true)
+            await UniTask.Yield(_presentationPoint, cancellation, cancelImmediately: true)
                 .SuppressCancellationThrow();
 
             AsyncRichResult iteration;
@@ -134,11 +137,11 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Playing
                 var (iterationIndex, nextOneIterated, allHasIterated) = await UniTask.WhenAny
                 (
                     task1: ProcessNextAsync(revealEnumerator, idleEffectsEnumerator, cancellation),
-                    task2: ProcessAllAtOnceAsync(revealEnumerator, idleEffectsEnumerator, idleEffects, _inputForSkip, _yieldPoint, _field, cancellation)
+                    task2: ProcessAllAtOnceAsync(revealEnumerator, idleEffectsEnumerator, idleEffects, _inputForSkip, _presentationPoint, _field, cancellation)
                 );
 
                 iteration = iterationIndex is 0
-                    ? await nextOneIterated.RunAsync(async token => await ApplyNextEffectsAsync(revealEnumerator, idleEffectsEnumerator, idleEffects, _yieldPoint, token), cancellation)
+                    ? await nextOneIterated.RunAsync(async token => await ApplyNextEffectsAsync(revealEnumerator, idleEffectsEnumerator, idleEffects, _presentationPoint, token), cancellation)
                     : allHasIterated;
 
                 if (iteration.IsCancellation) return AsyncResult<DissolveAnimationsHandler>.Cancel;
@@ -178,8 +181,8 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Playing
 
             var (interruptionIndex, actionInterrupted, timeoutInterrupted) = await UniTask.WhenAny
             (
-                task1: InputActionInterruptionAsync(_inputForSkip, _yieldPoint, cancellation),
-                task2: TimeoutInterruptionAsync(interruptionTimeout, _yieldPoint, cancellation)
+                task1: InputActionInterruptionAsync(_inputForSkip, _presentationPoint, cancellation),
+                task2: TimeoutInterruptionAsync(interruptionTimeout, _presentationPoint, cancellation)
             );
             var interruption = interruptionIndex is 0 ? actionInterrupted : timeoutInterrupted;
 
@@ -190,7 +193,7 @@ namespace MagicSwords.Features.Text.AnimatedRichText.Playing
                 idleLasting,
                 _inputForSkip,
                 _field.textInfo.characterInfo.Length,
-                _yieldPoint
+                _presentationPoint
             ));
 
             static async UniTaskVoid IdleEffectsLoopAsync
